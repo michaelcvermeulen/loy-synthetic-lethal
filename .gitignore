@@ -1,0 +1,60 @@
+# --- Data file types -----------------------------------------------------
+# Raw and processed data are not tracked. Place them under data/ locally;
+# see data/README.md for the expected layout.
+*.rds
+*.RData
+*.rda
+*.bam
+*.bai
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.vcf
+*.vcf.gz
+*.bed
+*.bedGraph
+*.bw
+*.h5
+*.h5ad
+*.loom
+*.mtx
+*.csv
+*.tsv
+*.txt
+
+# --- data/ directory -----------------------------------------------------
+# Block everything under data/ except its README.
+# To allow a specific small metadata file, add a negation below, e.g.:
+#   !data/metadata/samples.csv
+data/*
+!data/README.md
+
+# --- R session files -----------------------------------------------------
+.Rhistory
+.RData
+.Ruserdata
+
+# --- renv ----------------------------------------------------------------
+# Keep renv.lock and renv/activate.R tracked; ignore the local library.
+renv/library/
+renv/staging/
+renv/python/
+
+# --- knitr / rmarkdown intermediates -------------------------------------
+# Final knitted HTMLs in docs/ ARE tracked (primary deliverable).
+*_cache/
+*_files/
+
+# --- OS ------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- IDE -----------------------------------------------------------------
+.Rproj.user/
+.vscode/
+
+# --- Frontenac / SLURM ---------------------------------------------------
+slurm-*.out
+*.e[0-9]*
+*.o[0-9]*
