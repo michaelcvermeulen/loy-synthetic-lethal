@@ -2217,7 +2217,227 @@ if (!is.null(p_box_dn_par)) {
 
 ***
 
-# 11. Session Info
+# 11. LOY vs combined controls (PARENTAL + sgCTRL)
+
+**PARENTAL and sgCTRL samples are pooled** as a single Y+ baseline (n = 6) and
+contrasted against **LOY** (n = 3). The motivation: if the sgRNA treatment
+itself has no measurable effect (which we expect for a non-targeting guide),
+pooling gives more statistical power to detect LOY-driven changes. The cost is
+that any residual sgRNA-specific effect is folded into the baseline noise;
+section 4's paired sgCTRL-only contrast remains the primary analysis. This
+section is the complementary view.
+
+## 11.1 Pooled-design setup
+
+```{r pooled-setup}
+# Start from the full dge (all 9 samples, TMM normalized in section 2).
+dge_pool <- dge
+
+# Remove Y-chromosome genes (consistent with the LOY-vs-sgCTRL contrast).
+chrY_idx_pool <- which(
+  gsub("\\.\\d+$", "", rownames(dge_pool$counts)) %in% chrY_gene_ids)
+if (length(chrY_idx_pool) > 0) {
+  cat("Removing", length(chrY_idx_pool), "Y chromosome genes\n")
+  dge_pool <- dge_pool[-chrY_idx_pool, , keep.lib.sizes = FALSE]
+}
+
+# Re-normalize on the full 9-sample working set.
+dge_pool <- calcNormFactors(dge_pool, method = "TMM")
+
+# Build a 2-level "Y status" factor: PARENTAL + CTRL -> Y_POS, LOY -> Y_NEG.
+dge_pool$samples$y_pool <- factor(
+  ifelse(as.character(dge_pool$samples$treatment) == "LOY", "Y_NEG", "Y_POS"),
+  levels = c("Y_POS", "Y_NEG"))
+
+cat(sprintf("Pooled design: %d Y_POS (PARENTAL + CTRL) vs %d Y_NEG (LOY)\n",
+            sum(dge_pool$samples$y_pool == "Y_POS"),
+            sum(dge_pool$samples$y_pool == "Y_NEG")))
+```
+
+## 11.2 DE: limma-voom
+
+Unpaired design — `Y_POS` contributes two samples per passage (one PARENTAL +
+one CTRL), so there is no clean within-passage blocking structure. The
+passage covariate from section 4's paired model is intentionally dropped here.
+
+```{r pooled-de}
+design_pool <- model.matrix(~ 0 + y_pool, data = dge_pool$samples)
+colnames(design_pool) <- gsub("^y_pool", "", colnames(design_pool))
+cat("Design columns:", paste(colnames(design_pool), collapse = ", "), "\n")
+
+de_loy_pool <- run_de_contrast(
+  dge_pool, design_pool, contrast_name = "Y_NEG - Y_POS")
+
+cat(sprintf("\nLOY vs pooled Y+ baseline: %d genes tested\n",
+            nrow(de_loy_pool)))
+cat(sprintf("  FDR < 0.05:              %d\n",
+            sum(de_loy_pool$FDR < 0.05)))
+cat(sprintf("  FDR < %g & |logFC| > %g:  %d (up: %d, down: %d)\n",
+            ALPHA, LFC_THR,
+            sum(de_loy_pool$FDR < ALPHA & abs(de_loy_pool$logFC) > LFC_THR),
+            sum(de_loy_pool$FDR < ALPHA & de_loy_pool$logFC >  LFC_THR),
+            sum(de_loy_pool$FDR < ALPHA & de_loy_pool$logFC < -LFC_THR)))
+
+fwrite(de_loy_pool,
+       file.path(DE_DIR, "ht1080_LOY_v_pooled_DE.csv"))
+```
+
+## 11.3 Volcano
+
+```{r pooled-volcano, fig.height=6, fig.width=7}
+# Local volcano with the pooled-contrast label, otherwise identical to §4.
+p_v_pool <- make_volcano(
+  de_loy_pool,
+  "HT1080: LOY vs pooled Y+ (PARENTAL + sgCTRL)") +
+  labs(x = expression(log[2]~"Fold Change (LOY / Y+ pooled)"))
+print(p_v_pool)
+save_fig(p_v_pool, "volcano_LOY_v_pooled", width = 7, height = 6)
+```
+
+## 11.4 fgsea (basic collections)
+
+```{r pooled-gsea-run}
+ranks_pool <- prep_ranks_t(de_loy_pool)
+ranks_pool <- ranks_pool[!names(ranks_pool) %in% ribo_hits]
+cat(sprintf("Pooled ranks: %d genes (after RPS/RPL filter)\n",
+            length(ranks_pool)))
+
+set.seed(42)
+cat("Running fgsea (basic collections) for LOY vs pooled Y+...\n")
+gsea_pool <- run_fgsea_all(ranks_pool, pathways)
+fwrite(gsea_pool, file.path(GSEA_DIR, "ht1080_LOY_v_pooled_gsea.csv"))
+
+gsea_pool %>%
+  group_by(collection) %>%
+  summarize(
+    total    = n(),
+    sig_up   = sum(padj < 0.05 & NES > 0),
+    sig_down = sum(padj < 0.05 & NES < 0),
+    .groups  = "drop"
+  ) %>%
+  knitr::kable(caption = "LOY vs pooled Y+ — Significant pathways by collection")
+```
+
+## 11.5 GSEA dotplot (pooled)
+
+```{r pooled-gsea-dotplot, fig.height=6, fig.width=5.5}
+pub_dot_pool <- gsea_pool %>%
+  group_by(sign(NES)) %>%
+  slice_min(pval, n = 15) %>%
+  ungroup() %>%
+  mutate(
+    pathway_clean = gsub("^HALLMARK_|^REACTOME_|^KEGG_|^GOBP_|^GO_",
+                         "", pathway),
+    pathway_clean = gsub("_", " ", pathway_clean),
+    pathway_clean = str_to_title(pathway_clean),
+    pathway_clean = str_wrap(pathway_clean, 40),
+    sig_label = case_when(
+      padj < 0.001 ~ "***",
+      padj < 0.01  ~ "**",
+      padj < 0.05  ~ "*",
+      TRUE          ~ ""
+    ),
+    pathway_label = paste0(pathway_clean, "  ", sig_label),
+    pathway_label = fct_reorder(pathway_label, NES)
+  )
+
+p_dot_pool <- ggplot(pub_dot_pool,
+                     aes(x = NES, y = pathway_label,
+                         size = -log10(padj), fill = NES)) +
+  geom_point(shape = 21, color = "black", stroke = 0.3) +
+  scale_fill_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B",
+                       midpoint = 0, name = "NES",
+                       guide = guide_colorbar(barwidth = 0.5, barheight = 2.5)) +
+  scale_size_continuous(range = c(1.5, 5),
+                        name = expression(-log[10](p[adj])),
+                        guide = guide_legend(
+                          override.aes = list(fill = "grey50"))) +
+  geom_vline(xintercept = 0, linetype = "dashed",
+             color = "grey50", linewidth = 0.3) +
+  labs(x = "Normalized Enrichment Score (NES)", y = NULL,
+       subtitle = "← Enriched in pooled Y+      Enriched in LOY →",
+       caption = "* padj < 0.05    ** padj < 0.01    *** padj < 0.001") +
+  theme_classic(base_size = 8) +
+  theme(
+    axis.text.y      = element_text(size = 5.5, lineheight = 0.85),
+    axis.text.x      = element_text(size = 7),
+    axis.title.x     = element_text(size = 7),
+    plot.subtitle    = element_text(size = 6.5, hjust = 0.5, face = "italic"),
+    legend.title     = element_text(size = 6),
+    legend.text      = element_text(size = 5.5),
+    legend.key.size  = unit(0.3, "cm"),
+    legend.spacing.y = unit(0.1, "cm"),
+    plot.caption     = element_text(size = 5.5, hjust = 0, face = "italic"),
+    plot.margin      = margin(5, 5, 5, 5)
+  )
+
+print(p_dot_pool)
+save_fig(p_dot_pool, "gsea_dotplot_pooled", width = 5.5, height = 6)
+```
+
+## 11.6 Hit concordance: paired sgCTRL vs pooled Y+
+
+How well do the two contrasts agree? If the sgRNA control behaves like the
+parental, the pooled contrast should sharpen the statistics without changing
+the qualitative picture.
+
+```{r pooled-overlap, fig.height=6, fig.width=7}
+sig_paired <- de_loy_ctrl %>%
+  dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
+  pull(gene_name) %>% unique()
+sig_pool   <- de_loy_pool %>%
+  dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
+  pull(gene_name) %>% unique()
+
+cat(sprintf("Paired LOY-vs-sgCTRL DEGs:  %d\n", length(sig_paired)))
+cat(sprintf("Pooled LOY-vs-Y+ DEGs:      %d\n", length(sig_pool)))
+cat(sprintf("Intersection:                %d\n",
+            length(intersect(sig_paired, sig_pool))))
+cat(sprintf("Paired-only:                 %d\n",
+            length(setdiff(sig_paired, sig_pool))))
+cat(sprintf("Pooled-only:                 %d\n",
+            length(setdiff(sig_pool, sig_paired))))
+
+shared <- inner_join(
+  de_loy_ctrl %>% dplyr::select(gene_name, logFC_paired = logFC,
+                                FDR_paired = FDR),
+  de_loy_pool %>% dplyr::select(gene_name, logFC_pool = logFC,
+                                FDR_pool = FDR),
+  by = "gene_name") %>%
+  dplyr::filter(!is.na(logFC_paired), !is.na(logFC_pool))
+
+both_sig <- shared %>% dplyr::filter(
+  FDR_paired < ALPHA, FDR_pool < ALPHA,
+  abs(logFC_paired) > LFC_THR, abs(logFC_pool) > LFC_THR)
+
+p_concord <- ggplot(shared,
+                    aes(x = logFC_paired, y = logFC_pool)) +
+  geom_point(alpha = 0.25, size = 0.6, color = "grey60") +
+  geom_point(data = both_sig, alpha = 0.85, size = 1.5, color = "#D55E00") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+              color = "grey40", linewidth = 0.4) +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "grey60") +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "grey60") +
+  labs(
+    title = "logFC concordance — paired sgCTRL vs pooled Y+",
+    subtitle = sprintf(
+      "Pearson r = %.3f  (orange: significant in both at FDR<%g, |logFC|>%g)",
+      cor(shared$logFC_paired, shared$logFC_pool, use = "complete.obs"),
+      ALPHA, LFC_THR),
+    x = expression(log[2]~"FC (LOY / sgCTRL, paired)"),
+    y = expression(log[2]~"FC (LOY / Y+ pooled, unpaired)")
+  ) +
+  theme_classic(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 12),
+        plot.subtitle = element_text(size = 9, color = "grey30"))
+
+print(p_concord)
+save_fig(p_concord, "concordance_paired_v_pooled", width = 7, height = 6)
+```
+
+***
+
+# 12. Session Info
 
 ```{r session-info}
 sessionInfo()
