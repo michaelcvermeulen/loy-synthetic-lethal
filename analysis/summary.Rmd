@@ -3,14 +3,7 @@ title: "LOY synthetic lethality — condensed reference"
 subtitle: "One-page summary across all analyses, for PIs and lab members"
 author: "Mike Vermeulen"
 date: "`r format(Sys.Date(), '%Y-%m-%d')`"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 2
-    theme: flatly
-    highlight: tango
-    df_print: paged
+output: rmdformats::readthedown
 ---
 
 > **How to use this document.** This is the condensed, "what do I actually

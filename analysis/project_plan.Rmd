@@ -2,14 +2,7 @@
 title: "Project and thesis plan — LOY synthetic lethality"
 author: "Mike Vermeulen"
 date: "`r format(Sys.Date(), '%Y-%m-%d')`"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
-    theme: flatly
-    highlight: tango
-    df_print: paged
+output: rmdformats::readthedown
 ---
 
 # Purpose of this document

@@ -1,0 +1,12 @@
+rmdformats::readthedown:
+  toc_depth: 3
+  number_sections: false
+  use_bookdown: false
+  highlight: tango
+  code_folding: hide
+  self_contained: true
+  fig_width: 8
+  fig_height: 5
+  fig_caption: true
+  df_print: paged
+  css: styles.css
