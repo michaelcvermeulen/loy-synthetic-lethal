@@ -359,7 +359,7 @@ save_fig(p_lc_13, "pca_loy_ctrl_pc1_pc3", width = 7, height = 5)
 
 ## 2.5 Sample distance heatmap
 
-```{r sample-distance, fig.height=4.5, fig.width=5.5}
+```{r sample-distance, fig.height=6, fig.width=6}
 sample_dist <- as.matrix(dist(t(lcpm)))
 rownames(sample_dist) <- colnames(lcpm)
 colnames(sample_dist) <- colnames(lcpm)
@@ -380,6 +380,8 @@ pheatmap(sample_dist,
          annotation_col = ann_col,
          annotation_colors = ann_colors,
          show_colnames = FALSE,
+         cellwidth = 25,
+         cellheight = 25,
          main = "HT1080 Sample Distance Matrix")
 ```
 
@@ -781,7 +783,7 @@ save_fig(p_dot_basic, "gsea_dotplot_basic", width = 5.5, height = 6)
 
 ## 5.6 Top Hallmark enrichment plots
 
-```{r gsea-enrichment, fig.height=8, fig.width=10}
+```{r gsea-enrichment, fig.height=6, fig.width=12}
 top_hall <- gsea_loy_ctrl %>%
   dplyr::filter(padj < 0.05, collection == "hallmark") %>%
   group_by(sign(NES)) %>%
@@ -796,7 +798,7 @@ if (length(top_hall) > 0) {
   })
   p_enrich <- ggarrange(plotlist = enrich_plots, ncol = 3, nrow = 2)
   print(p_enrich)
-  save_fig(p_enrich, "gsea_enrichment_top_hallmark", width = 10, height = 8)
+  save_fig(p_enrich, "gsea_enrichment_top_hallmark", width = 12, height = 6)
 } else {
   cat("No significant Hallmark pathways at padj < 0.05\n")
 }
@@ -1075,7 +1077,7 @@ if (nrow(chrom_dot) > 0) {
 
 ## 7.2 Enrichment curves for top chromatin pathways
 
-```{r gsea-chromatin-enrichment, fig.height=7, fig.width=10}
+```{r gsea-chromatin-enrichment, fig.height=6, fig.width=12}
 top_chrom_paths <- chrom_dot %>%
   dplyr::filter(padj < 0.05) %>%
   arrange(pval) %>%
@@ -1093,7 +1095,7 @@ if (length(top_chrom_paths) > 0) {
   p_chrom_enrich <- ggarrange(plotlist = chrom_plots, ncol = 3, nrow = 2)
   print(p_chrom_enrich)
   save_fig(p_chrom_enrich, "gsea_enrichment_chromatin",
-           width = 10, height = 7)
+           width = 12, height = 6)
 } else {
   cat("No chromatin pathways reach padj < 0.05.\n")
 }
@@ -1273,7 +1275,7 @@ if (nrow(nras_combined) > 0) {
 
 ## 8.2 Enrichment curves: RAS/MAPK + cell cycle
 
-```{r gsea-nras-enrichment, fig.height=7, fig.width=10}
+```{r gsea-nras-enrichment, fig.height=6, fig.width=12}
 focus_paths <- c("HALLMARK_KRAS_SIGNALING_UP",
                  "HALLMARK_KRAS_SIGNALING_DN",
                  "HALLMARK_E2F_TARGETS",
@@ -1294,7 +1296,7 @@ if (length(focus_plots) > 0) {
   p_focus <- ggarrange(plotlist = focus_plots, ncol = 3, nrow = 2)
   print(p_focus)
   save_fig(p_focus, "gsea_enrichment_nras_cellcycle",
-           width = 10, height = 7)
+           width = 12, height = 6)
 }
 ```
 
@@ -1664,7 +1666,7 @@ if (length(top_tfs) > 0) {
 
 ## 9.7 TF regulon overlay on DE volcano (top 6)
 
-```{r tf-regulon-volcano, fig.height=10, fig.width=15}
+```{r tf-regulon-volcano, fig.height=18, fig.width=12}
 make_regulon_volcano <- function(tf_name, de_data, regulon_genes, nes, padj_val) {
   direction_label <- ifelse(nes > 0, "Activated", "Repressed")
 
@@ -1758,10 +1760,10 @@ for (i in seq_len(n_panels)) {
 }
 
 if (length(regulon_plots) > 0) {
-  p_tf_reg <- wrap_plots(regulon_plots, ncol = 3)
+  p_tf_reg <- wrap_plots(regulon_plots, ncol = 2)
   print(p_tf_reg)
   save_fig(p_tf_reg, "tf_regulon_targets_LOY_v_sgCTRL",
-           width = 15, height = 10)
+           width = 12, height = 18)
 }
 ```
 
@@ -2080,22 +2082,42 @@ Per-sample logCPM for the strongest individual differentially-expressed genes
 pathway view.
 
 ```{r top-deg-setup}
-box_genes <- function(genes_to_plot, title) {
-  genes_to_plot <- intersect(genes_to_plot, rownames(lcpm_sym))
+# Full-sample (LOY + CTRL + PARENTAL) logCPM matrix, symbol-keyed.
+# Used by the "with PARENTAL" boxplot tabs to show parental expression as
+# the untreated baseline alongside the LOY vs sgCTRL contrast.
+lcpm_sym_full <- cpm(dge, log = TRUE, prior.count = 2)
+rownames(lcpm_sym_full) <- dge$genes$gene_name
+
+box_genes <- function(genes_to_plot, title, include_parental = FALSE) {
+  if (include_parental) {
+    mat        <- lcpm_sym_full
+    dge_obj    <- dge
+    trt_levels <- c("PARENTAL", "CTRL", "LOY")
+    ann_x      <- 2.5  # between CTRL (x=2) and LOY (x=3)
+    sub_extra  <- "; PARENTAL shown as untreated baseline"
+  } else {
+    mat        <- lcpm_sym
+    dge_obj    <- dge_lc
+    trt_levels <- c("CTRL", "LOY")
+    ann_x      <- 1.5  # between CTRL (x=1) and LOY (x=2)
+    sub_extra  <- ""
+  }
+
+  genes_to_plot <- intersect(genes_to_plot, rownames(mat))
   if (length(genes_to_plot) == 0) return(NULL)
 
-  df <- lcpm_sym[genes_to_plot, , drop = FALSE] %>%
+  df <- mat[genes_to_plot, , drop = FALSE] %>%
     as.data.frame() %>%
     rownames_to_column("gene") %>%
     pivot_longer(-gene, names_to = "sample", values_to = "logCPM") %>%
     left_join(
-      dge_lc$samples %>%
+      dge_obj$samples %>%
         rownames_to_column("sample") %>%
         dplyr::select(sample, treatment, passage),
       by = "sample"
     ) %>%
     mutate(
-      treatment = factor(treatment, levels = c("CTRL", "LOY")),
+      treatment = factor(treatment, levels = trt_levels),
       gene      = factor(gene, levels = genes_to_plot)
     )
 
@@ -2109,14 +2131,15 @@ box_genes <- function(genes_to_plot, title) {
     geom_point(aes(shape = passage), size = 2,
                position = position_jitter(width = 0.1, seed = 1)) +
     geom_text(data = ann,
-              aes(x = 1.5, y = Inf, label = lab),
+              aes(x = ann_x, y = Inf, label = lab),
               inherit.aes = FALSE, vjust = 1.2, size = 2.7,
               color = "grey30") +
     facet_wrap(~ gene, scales = "free_y", ncol = 5) +
     scale_fill_manual(values = treatment_cols, guide = "none") +
     scale_shape_manual(values = passage_shapes, name = "Passage") +
     labs(title = title,
-         subtitle = "logCPM per sample; paired DE lfc and FDR annotated",
+         subtitle = paste0("logCPM per sample; paired DE lfc and FDR annotated",
+                           sub_extra),
          x = NULL, y = expression(log[2]~"(CPM)")) +
     theme_classic(base_size = 10) +
     theme(
@@ -2159,6 +2182,36 @@ p_box_dn <- box_genes(top_dn, "HT1080 LOY vs sgCTRL — Top 20 downregulated gen
 if (!is.null(p_box_dn)) {
   print(p_box_dn)
   save_fig(p_box_dn, "boxplots_top20_down", width = 12, height = 9)
+}
+```
+
+## Top 20 Up — with PARENTAL
+
+```{r top-deg-up-boxplots-parental, fig.height=9, fig.width=12}
+p_box_up_par <- box_genes(
+  top_up,
+  "HT1080 — Top 20 upregulated genes (with PARENTAL baseline)",
+  include_parental = TRUE
+)
+if (!is.null(p_box_up_par)) {
+  print(p_box_up_par)
+  save_fig(p_box_up_par, "boxplots_top20_up_with_parental",
+           width = 12, height = 9)
+}
+```
+
+## Top 20 Down — with PARENTAL
+
+```{r top-deg-down-boxplots-parental, fig.height=9, fig.width=12}
+p_box_dn_par <- box_genes(
+  top_dn,
+  "HT1080 — Top 20 downregulated genes (with PARENTAL baseline)",
+  include_parental = TRUE
+)
+if (!is.null(p_box_dn_par)) {
+  print(p_box_dn_par)
+  save_fig(p_box_dn_par, "boxplots_top20_down_with_parental",
+           width = 12, height = 9)
 }
 ```
 
