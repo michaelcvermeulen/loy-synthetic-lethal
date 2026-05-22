@@ -45,6 +45,13 @@ renv/python/
 # Final knitted HTMLs in docs/ ARE tracked (primary deliverable).
 *_cache/
 *_files/
+*.knit.md
+*.utf8.md
+
+# --- Package side-effects ------------------------------------------------
+# OmnipathR (decoupleR network downloads) writes session logs.
+omnipathr-log/
+*.log
 
 # --- OS ------------------------------------------------------------------
 .DS_Store
