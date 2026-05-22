@@ -69,8 +69,18 @@
 }
 
 /* --- Main content typography ---------------------------------------- */
+/* readthedown caps #content at max-width:900px (reader-optimal for prose).
+   For analysis reports with wide tables + figures this leaves 40%+ of the
+   screen unused on a typical monitor. Bump to 1400px and let figures use
+   the full available width. */
 #content {
   color: var(--ink);
+  max-width: 1400px !important;
+}
+#content img,
+#content table {
+  max-width: 100%;
+  height: auto;
 }
 #content h1,
 #content h2,
