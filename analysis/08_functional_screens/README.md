@@ -1,17 +1,20 @@
 # 08_functional_screens/
 
-> **Flagged for review.** This section captures two bodies of existing work
-> from `LOY_paralogs/projects/` that did not appear in the 1–7 numbering you
-> sketched: the CRISPR synthetic-lethal screen and the drug screens. They are
-> parked here so they aren't lost in the restructure — please relocate, rename,
-> split, or drop as appropriate.
+CRISPR synthetic-lethal and small-molecule screens in the engineered LOY vs
+WT isogenic lines, used to identify and prioritize genes and compounds that
+selectively impair LOY+ cells.
+
+> **Open question (CRISPR screen placement).** The genome-wide CRISPR
+> synthetic-lethal screen (8.1) could alternatively live under section 1
+> (engineering → screen on engineered lines). Parked here for now; relocate if
+> preferred.
 
 ## Planned analyses
 
 | #   | File                                | Description |
 |-----|-------------------------------------|-------------|
 | 8.1 | `8.1_crispr_synthetic_lethal.Rmd`   | Genome-wide Brunello screen in LOY vs WT isogenic lines; MAGeCK essentiality, BAGEL, hit annotation. TODO. |
-| 8.2 | `8.2_drug_screen.Rmd`               | Compound screen (likely SAGA/STAGA-pathway focused), normalization, hit calling, dose-response. TODO. |
+| 8.2 | `8.2_drug_screen.Rmd`               | Small-molecule screen in LOY vs WT lines; normalization, hit calling, dose-response. **Wet-lab and primary analysis by Ben Snider (Babak Lab); re-analysis and integration for this manuscript by Mike Vermeulen.** TODO. |
 
 ## Existing upstream work (not migrated)
 

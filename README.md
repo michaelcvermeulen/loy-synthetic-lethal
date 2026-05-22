@@ -102,6 +102,12 @@ submission, datasets will be deposited as follows (all marked TBD until then):
 - **DepMap**: `TODO: pin release (e.g., 24Q4)`
 - **ENCODE**: `TODO: list ENCFF/ENCSR portal IDs`
 
+## Contributors
+
+- **Mike Vermeulen** — repository author; primary analyses, integration, and manuscript work.
+- **Ben Snider** (Babak Lab) — small-molecule drug screens in LOY vs WT isogenic lines ([§8.2](analysis/08_functional_screens/)); wet-lab execution and primary analysis. Re-analysis for this manuscript by M.V.
+- `TODO: list additional collaborators (Postovit Lab ChIP-seq contributors, etc.) as in-house data sets are folded in.`
+
 ## Citation
 
 Thesis: `PLACEHOLDER: Vermeulen M. [Thesis title]. PhD thesis, Queen's
