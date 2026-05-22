@@ -14,7 +14,7 @@ selectively impair LOY+ cells.
 | #   | File                                | Description |
 |-----|-------------------------------------|-------------|
 | 8.1 | `8.1_crispr_synthetic_lethal.Rmd`   | Genome-wide Brunello screen in LOY vs WT isogenic lines; MAGeCK essentiality, BAGEL, hit annotation. TODO. |
-| 8.2 | `8.2_drug_screen.Rmd`               | Small-molecule screen in LOY vs WT lines; normalization, hit calling, dose-response. **Wet-lab and primary analysis by Ben Snider (Babak Lab); re-analysis and integration for this manuscript by Mike Vermeulen.** TODO. |
+| 8.2 | `8.2_drug_screen.Rmd`               | Small-molecule screen in LOY vs WT lines; normalization, hit calling, dose-response. **Wet-lab and primary analysis by Ben Snider (Craig Lab); re-analysis and integration for this manuscript by Mike Vermeulen.** TODO. |
 
 ## Existing upstream work (not migrated)
 

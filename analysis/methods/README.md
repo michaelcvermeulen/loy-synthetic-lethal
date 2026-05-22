@@ -22,6 +22,6 @@ canonical, citable references.
 | `m07_atacseq.Rmd`                     | ATAC-seq sample prep + MACS2 / ataqv QC pipeline. TODO. |
 | `m08_scrnaseq.Rmd`                    | scRNA-seq processing pipeline (Seurat, integration, LOY calling at cell resolution). TODO. |
 | `m09_crispr_functional_screen.Rmd`    | Brunello screen design, transduction, MAGeCK + BAGEL analysis. TODO. |
-| `m10_drug_screen.Rmd`                 | Compound screen design, normalization, hit calling. **Performed by Ben Snider (Babak Lab).** TODO. |
+| `m10_drug_screen.Rmd`                 | Compound screen design, normalization, hit calling. **Performed by Ben Snider (Craig Lab).** TODO. |
 | `m11_depmap_processing.Rmd`           | DepMap data acquisition, LOY classification, Boruta feature selection. TODO. |
 | `m12_tcga_processing.Rmd`             | TCGA cohort assembly, LOY calling methods + concordance. TODO. |
