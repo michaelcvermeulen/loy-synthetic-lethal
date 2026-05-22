@@ -32,7 +32,7 @@ loy-synthetic-lethality/
 │   ├── 05_depmap_pancancer/         # DepMap dependency analysis
 │   ├── 06_tcga/                     # TCGA pan-cancer LOY analysis
 │   ├── 07_scrnaseq_loy_atlas/       # single-cell LOY atlas (prostate + others)
-│   ├── 08_functional_screens/       # CRISPR A549/HT1080 + drug A549/HT1080 + integration
+│   ├── 08_functional_screens/       # CRISPR A549/HT1080 + drug HT1080 + integration
 │   ├── methods/                     # per-assay methods writeups
 │   └── mechanism/                   # mechanism-of-action theories + supporting evidence
 ├── R/                               # shared helper functions sourced by .Rmd files
@@ -56,7 +56,7 @@ links to existing upstream work.
 | 5   | [DepMap pan-cancer](analysis/05_depmap_pancancer/)            | Dependency profiling, SAGA-focused                                     |
 | 6   | [TCGA](analysis/06_tcga/)                                     | LOY calling, DE, pathway + mutation enrichment                         |
 | 7   | [scRNA-seq LOY atlas](analysis/07_scrnaseq_loy_atlas/)        | Prostate first; additional cancer types to come                        |
-| 8   | [Functional screens](analysis/08_functional_screens/)         | 8.1 CRISPR A549 · 8.2 CRISPR HT1080 · 8.3 Drug A549 · 8.4 Drug HT1080 · 8.5 cross-line integration |
+| 8   | [Functional screens](analysis/08_functional_screens/)         | 8.1 CRISPR A549 · 8.2 CRISPR HT1080 · 8.3 Drug HT1080 · 8.4 integration |
 
 ### Methods and mechanism
 
@@ -105,7 +105,7 @@ submission, datasets will be deposited as follows (all marked TBD until then):
 ## Contributors
 
 - **Mike Vermeulen** — repository author; primary analyses, integration, and manuscript work.
-- **Ben Snider** (Craig Lab) — small-molecule drug screens in LOY vs WT isogenic lines ([§8.2](analysis/08_functional_screens/)); wet-lab execution and primary analysis. Re-analysis for this manuscript by M.V.
+- **Ben Snider** (Craig Lab) — HT1080 small-molecule drug screen ([§8.3](analysis/08_functional_screens/)); wet-lab execution and primary analysis. Re-analysis for this manuscript by M.V.
 - `TODO: list additional collaborators (Postovit Lab ChIP-seq contributors, etc.) as in-house data sets are folded in.`
 
 ## Citation
