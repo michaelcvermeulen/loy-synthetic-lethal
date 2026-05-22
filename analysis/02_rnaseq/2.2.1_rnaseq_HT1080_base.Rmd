@@ -7,7 +7,7 @@ output: rmdformats::readthedown
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE,
+  echo = FALSE,
   warning = FALSE,
   message = FALSE,
   fig.width = 8,
@@ -2435,9 +2435,335 @@ print(p_concord)
 save_fig(p_concord, "concordance_paired_v_pooled", width = 7, height = 6)
 ```
 
+## 11.7 All-significant-pathways dotplot (no top-N cap)
+
+Complement to §11.5: instead of the top-15-per-direction view, this shows
+**every** pathway across all four collections (Hallmark, Reactome, KEGG,
+GO:BP) that reaches `padj < 0.05` in the pooled contrast. With ~9,600 tested
+gene sets, this surfaces the full enrichment landscape — useful for spotting
+secondary signals the top-30 cut hides.
+
+The helpers defined here are reused below for PRC2 (§11.8) and for the
+PARENTAL-vs-sgCTRL section (§12).
+
+```{r gsea-alt-helpers}
+plot_gsea_all_sig <- function(gsea_df, title, sig_thr = 0.05) {
+  sig_df <- gsea_df %>% dplyr::filter(padj < sig_thr)
+  if (nrow(sig_df) == 0) {
+    cat("No pathways significant at padj <", sig_thr, "\n")
+    return(NULL)
+  }
+  d <- sig_df %>%
+    arrange(NES) %>%
+    mutate(
+      pathway_clean = gsub("^HALLMARK_|^REACTOME_|^KEGG_|^GOBP_|^GO_",
+                           "", pathway),
+      pathway_clean = gsub("_", " ", pathway_clean),
+      pathway_clean = str_to_title(pathway_clean),
+      pathway_clean = str_wrap(pathway_clean, 70),
+      pathway_label = paste0(pathway_clean,
+                             "  [", toupper(collection), "]"),
+      pathway_label = fct_reorder(pathway_label, NES)
+    )
+
+  ggplot(d, aes(x = NES, y = pathway_label,
+                size = -log10(padj), fill = NES)) +
+    geom_point(shape = 21, color = "black", stroke = 0.25) +
+    scale_fill_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B",
+                         midpoint = 0, name = "NES",
+                         guide = guide_colorbar(barwidth = 0.5,
+                                                barheight = 2.5)) +
+    scale_size_continuous(range = c(1.2, 4.5),
+                          name = expression(-log[10](p[adj]))) +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               color = "grey50", linewidth = 0.3) +
+    labs(x = "Normalized Enrichment Score (NES)", y = NULL,
+         title = title,
+         subtitle = sprintf("All pathways with padj < %g (n = %d)",
+                            sig_thr, nrow(d))) +
+    theme_classic(base_size = 7) +
+    theme(
+      axis.text.y      = element_text(size = 5, lineheight = 0.8),
+      axis.text.x      = element_text(size = 7),
+      plot.title       = element_text(face = "bold", size = 10),
+      plot.subtitle    = element_text(size = 7, color = "grey30"),
+      legend.title     = element_text(size = 6),
+      legend.text      = element_text(size = 5.5),
+      legend.key.size  = unit(0.3, "cm")
+    )
+}
+
+plot_gsea_prc2 <- function(gsea_df, title) {
+  prc2_pat <- "PRC2|H3K27|EZH2|EED|SUZ12|POLYCOMB"
+  prc2_df <- gsea_df %>%
+    dplyr::filter(grepl(prc2_pat, pathway, ignore.case = TRUE))
+  cat(sprintf(
+    "PRC2 / H3K27me3-related pathways tested: %d (significant at padj < 0.05: %d)\n",
+    nrow(prc2_df),
+    sum(prc2_df$padj < 0.05, na.rm = TRUE)))
+  if (nrow(prc2_df) == 0) return(NULL)
+
+  d <- prc2_df %>%
+    arrange(NES) %>%
+    mutate(
+      pathway_clean = gsub("^HALLMARK_|^REACTOME_|^KEGG_|^GOBP_|^GO_",
+                           "", pathway),
+      pathway_clean = gsub("_", " ", pathway_clean),
+      pathway_clean = str_wrap(pathway_clean, 60),
+      pathway_label = paste0(pathway_clean,
+                             "  [", toupper(collection), "]"),
+      pathway_label = fct_reorder(pathway_label, NES),
+      is_sig = padj < 0.05
+    )
+
+  ggplot(d, aes(x = NES, y = pathway_label,
+                size = -log10(padj), fill = NES, alpha = is_sig)) +
+    geom_point(shape = 21, color = "black", stroke = 0.3) +
+    scale_fill_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B",
+                         midpoint = 0, name = "NES") +
+    scale_size_continuous(range = c(2, 6),
+                          name = expression(-log[10](p[adj]))) +
+    scale_alpha_manual(values = c(`TRUE` = 1, `FALSE` = 0.3),
+                       guide = "none") +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               color = "grey50", linewidth = 0.3) +
+    labs(x = "Normalized Enrichment Score (NES)", y = NULL,
+         title = title,
+         subtitle = "Filter: pathway name matches PRC2 | H3K27 | EZH2 | EED | SUZ12 | POLYCOMB.  Faded points: padj >= 0.05.") +
+    theme_classic(base_size = 9) +
+    theme(plot.title    = element_text(face = "bold", size = 11),
+          plot.subtitle = element_text(size = 7, color = "grey30"),
+          axis.text.y   = element_text(size = 7, lineheight = 0.85))
+}
+```
+
+```{r pooled-gsea-all-sig, fig.height=14, fig.width=9}
+p_all_pool <- plot_gsea_all_sig(
+  gsea_pool, "LOY vs pooled Y+ — all significant pathways")
+if (!is.null(p_all_pool)) {
+  print(p_all_pool)
+  save_fig(p_all_pool, "gsea_all_sig_pooled", width = 9, height = 14)
+}
+```
+
+## 11.8 PRC2 / H3K27me3 pathway check (pooled)
+
+Targeted view: pathways with `PRC2`, `H3K27`, `EZH2`, `EED`, `SUZ12`, or
+`POLYCOMB` in the name. These test whether the pooled contrast carries the
+same Polycomb-axis signal that the canonical sgCTRL contrast surfaces in §7
+(albeit on the basic, not the expanded CGP, collections).
+
+```{r pooled-gsea-prc2, fig.height=5, fig.width=9}
+p_prc2_pool <- plot_gsea_prc2(
+  gsea_pool, "LOY vs pooled Y+ — PRC2 / H3K27me3 pathways")
+if (!is.null(p_prc2_pool)) {
+  print(p_prc2_pool)
+  save_fig(p_prc2_pool, "gsea_prc2_pooled", width = 9, height = 5)
+}
+```
+
 ***
 
-# 12. Session Info
+# 12. PARENTAL vs sgCTRL (sgRNA-control sanity check)
+
+This contrast tests whether the **sgRNA control itself perturbs expression**
+relative to the unmodified parental population. A clean sgCTRL behaves like
+PARENTAL — few or no DEGs, no enriched programs — and that's the assumption
+underlying §11's pooled design. If this section produces many hits, the
+pooled-control analysis (§11) should be interpreted with caution and the §4
+paired sgCTRL contrast remains the more conservative choice.
+
+## 12.1 Setup
+
+```{r sgctrl-setup}
+dge_sg <- dge
+
+chrY_idx_sg <- which(
+  gsub("\\.\\d+$", "", rownames(dge_sg$counts)) %in% chrY_gene_ids)
+if (length(chrY_idx_sg) > 0) {
+  cat("Removing", length(chrY_idx_sg), "Y chromosome genes\n")
+  dge_sg <- dge_sg[-chrY_idx_sg, , keep.lib.sizes = FALSE]
+}
+
+# Keep only PARENTAL + CTRL for this contrast.
+dge_sg <- dge_sg[, dge_sg$samples$treatment %in% c("PARENTAL", "CTRL")]
+dge_sg$samples$treatment <- droplevels(dge_sg$samples$treatment)
+dge_sg$samples$passage   <- droplevels(dge_sg$samples$passage)
+
+dge_sg <- calcNormFactors(dge_sg, method = "TMM")
+cat(sprintf(
+  "PARENTAL-vs-CTRL working set: %d samples (%s)\n",
+  ncol(dge_sg),
+  paste(levels(dge_sg$samples$treatment), collapse = " / ")))
+```
+
+## 12.2 DE: paired (treatment + passage)
+
+```{r sgctrl-de}
+design_sg <- model.matrix(~ 0 + treatment + passage, data = dge_sg$samples)
+colnames(design_sg) <- gsub("^treatment", "", colnames(design_sg))
+
+de_sg_par <- run_de_contrast(
+  dge_sg, design_sg, contrast_name = "CTRL - PARENTAL")
+
+cat(sprintf("\nsgCTRL vs PARENTAL: %d genes tested\n", nrow(de_sg_par)))
+cat(sprintf("  FDR < 0.05:              %d\n",
+            sum(de_sg_par$FDR < 0.05)))
+cat(sprintf("  FDR < %g & |logFC| > %g:  %d (up: %d, down: %d)\n",
+            ALPHA, LFC_THR,
+            sum(de_sg_par$FDR < ALPHA & abs(de_sg_par$logFC) > LFC_THR),
+            sum(de_sg_par$FDR < ALPHA & de_sg_par$logFC >  LFC_THR),
+            sum(de_sg_par$FDR < ALPHA & de_sg_par$logFC < -LFC_THR)))
+
+fwrite(de_sg_par,
+       file.path(DE_DIR, "ht1080_sgCTRL_v_PARENTAL_DE.csv"))
+```
+
+## 12.3 Volcano
+
+```{r sgctrl-volcano, fig.height=6, fig.width=7}
+p_v_sg <- make_volcano(
+  de_sg_par,
+  "HT1080: sgCTRL vs PARENTAL (sanity check)") +
+  labs(x = expression(log[2]~"Fold Change (sgCTRL / PARENTAL)"))
+print(p_v_sg)
+save_fig(p_v_sg, "volcano_sgCTRL_v_PARENTAL", width = 7, height = 6)
+```
+
+## 12.4 fgsea + dotplot (top 30)
+
+```{r sgctrl-gsea-run}
+ranks_sg <- prep_ranks_t(de_sg_par)
+ranks_sg <- ranks_sg[!names(ranks_sg) %in% ribo_hits]
+cat(sprintf("sgCTRL-vs-PARENTAL ranks: %d genes (after RPS/RPL filter)\n",
+            length(ranks_sg)))
+
+set.seed(42)
+cat("Running fgsea for sgCTRL vs PARENTAL...\n")
+gsea_sg <- run_fgsea_all(ranks_sg, pathways)
+fwrite(gsea_sg, file.path(GSEA_DIR, "ht1080_sgCTRL_v_PARENTAL_gsea.csv"))
+
+gsea_sg %>%
+  group_by(collection) %>%
+  summarize(
+    total    = n(),
+    sig_up   = sum(padj < 0.05 & NES > 0),
+    sig_down = sum(padj < 0.05 & NES < 0),
+    .groups  = "drop"
+  ) %>%
+  knitr::kable(caption = "sgCTRL vs PARENTAL — Significant pathways by collection")
+```
+
+```{r sgctrl-gsea-dotplot, fig.height=6, fig.width=5.5}
+sig_sg <- sum(gsea_sg$padj < 0.05)
+if (sig_sg == 0) {
+  cat("No pathways reach padj < 0.05 — the sgRNA control is essentially silent at the GSEA level (the expected outcome).\n")
+} else {
+  pub_dot_sg <- gsea_sg %>%
+    group_by(sign(NES)) %>%
+    slice_min(pval, n = 15) %>%
+    ungroup() %>%
+    mutate(
+      pathway_clean = gsub("^HALLMARK_|^REACTOME_|^KEGG_|^GOBP_|^GO_",
+                           "", pathway),
+      pathway_clean = gsub("_", " ", pathway_clean),
+      pathway_clean = str_to_title(pathway_clean),
+      pathway_clean = str_wrap(pathway_clean, 40),
+      sig_label = case_when(
+        padj < 0.001 ~ "***", padj < 0.01 ~ "**",
+        padj < 0.05  ~ "*",   TRUE         ~ ""),
+      pathway_label = paste0(pathway_clean, "  ", sig_label),
+      pathway_label = fct_reorder(pathway_label, NES)
+    )
+
+  p_dot_sg <- ggplot(pub_dot_sg,
+                     aes(x = NES, y = pathway_label,
+                         size = -log10(padj), fill = NES)) +
+    geom_point(shape = 21, color = "black", stroke = 0.3) +
+    scale_fill_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B",
+                         midpoint = 0, name = "NES",
+                         guide = guide_colorbar(barwidth = 0.5,
+                                                barheight = 2.5)) +
+    scale_size_continuous(range = c(1.5, 5),
+                          name = expression(-log[10](p[adj]))) +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               color = "grey50", linewidth = 0.3) +
+    labs(x = "Normalized Enrichment Score (NES)", y = NULL,
+         subtitle = "← Enriched in PARENTAL      Enriched in sgCTRL →",
+         caption = "* padj < 0.05    ** padj < 0.01    *** padj < 0.001") +
+    theme_classic(base_size = 8) +
+    theme(
+      axis.text.y      = element_text(size = 5.5, lineheight = 0.85),
+      plot.subtitle    = element_text(size = 6.5, hjust = 0.5,
+                                      face = "italic"),
+      legend.title     = element_text(size = 6),
+      legend.text      = element_text(size = 5.5),
+      legend.key.size  = unit(0.3, "cm"))
+
+  print(p_dot_sg)
+  save_fig(p_dot_sg, "gsea_dotplot_sgCTRL_v_PARENTAL",
+           width = 5.5, height = 6)
+}
+```
+
+## 12.5 All-significant-pathways dotplot
+
+```{r sgctrl-gsea-all-sig, fig.height=14, fig.width=9}
+p_all_sg <- plot_gsea_all_sig(
+  gsea_sg, "sgCTRL vs PARENTAL — all significant pathways")
+if (!is.null(p_all_sg)) {
+  print(p_all_sg)
+  save_fig(p_all_sg, "gsea_all_sig_sgCTRL_v_PARENTAL",
+           width = 9, height = 14)
+}
+```
+
+## 12.6 PRC2 / H3K27me3 pathway check
+
+Critical sanity check: if PRC2-axis pathways move between PARENTAL and sgCTRL,
+the LOY-vs-sgCTRL Polycomb story in §7 is partly confounded by the sgRNA
+treatment itself. We expect NO significant PRC2 enrichment here.
+
+```{r sgctrl-gsea-prc2, fig.height=5, fig.width=9}
+p_prc2_sg <- plot_gsea_prc2(
+  gsea_sg, "sgCTRL vs PARENTAL — PRC2 / H3K27me3 pathways")
+if (!is.null(p_prc2_sg)) {
+  print(p_prc2_sg)
+  save_fig(p_prc2_sg, "gsea_prc2_sgCTRL_v_PARENTAL",
+           width = 9, height = 5)
+}
+```
+
+## 12.7 Verdict
+
+```{r sgctrl-verdict}
+sg_n_deg  <- sum(de_sg_par$FDR < ALPHA & abs(de_sg_par$logFC) > LFC_THR)
+sg_n_gsea <- sum(gsea_sg$padj < 0.05)
+sg_n_prc2 <- gsea_sg %>%
+  dplyr::filter(grepl("PRC2|H3K27|EZH2|EED|SUZ12|POLYCOMB",
+                      pathway, ignore.case = TRUE),
+                padj < 0.05) %>% nrow()
+
+verdict <- if (sg_n_deg <= 20 && sg_n_gsea <= 30 && sg_n_prc2 == 0) {
+  "CLEAN: sgRNA control appears benign — pooling is well-justified."
+} else if (sg_n_prc2 > 0) {
+  "CONFOUNDING: PRC2-axis pathways shift in the sgRNA control. Pooling will dilute the LOY signal; section 4's paired sgCTRL contrast is the safer primary."
+} else {
+  "MIXED: some non-PRC2 perturbation in sgCTRL. Pooled contrast still informative for power; trust convergent signal between §4 and §11."
+}
+
+cat(sprintf("sgCTRL vs PARENTAL DEGs (FDR<%g, |logFC|>%g): %d\n",
+            ALPHA, LFC_THR, sg_n_deg))
+cat(sprintf("sgCTRL vs PARENTAL significant pathways (padj<0.05): %d\n",
+            sg_n_gsea))
+cat(sprintf("...of which PRC2/H3K27 axis:                          %d\n\n",
+            sg_n_prc2))
+cat("VERDICT:\n", verdict, "\n", sep = "")
+```
+
+***
+
+# 13. Session Info
 
 ```{r session-info}
 sessionInfo()
