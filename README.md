@@ -19,30 +19,54 @@ manuscript submission.
 ```
 loy-synthetic-lethality/
 ├── README.md
-├── LICENSE                  # MIT
+├── LICENSE                          # MIT
 ├── .gitignore
-├── renv.lock                # pinned R package versions
-├── .Rprofile                # activates renv on session start
-├── renv/                    # activate.R tracked; library/ ignored
-├── analysis/                # .Rmd source for each numbered analysis
-├── R/                       # shared helper functions sourced by .Rmd files
-├── data/                    # local-only; see data/README.md for layout
-├── figures/                 # publication-ready figure exports
-└── docs/                    # knitted HTML reports + GitHub Pages landing page
+├── renv.lock                        # pinned R package versions
+├── .Rprofile                        # activates renv on session start
+├── renv/                            # activate.R tracked; library/ ignored
+├── analysis/
+│   ├── 01_genome_engineering/       # 1.1 sgRNA · 1.2 ddPCR · 1.3 lpWGS
+│   ├── 02_rnaseq/                   # 2.1 A549 · 2.2 HT1080 · 2.3 LNCaP · 2.4 combined
+│   ├── 03_chipseq_public/           # public ChIP-seq (Postovit ChIP not yet generated)
+│   ├── 04_atacseq_multiomic/        # ATAC-seq + ATAC/RNA-seq integration
+│   ├── 05_depmap_pancancer/         # DepMap dependency analysis
+│   ├── 06_tcga/                     # TCGA pan-cancer LOY analysis
+│   ├── 07_scrnaseq_loy_atlas/       # single-cell LOY atlas (prostate + others)
+│   ├── 08_functional_screens/       # CRISPR screen + drug screens [flagged for review]
+│   ├── methods/                     # per-assay methods writeups
+│   └── mechanism/                   # mechanism-of-action theories + supporting evidence
+├── R/                               # shared helper functions sourced by .Rmd files
+├── data/                            # local-only; see data/README.md for layout
+├── figures/                         # publication-ready figure exports
+└── docs/                            # knitted HTML reports + GitHub Pages landing page
 ```
 
 ## Analyses
 
-| #  | Analysis                | File                                         | Description |
-|----|-------------------------|----------------------------------------------|-------------|
-| 01 | CRISPR screen           | `analysis/01_crispr_screen.Rmd`              | TODO        |
-| 02 | RNA-seq (HT1080)        | `analysis/02_rnaseq_ht1080.Rmd`              | TODO        |
-| 03 | RNA-seq (LNCaP, HepG2)  | `analysis/03_rnaseq_lncap_hepg2.Rmd`         | TODO        |
-| 04 | ATAC-seq                | `analysis/04_atacseq.Rmd`                    | TODO        |
-| 05 | ChIP-seq (Polycomb)     | `analysis/05_chipseq_polycomb.Rmd`           | TODO        |
-| 06 | scRNA-seq (LOY atlas)   | `analysis/06_scrnaseq_loy_atlas.Rmd`         | TODO        |
-| 07 | DepMap pan-cancer       | `analysis/07_depmap_pancancer.Rmd`           | TODO        |
-| 08 | ENCODE tissue ATAC      | `analysis/08_encode_tissue_atac.Rmd`         | TODO        |
+Each numbered section lives in its own subdirectory under
+[`analysis/`](analysis/); see the per-section `README.md` for sub-analyses and
+links to existing upstream work.
+
+| #   | Section                                                       | Sub-analyses                                                           |
+|-----|---------------------------------------------------------------|------------------------------------------------------------------------|
+| 1   | [Genome engineering](analysis/01_genome_engineering/)         | 1.1 sgRNA guide creation · 1.2 ddPCR · 1.3 lpWGS                       |
+| 2   | [Bulk RNA-seq](analysis/02_rnaseq/)                           | 2.1 A549 · 2.2 HT1080 · 2.3 LNCaP · 2.4 combined cross-cell-line       |
+| 3   | [ChIP-seq (public)](analysis/03_chipseq_public/)              | Postovit in-house ChIP pending; public sources only for now            |
+| 4   | [ATAC-seq + multiomic](analysis/04_atacseq_multiomic/)        | Differential accessibility + ATAC/RNA integration                      |
+| 5   | [DepMap pan-cancer](analysis/05_depmap_pancancer/)            | Dependency profiling, SAGA-focused                                     |
+| 6   | [TCGA](analysis/06_tcga/)                                     | LOY calling, DE, pathway + mutation enrichment                         |
+| 7   | [scRNA-seq LOY atlas](analysis/07_scrnaseq_loy_atlas/)        | Prostate first; additional cancer types to come                        |
+| 8   | [Functional screens](analysis/08_functional_screens/) *(flagged)* | 8.1 CRISPR synthetic-lethal screen · 8.2 Drug screens — relocate as needed |
+
+### Methods and mechanism
+
+- [`analysis/methods/`](analysis/methods/) — per-assay / per-technology
+  protocol writeups (genome engineering, sgRNA design, ddPCR, lpWGS, bulk
+  RNA-seq, ChIP-seq, ATAC-seq, scRNA-seq, screens, DepMap/TCGA processing).
+- [`analysis/mechanism/`](analysis/mechanism/) — mechanism-of-action theories
+  and how each numbered analysis supports them (KDM5D/UTY → H3K4me3
+  accumulation, PRC2 redistribution, Polycomb derepression, SAGA/STAGA
+  synthetic lethality).
 
 ## Figure-to-file map
 
