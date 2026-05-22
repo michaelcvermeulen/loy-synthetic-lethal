@@ -12,6 +12,11 @@ Source `.Rmd` files live in [`analysis/`](analysis/); knitted HTML reports are
 served from [`docs/`](docs/) via GitHub Pages once the repo is made public at
 manuscript submission.
 
+**Read first** ([`docs/`](docs/)):
+[Background](docs/background.html) ·
+[Condensed summary](docs/summary.html) ·
+[Project & thesis plan](docs/project_plan.html)
+
 ---
 
 ## Repository structure

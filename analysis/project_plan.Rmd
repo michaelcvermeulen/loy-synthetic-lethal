@@ -1,0 +1,152 @@
+---
+title: "Project and thesis plan — LOY synthetic lethality"
+author: "Mike Vermeulen"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+    highlight: tango
+    df_print: paged
+---
+
+# Purpose of this document
+
+This is the roadmap. It captures the **thesis plan from the start of the
+project** through the planned manuscript submission, and is the canonical
+reference for "what was meant to happen, what has happened, and what is still
+on the docket." It is meant to be read alongside the [background
+document](background.html) — that one says *why*, this one says *what and when*.
+
+Updates: anyone reading should treat the **Current state** section as the
+authoritative snapshot; the rest is intentionally historical.
+
+# Thesis plan from the start
+
+`TODO: fill in the original CM1 framing — the questions you proposed, the
+hypotheses, the planned experiments, and the committee feedback. The bullets
+below are the structural template; replace placeholders with the actual
+narrative from your proposal documents in
+a:/Dropbox/LOY_paralogs/projects/proposals_summaries/.`
+
+## Original thesis questions
+
+1. `TODO: question 1 (e.g., is LOY a driver or passenger of the cancer
+   phenotypes with which it associates?)`
+2. `TODO: question 2 (e.g., what is the molecular basis of any LOY-driven
+   phenotype?)`
+3. `TODO: question 3 (e.g., is the LOY state therapeutically exploitable?)`
+
+## Original chapter outline
+
+| Chapter | Topic | Status |
+|---------|-------|--------|
+| 1 | Introduction and literature review                              | `TODO: status` |
+| 2 | `TODO: chapter title (likely engineering + RNA-seq)`            | `TODO: status` |
+| 3 | `TODO: chapter title (likely chromatin / ChIP / ATAC)`          | `TODO: status` |
+| 4 | `TODO: chapter title (likely DepMap / TCGA / functional screens)` | `TODO: status` |
+| 5 | `TODO: chapter title (likely scRNA atlas / patient relevance)`  | `TODO: status` |
+| 6 | Discussion and future directions                                | `TODO: status` |
+
+## Committee meetings — timeline
+
+| Meeting | Date            | Focus                                               | Outcome |
+|---------|-----------------|-----------------------------------------------------|---------|
+| CM1     | `TODO: date`    | Proposal: questions, hypotheses, aims               | `TODO: feedback summary` |
+| CM2     | `TODO: date`    | `TODO: focus`                                       | `TODO`  |
+| CM3     | `TODO: date`    | `TODO: focus`                                       | `TODO`  |
+| CM4     | `TODO: date`    | `TODO: focus`                                       | `TODO`  |
+| **CM5** | **mid-June 2026** | Pre-defense / manuscript-ready status check        | upcoming |
+
+# Current state
+
+`r format(Sys.Date(), '%B %Y')` snapshot:
+
+- **Generated data ready for analysis migration**:
+  - Bulk RNA-seq: A549, HT1080, LNCaP (each with standardized
+    STAR/featureCounts/DESeq2/VIPER pipeline).
+  - ATAC-seq: HT1080 LOY vs CTRL replicates (BAMs, MACS2 peaks, QC).
+  - lpWGS: A549, HT1080, LNCaP coverage reports for LOY clone validation
+    (T2T alignment, mosdepth).
+  - CRISPR functional screens: A549 (`a549_loy_screen1`) and HT1080
+    (`ht1080_loy_screen_2`, Brunello).
+  - Drug screen: HT1080 only (Ben Snider, Craig Lab).
+  - DepMap / TCGA pan-cancer LOY analyses (Boruta, ssGSEA, SAGA-focused).
+  - Single-cell LOY atlas drafts (prostate first; more cancers planned).
+
+- **Not yet generated**:
+  - Postovit-lab ChIP-seq (in-house) — pending; section 3 currently uses
+    public sources only.
+  - sgRNA design notebook (`a:/.../sgRNA_guide_development/` is empty).
+  - ddPCR-specific validation reports (CTG viability data exists; ddPCR TBD).
+
+- **Repository state**:
+  - Skeleton scaffolded; no analyses migrated yet (intentional —
+    migration happens in a dedicated pass).
+  - renv-pinned R 4.5.2 environment.
+  - Private GitHub repo; flip to public at manuscript submission.
+
+# CM5 deliverables (mid-June 2026)
+
+`TODO: confirm the exact CM5 ask with committee chair and update this
+section. Below is a reasonable default based on standard pre-defense check-ins
+— refine.`
+
+By CM5, the committee will expect:
+
+1. **A coherent written argument** for the mechanistic model — likely the
+   draft of chapter 1 (intro) plus at least one results chapter showing the
+   LOY → chromatin → transcription chain.
+2. **Reproducible analyses** for the bulk of the data — analyses in this repo
+   should knit cleanly and be self-contained, even if not all interpretation
+   is finalized.
+3. **A clear figure plan for the manuscript** — every planned manuscript
+   figure should map to a specific analysis `.Rmd` in this repo.
+4. **A realistic timeline to defense** — milestones from CM5 → submission →
+   revision → defense.
+
+# Manuscript timeline
+
+`TODO: insert target submission journal, target submission date, anticipated
+revision window, and defense target. Recommended to align this section with
+CM5 deliverables.`
+
+| Milestone                       | Target date     | Status |
+|---------------------------------|-----------------|--------|
+| Complete in-house ChIP-seq      | `TODO`          | pending |
+| Lock down all analyses in repo  | `TODO`          | scaffolding stage |
+| First full manuscript draft     | `TODO`          | not started |
+| Co-author / Babak Lab review    | `TODO`          | — |
+| Submission                      | `TODO`          | — |
+
+# Future directions / extensions
+
+Items that are scoped *beyond* the immediate manuscript but track here so
+they aren't lost:
+
+- **scRNA atlas expansion** — additional cancer types beyond prostate
+  (candidates: `TODO`).
+- **Drug-screen follow-up** — dose-response in additional LOY cell lines if
+  HT1080 hits validate.
+- **CRISPR screen extension** — `TODO: any planned secondary screens (focused
+  libraries, combinatorial)?`
+- **Patient-derived contexts** — `TODO: any PDX / organoid plans?`
+
+# Risk register
+
+| Risk                                                                   | Mitigation |
+|------------------------------------------------------------------------|------------|
+| Postovit ChIP slips before CM5                                         | Section 3 falls back to public ChIP-seq only; flagged in repo. |
+| LNCaP / A549 / HT1080 screens disagree on hit set                      | Section 8.4 integration notebook is explicitly designed to surface and reason about discordance. |
+| `TODO: add additional project-specific risks`                          | `TODO`     |
+
+# Document status
+
+- **Audience**: thesis committee, M.V. self, Babak/Craig labs.
+- **Owner**: Mike Vermeulen.
+- **Status**: skeleton — most fields need data filled in from project
+  proposals (`a:/Dropbox/LOY_paralogs/projects/proposals_summaries/`) and
+  committee meeting notes.
+- **Last knit**: see header date.

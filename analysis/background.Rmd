@@ -1,0 +1,120 @@
+---
+title: "Background: Loss of Y chromosome (LOY) as a synthetic lethal vulnerability"
+author: "Mike Vermeulen"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+    highlight: tango
+    df_print: paged
+    code_folding: hide
+---
+
+# Why loss of Y chromosome matters
+
+Mosaic loss of the Y chromosome (LOY) is one of the most common somatic
+mutations in aging men, detectable in peripheral blood and in a substantial
+fraction of solid tumors arising in male patients. Across cancer types LOY is
+associated with worse outcomes, but the mechanistic basis for that association
+— and whether it represents an exploitable vulnerability — has been unclear.
+
+This project argues that LOY is not just a passenger of genome instability,
+but a **context-specific liability** that creates a synthetic lethal
+dependency on a defined chromatin module. The argument rests on three
+observations developed across the analyses in this repository:
+
+1. Loss of Y removes a small set of broadly expressed paralogs of essential
+   chromatin regulators on the X chromosome — most notably *KDM5D* and *UTY*.
+2. The resulting imbalance reshapes the H3K4me3 / H3K27me3 / Polycomb axis
+   in a stereotyped, reproducible way across male cell lines.
+3. The reshaped chromatin state creates a dependency on the SAGA/STAGA
+   coactivator complex that can be exploited therapeutically.
+
+`TODO: refine wording; insert prevalence figures with citations once
+literature review is finalized.`
+
+# The X–Y paralog problem
+
+`KDM5D` and `UTY` are Y-linked paralogs of `KDM5C` and `KDM6A`, respectively.
+The paralog pairs share substrate specificities — KDM5C/D demethylate
+H3K4me2/3, and KDM6A/UTY demethylate H3K27me3 — but their expression levels,
+tissue distributions, and catalytic efficiencies differ.
+
+| Y-linked gene | X-linked paralog | Substrate         | Notes |
+|---------------|------------------|-------------------|-------|
+| *KDM5D*       | *KDM5C*          | H3K4me2/3         | TODO: relative activity, expression patterns. |
+| *UTY*         | *KDM6A* (*UTX*)  | H3K27me3          | UTY catalytic activity contested; demethylase-independent functions described. TODO: synthesize. |
+
+The clinical relevance of paralog dosage has been studied piecemeal in other
+contexts (escape from X-inactivation, sex differences in cancer incidence).
+This project tests whether **loss of the Y-linked paralogs alone**, on an
+otherwise stable genetic background, is sufficient to produce a coherent
+chromatin and transcriptional phenotype.
+
+`TODO: brief lit review of prior LOY mechanism work — what's been
+demonstrated, what's still contested.`
+
+# Mechanistic model
+
+We propose the following sequence:
+
+1. **LOY removes KDM5D and UTY.** In male cells with active Y, both genes
+   contribute to chromatin homeostasis. Loss is permanent and clonal.
+2. **H3K4me3 accumulates at Polycomb-marked loci** as KDM5C alone cannot
+   compensate for the lost H3K4me3-erasing activity.
+3. **PRC2 redistributes** away from its canonical neural and developmental
+   targets, depositing H3K27me3 on a perturbed set of loci.
+4. **Polycomb-silenced genes are derepressed** — neural and developmental
+   programs that should be off in somatic male tissue become aberrantly
+   expressed.
+5. **The derepressed program creates SAGA/STAGA addiction**: maintaining the
+   "wrong-program" transcriptional state requires coactivator scaffolding
+   that wild-type cells do not depend on. This is the **synthetic lethal**
+   axis the manuscript exploits.
+
+```{r model_diagram, echo=FALSE, eval=FALSE}
+# Optional: render a model diagram here (DiagrammeR or ggplot2 schematic).
+# TODO: add the schematic once final figure is approved.
+```
+
+## Predictions that drive the experimental program
+
+| Prediction                                                      | Analysis section that tests it |
+|-----------------------------------------------------------------|--------------------------------|
+| LOY-engineered isogenic lines have a clean LOY genotype.        | [§1 Genome engineering](01_genome_engineering/)        |
+| LOY induces a reproducible transcriptional signature.            | [§2 RNA-seq](02_rnaseq/)                               |
+| The signature involves derepression of Polycomb-silenced genes.  | [§2 RNA-seq](02_rnaseq/) + [§3 ChIP-seq](03_chipseq_public/) |
+| LOY remodels chromatin accessibility consistent with derepression.| [§4 ATAC-seq + multiomic](04_atacseq_multiomic/)       |
+| LOY+ cancer lines are selectively dependent on SAGA/STAGA.       | [§5 DepMap](05_depmap_pancancer/) + [§8 Functional screens](08_functional_screens/) |
+| The signature is detectable in patient tumors.                   | [§6 TCGA](06_tcga/) + [§7 scRNA-seq atlas](07_scrnaseq_loy_atlas/) |
+
+# Why this matters clinically
+
+`TODO: paragraph on translational implications — SAGA-pathway compounds in
+preclinical development, patient stratification by LOY status, intersection
+with sex-disparities-in-cancer literature.`
+
+# Glossary
+
+- **LOY** — Loss of Y chromosome; mosaic in blood, clonal in tumor lineages.
+- **PRC2** — Polycomb Repressive Complex 2; deposits H3K27me3.
+- **SAGA / STAGA** — Spt-Ada-Gcn5 Acetyltransferase / SPT3-TAFII31-GCN5L
+  Acetyltransferase; transcriptional coactivator complexes.
+- **Paralog buffering** — the concept that paralogs compensate for one
+  another's loss; relevant here because Y/X paralog buffering is incomplete.
+- `TODO: extend glossary as terminology stabilizes in the manuscript.`
+
+# Document status
+
+- **Audience**: thesis committee (CM5), manuscript reviewers, lab members.
+- **Owner**: Mike Vermeulen.
+- **Status**: draft skeleton — `TODO` markers indicate sections needing
+  primary literature integration and refined wording.
+- **Last knit**: see header date.
+
+```{r session_info, echo=FALSE}
+sessionInfo()
+```

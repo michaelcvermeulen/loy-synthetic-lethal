@@ -4,6 +4,18 @@ R Markdown source for the manuscript and thesis chapter. Organized by topic
 section; sub-analyses live in numbered subdirectories. Each `.Rmd` knits to a
 self-contained HTML report in [`../docs/`](../docs/).
 
+## Front-matter documents
+
+Narrative documents that sit alongside (and bracket) the numbered analyses:
+
+| File                  | Knitted HTML                              | Purpose |
+|-----------------------|-------------------------------------------|---------|
+| `background.Rmd`      | [`../docs/background.html`](../docs/background.html)     | LOY biology, X/Y paralog problem, mechanistic model the analyses test. |
+| `project_plan.Rmd`    | [`../docs/project_plan.html`](../docs/project_plan.html) | Thesis plan from project start, CM5 (mid-June 2026), manuscript timeline. |
+| `summary.Rmd`         | [`../docs/summary.html`](../docs/summary.html)           | Condensed reference for PIs / lab members; one paragraph per analysis. Re-knit whenever a section produces a headline finding. |
+
+## Numbered analyses
+
 ```
 analysis/
 ├── 01_genome_engineering/        # 1.1 sgRNA design · 1.2 ddPCR · 1.3 lpWGS

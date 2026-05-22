@@ -1,0 +1,136 @@
+---
+title: "LOY synthetic lethality — condensed reference"
+subtitle: "One-page summary across all analyses, for PIs and lab members"
+author: "Mike Vermeulen"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: flatly
+    highlight: tango
+    df_print: paged
+---
+
+> **How to use this document.** This is the condensed, "what do I actually
+> need to know" reference. Each section pulls the key take-aways from one
+> analysis or one mechanism notebook, with a link to the full report.
+> Read this first; follow links into the full reports only as needed.
+>
+> **Read first**: [Background](background.html) → this document → individual
+> analyses.
+
+# One-paragraph overview
+
+`TODO: keep this synced with the abstract. Working draft:` Loss of Y
+chromosome (LOY) in cancer removes the H3K4me2/3 demethylase *KDM5D* and the
+H3K27me3 demethylase *UTY*, creating a stereotyped chromatin imbalance:
+H3K4me3 accumulates at Polycomb-marked loci, PRC2 redistributes off canonical
+neural and developmental targets, and silenced developmental programs are
+derepressed. The LOY+ state becomes addicted to SAGA/STAGA coactivator
+function to maintain this aberrant transcriptional program. Targeting
+SAGA/STAGA is selectively lethal in LOY+ cells across our isogenic systems,
+in pan-cancer dependency data, and in patient-derived cohorts.
+
+# Section-by-section highlights
+
+Each row is a placeholder until the corresponding analysis is migrated and
+the key finding extracted.
+
+## §1 Genome engineering
+
+- **Headline**: LOY-engineered isogenic A549, HT1080, and LNCaP lines were
+  generated and validated by ddPCR and lpWGS as cleanly LOY+ with no
+  detectable off-target copy-number changes.
+- **Status**: `TODO: confirm clean clones for all three lines; cite ddPCR +
+  lpWGS validation reports.`
+- **Read more**: [§1 Genome engineering](01_genome_engineering/) — sgRNA
+  design (1.1), ddPCR (1.2), lpWGS (1.3).
+
+## §2 Bulk RNA-seq
+
+- **Headline**: LOY induces a reproducible transcriptional signature across
+  A549, HT1080, and LNCaP, with shared up-regulation of `TODO: gene set` and
+  shared down-regulation of `TODO: gene set`.
+- **Status**: `TODO: list cross-line convergent vs. cell-context-specific
+  effects from the combined notebook.`
+- **Read more**: [§2 RNA-seq](02_rnaseq/) — per-line analyses (2.1, 2.2, 2.3)
+  and combined integration (2.4).
+
+## §3 ChIP-seq (public sources only, pending in-house data)
+
+- **Headline**: `TODO: public ChIP-seq supports the H3K4me3 accumulation
+  prediction at Polycomb-marked loci`.
+- **Status**: Postovit-lab in-house ChIP not yet generated; section currently
+  uses public sources only.
+- **Read more**: [§3 ChIP-seq (public)](03_chipseq_public/).
+
+## §4 ATAC-seq + multiomic
+
+- **Headline**: `TODO: differential accessibility in LOY vs CTRL is enriched
+  for Polycomb-target promoters; motif analysis implicates the
+  derepressed-program transcription factors.`
+- **Read more**: [§4 ATAC-seq + multiomic](04_atacseq_multiomic/).
+
+## §5 DepMap pan-cancer
+
+- **Headline**: `TODO: LOY+ DepMap lines show selective dependency on SAGA
+  complex members (TADA2B, KAT2A/B, SUPT3H, ...).`
+- **Read more**: [§5 DepMap pan-cancer](05_depmap_pancancer/).
+
+## §6 TCGA
+
+- **Headline**: `TODO: the LOY transcriptional signature is detectable in
+  TCGA tumors; LOY status concords across calling methods; LOY+ tumors enrich
+  for ...`.
+- **Read more**: [§6 TCGA](06_tcga/).
+
+## §7 Single-cell LOY atlas
+
+- **Headline**: `TODO: cell-resolution LOY calling in prostate ccRCC etc.
+  reveals ...; cross-cancer comparison shows ...`.
+- **Read more**: [§7 scRNA-seq LOY atlas](07_scrnaseq_loy_atlas/).
+
+## §8 Functional screens
+
+- **Headline**: CRISPR synthetic-lethal screens in A549 and HT1080 plus the
+  HT1080 drug screen converge on `TODO: hit set / pathway`.
+- **Read more**: [§8 Functional screens](08_functional_screens/) —
+  8.1 CRISPR A549 · 8.2 CRISPR HT1080 · 8.3 Drug HT1080 (Ben Snider, Craig
+  Lab) · 8.4 integration.
+
+# Mechanism in one figure
+
+```{r mechanism_figure, echo=FALSE, eval=FALSE}
+# Render the canonical mechanism figure inline once finalized.
+# TODO: include the panel that summarizes the LOY → chromatin → SAGA story.
+```
+
+`TODO: insert the canonical mechanism schematic when ready (likely Figure 1
+or graphical abstract).`
+
+For the long form, see the mechanism notebooks:
+
+- [`mechanism/th01`](mechanism/) — KDM5D/UTY loss → H3K4me3 accumulation.
+- [`mechanism/th02`](mechanism/) — PRC2 redistribution.
+- [`mechanism/th03`](mechanism/) — Polycomb derepression of neural/dev genes.
+- [`mechanism/th04`](mechanism/) — SAGA/STAGA addiction (synthetic lethality).
+
+# What to read first (for a new lab member)
+
+1. [Background](background.html) — the *why*.
+2. This document — the *what* and *so what*.
+3. [Project plan](project_plan.html) — the *when* and *what's next*.
+4. [`mechanism/th04_saga_synthetic_lethality.Rmd`](mechanism/) — the punch
+   line of the manuscript.
+5. The numbered analyses in the order most relevant to your interest (data
+   types are in [`analysis/README.md`](README.md)).
+
+# Document status
+
+- **Audience**: PIs, lab members, anyone needing a 10-minute primer.
+- **Owner**: Mike Vermeulen.
+- **Status**: built up as analyses are migrated. Re-knit this whenever a
+  numbered section gets a headline finding worth folding in.
+- **Last knit**: see header date.
