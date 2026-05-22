@@ -456,6 +456,116 @@ ht <- ComplexHeatmap::Heatmap(
 draw(ht, merge_legend = TRUE)
 ```
 
+## 3.2 Per-sample summary + key paralogs
+
+A two-panel complement to the heatmap. **Top**: total Y-chromosome expression
+per sample — a single quantitative bar per sample that should drop sharply in
+the three LOY columns. **Bottom**: per-gene boxplots for the six paralogs
+central to the mechanistic model — *KDM5D* and *UTY* (H3K4me3 / H3K27me3
+demethylase loss-of-function), plus *RPS4Y1*, *EIF1AY*, *DDX3Y*, and *USP9Y*
+(broadly expressed Y-linked housekeepers that confirm the loss is genome-wide
+across the chromosome, not just at the chromatin-regulator locus).
+
+```{r y-chromosome-summary, fig.height=8, fig.width=12}
+# --- Panel A: per-sample aggregate Y expression -----------------------
+sample_order <- samples %>%
+  mutate(treatment = factor(treatment,
+                            levels = c("PARENTAL", "CTRL", "LOY"))) %>%
+  arrange(treatment, replicate) %>%
+  pull(sample_id)
+
+y_summary <- y_lcpm %>%
+  as.data.frame() %>%
+  rownames_to_column("gene") %>%
+  pivot_longer(-gene, names_to = "sample_id", values_to = "logCPM") %>%
+  left_join(samples %>% dplyr::select(sample_id, treatment, replicate),
+            by = "sample_id") %>%
+  mutate(
+    sample_id = factor(sample_id, levels = sample_order),
+    treatment = factor(treatment, levels = c("PARENTAL", "CTRL", "LOY"))
+  )
+
+medians_per_sample <- y_summary %>%
+  group_by(sample_id, treatment) %>%
+  summarize(median_logCPM = median(logCPM, na.rm = TRUE), .groups = "drop")
+
+p_y_per_sample <- ggplot(y_summary,
+                         aes(x = sample_id, y = logCPM, fill = treatment)) +
+  geom_boxplot(alpha = 0.55, outlier.size = 0.6, width = 0.65) +
+  geom_text(data = medians_per_sample,
+            aes(x = sample_id, y = -Inf,
+                label = sprintf("%.1f", median_logCPM)),
+            inherit.aes = FALSE,
+            vjust = -0.4, size = 2.6, color = "grey20") +
+  scale_fill_manual(values = treatment_cols, name = NULL) +
+  labs(
+    title = "A. Per-sample Y-chromosome expression",
+    subtitle = sprintf(
+      "logCPM across %d protein-coding Y genes; box = sample, label = median",
+      nrow(y_lcpm)),
+    x = NULL, y = expression(log[2]~"(CPM)")
+  ) +
+  theme_classic(base_size = 10) +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1, size = 8),
+    legend.position = "top",
+    plot.title = element_text(face = "bold", size = 12),
+    plot.subtitle = element_text(size = 9, color = "grey30")
+  )
+
+# --- Panel B: focused key Y paralogs ----------------------------------
+key_y_genes <- c("KDM5D", "UTY", "RPS4Y1", "EIF1AY", "DDX3Y", "USP9Y")
+key_y_present <- intersect(key_y_genes, rownames(y_lcpm))
+
+if (length(key_y_present) > 0) {
+  key_df <- y_lcpm[key_y_present, , drop = FALSE] %>%
+    as.data.frame() %>%
+    rownames_to_column("gene") %>%
+    pivot_longer(-gene, names_to = "sample_id", values_to = "logCPM") %>%
+    left_join(samples %>% dplyr::select(sample_id, treatment, replicate),
+              by = "sample_id") %>%
+    mutate(
+      gene      = factor(gene, levels = key_y_present),
+      treatment = factor(treatment, levels = c("PARENTAL", "CTRL", "LOY"))
+    )
+
+  p_y_paralogs <- ggplot(key_df,
+                         aes(x = treatment, y = logCPM, fill = treatment)) +
+    geom_boxplot(alpha = 0.5, outlier.shape = NA, width = 0.6) +
+    geom_jitter(aes(shape = replicate), size = 2.3,
+                width = 0.12, height = 0,
+                color = "grey15", alpha = 0.9) +
+    facet_wrap(~ gene, scales = "free_y", ncol = 3) +
+    scale_fill_manual(values = treatment_cols, guide = "none") +
+    scale_shape_manual(values = passage_shapes, name = "Passage") +
+    labs(
+      title = "B. Key Y-linked paralogs (mechanism-relevant)",
+      subtitle = "KDM5D / UTY drive the chromatin-imbalance model; RPS4Y1 / EIF1AY / DDX3Y / USP9Y confirm chromosome-wide loss",
+      x = NULL, y = expression(log[2]~"(CPM)")
+    ) +
+    theme_classic(base_size = 10) +
+    theme(
+      strip.background = element_blank(),
+      strip.text       = element_text(face = "bold.italic", size = 10),
+      plot.title       = element_text(face = "bold", size = 12),
+      plot.subtitle    = element_text(size = 9, color = "grey30")
+    )
+
+  p_y_combined <- p_y_per_sample / p_y_paralogs +
+    plot_layout(heights = c(1, 1.4))
+  print(p_y_combined)
+  save_fig(p_y_combined, "y_chromosome_summary_and_paralogs",
+           width = 12, height = 8)
+} else {
+  cat("None of the key Y-linked paralogs",
+      paste(key_y_genes, collapse = ", "),
+      "were detected in the filtered data.\n")
+  print(p_y_per_sample)
+  save_fig(p_y_per_sample, "y_chromosome_per_sample",
+           width = 12, height = 4.5)
+}
+```
+
 ***
 
 # 4. Differential Expression: LOY vs sgCTRL {.tabset}
