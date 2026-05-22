@@ -2672,6 +2672,120 @@ if (!is.null(p_prc2_pool)) {
 }
 ```
 
+## 11.9 TF activity panel (DoRothEA + decoupleR) — pooled
+
+The same TF infrastructure used in §9 (DoRothEA A/B/C regulons + decoupleR
+CollecTRI network), but applied to the pooled-contrast t-statistics. Helper
+functions defined here are reused in §12 and §13.
+
+```{r tf-panel-helpers}
+# DoRothEA fgsea on MoR-weighted ranks for a single DE table.
+run_dorothea_panel <- function(de_df, contrast_label) {
+  ranks <- prep_ranks_t(de_df)
+  ranks <- ranks[!names(ranks) %in% ribo_hits]
+  set.seed(42)
+  lst <- lapply(names(tf_regulons), function(tf_name) {
+    targets <- tf_regulons[[tf_name]]
+    shared  <- intersect(targets, names(ranks))
+    if (length(shared) < 7) return(NULL)
+    stats_adj <- adjust_stats_by_mor(ranks, tf_name)
+    suppressWarnings(fgsea(
+      pathways = setNames(list(shared), tf_name),
+      stats    = stats_adj,
+      minSize  = 7, maxSize = 500))
+  })
+  bind_rows(lst) %>%
+    as_tibble() %>%
+    mutate(padj = p.adjust(pval, method = "BH"),
+           contrast = contrast_label) %>%
+    arrange(padj)
+}
+
+# decoupleR contrast-level ULM (CollecTRI) on a DE t-statistic vector.
+run_decoupler_panel <- function(de_df, contrast_label) {
+  deg_df <- de_df %>%
+    dplyr::filter(!is.na(t)) %>%
+    dplyr::select(gene_name, t) %>%
+    distinct(gene_name, .keep_all = TRUE) %>%
+    as.data.frame()
+  rownames(deg_df) <- deg_df$gene_name
+  deg_mat <- as.matrix(deg_df[, "t", drop = FALSE])
+
+  run_ulm(
+    mat = deg_mat, net = net,
+    .source = "source", .target = "target", .mor = "mor",
+    minsize = 5) %>%
+    mutate(contrast = contrast_label)
+}
+
+# Compact TF bar plot — top N up + top N down by signed score/NES.
+# `tf_col` names the TF identifier column; `value_col` names the score column.
+plot_tf_bar <- function(df, tf_col, value_col, title,
+                        top_n = 25, x_lab = NULL) {
+  if (nrow(df) == 0) return(NULL)
+  d <- bind_rows(
+    df %>% arrange(desc(.data[[value_col]])) %>% slice_head(n = top_n),
+    df %>% arrange(.data[[value_col]])       %>% slice_head(n = top_n)
+  ) %>%
+    distinct(.data[[tf_col]], .keep_all = TRUE) %>%
+    mutate(tf_label = fct_reorder(.data[[tf_col]], .data[[value_col]]))
+  ggplot(d, aes(x = .data[[value_col]], y = tf_label,
+                fill = .data[[value_col]])) +
+    geom_col(color = "black", linewidth = 0.2) +
+    scale_fill_gradient2(low = "#0072B2", mid = "white", high = "#D55E00",
+                         midpoint = 0, guide = "none") +
+    geom_vline(xintercept = 0, color = "grey40", linewidth = 0.3) +
+    labs(title = title, x = x_lab %||% value_col, y = NULL) +
+    theme_classic(base_size = 10) +
+    theme(plot.title = element_text(face = "bold", size = 11),
+          axis.text.y = element_text(size = 8))
+}
+```
+
+```{r pooled-tf-dorothea}
+tf_gsea_pool <- run_dorothea_panel(de_loy_pool, "LOY_v_pooled")
+cat(sprintf("DoRothEA fgsea (pooled): %d TFs tested, %d significant (padj<0.05)\n",
+            nrow(tf_gsea_pool),
+            sum(tf_gsea_pool$padj < 0.05, na.rm = TRUE)))
+fwrite(tf_gsea_pool,
+       file.path(TF_DIR, "ht1080_LOY_v_pooled_tf_activity.csv"))
+```
+
+```{r pooled-tf-dorothea-bar, fig.height=8, fig.width=7}
+tf_pool_sig <- tf_gsea_pool %>% dplyr::filter(padj < 0.05)
+if (nrow(tf_pool_sig) > 0) {
+  p_tf_pool_bar <- plot_tf_bar(
+    tf_pool_sig, tf_col = "pathway", value_col = "NES",
+    title = "DoRothEA NES — LOY vs pooled Y+ (padj < 0.05)",
+    x_lab = "DoRothEA NES")
+  print(p_tf_pool_bar)
+  save_fig(p_tf_pool_bar, "tf_dorothea_bar_LOY_v_pooled",
+           width = 7, height = 8)
+} else {
+  cat("No TFs significant at padj < 0.05 in DoRothEA for the pooled contrast.\n")
+}
+```
+
+## 11.10 decoupleR contrast-level TF activity — pooled
+
+```{r pooled-tf-decoupler, fig.height=8, fig.width=7}
+contrast_acts_pool <- run_decoupler_panel(de_loy_pool, "LOY_v_pooled")
+fwrite(contrast_acts_pool,
+       file.path(TF_DIR, "ht1080_LOY_v_pooled_decoupleR_contrast.csv"))
+
+cat(sprintf("decoupleR contrast ULM (pooled): %d TFs scored, %d at p<0.05\n",
+            nrow(contrast_acts_pool),
+            sum(contrast_acts_pool$p_value < 0.05, na.rm = TRUE)))
+
+p_dc_pool <- plot_tf_bar(
+  contrast_acts_pool, tf_col = "source", value_col = "score",
+  title = "decoupleR ULM — LOY vs pooled Y+ (top 25 up + 25 down)",
+  x_lab = "decoupleR ULM score")
+print(p_dc_pool)
+save_fig(p_dc_pool, "decouple_TF_barplot_LOY_v_pooled",
+         width = 7, height = 8)
+```
+
 ***
 
 # 12. PARENTAL vs sgCTRL (sgRNA-control sanity check)
@@ -2844,7 +2958,53 @@ if (!is.null(p_prc2_sg)) {
 }
 ```
 
-## 12.7 Verdict
+## 12.7 TF activity panel (DoRothEA) — sgCTRL vs PARENTAL
+
+```{r sgctrl-tf-dorothea}
+tf_gsea_sg <- run_dorothea_panel(de_sg_par, "sgCTRL_v_PARENTAL")
+cat(sprintf("DoRothEA fgsea (sgCTRL vs PARENTAL): %d TFs tested, %d significant (padj<0.05)\n",
+            nrow(tf_gsea_sg),
+            sum(tf_gsea_sg$padj < 0.05, na.rm = TRUE)))
+fwrite(tf_gsea_sg,
+       file.path(TF_DIR, "ht1080_sgCTRL_v_PARENTAL_tf_activity.csv"))
+```
+
+```{r sgctrl-tf-dorothea-bar, fig.height=8, fig.width=7}
+tf_sg_sig <- tf_gsea_sg %>% dplyr::filter(padj < 0.05)
+if (nrow(tf_sg_sig) > 0) {
+  p_tf_sg_bar <- plot_tf_bar(
+    tf_sg_sig, tf_col = "pathway", value_col = "NES",
+    title = "DoRothEA NES — sgCTRL vs PARENTAL (padj < 0.05)",
+    x_lab = "DoRothEA NES (sgCTRL - PARENTAL)")
+  print(p_tf_sg_bar)
+  save_fig(p_tf_sg_bar, "tf_dorothea_bar_sgCTRL_v_PARENTAL",
+           width = 7, height = 8)
+} else {
+  cat("No TFs significant at padj < 0.05 in DoRothEA for sgCTRL vs PARENTAL — the expected outcome for a benign sgRNA control.\n")
+}
+```
+
+## 12.8 decoupleR contrast-level TF activity — sgCTRL vs PARENTAL
+
+```{r sgctrl-tf-decoupler, fig.height=8, fig.width=7}
+contrast_acts_sg <- run_decoupler_panel(de_sg_par, "sgCTRL_v_PARENTAL")
+fwrite(contrast_acts_sg,
+       file.path(TF_DIR, "ht1080_sgCTRL_v_PARENTAL_decoupleR_contrast.csv"))
+
+cat(sprintf("decoupleR contrast ULM (sgCTRL vs PARENTAL): %d TFs scored, %d at p<0.05\n",
+            nrow(contrast_acts_sg),
+            sum(contrast_acts_sg$p_value < 0.05, na.rm = TRUE)))
+
+p_dc_sg <- plot_tf_bar(
+  contrast_acts_sg, tf_col = "source", value_col = "score",
+  title = "decoupleR ULM — sgCTRL vs PARENTAL (top 25 up + 25 down)",
+  x_lab = "decoupleR ULM score (sgCTRL - PARENTAL)")
+print(p_dc_sg)
+save_fig(p_dc_sg, "decouple_TF_barplot_sgCTRL_v_PARENTAL",
+         width = 7, height = 8)
+```
+
+## 12.9 Verdict
 
 ```{r sgctrl-verdict}
 sg_n_deg  <- sum(de_sg_par$FDR < ALPHA & abs(de_sg_par$logFC) > LFC_THR)
@@ -2853,8 +3013,11 @@ sg_n_prc2 <- gsea_sg %>%
   dplyr::filter(grepl("PRC2|H3K27|EZH2|EED|SUZ12|POLYCOMB",
                       pathway, ignore.case = TRUE),
                 padj < 0.05) %>% nrow()
+sg_n_tf_dor <- sum(tf_gsea_sg$padj < 0.05, na.rm = TRUE)
+sg_n_tf_dc  <- sum(contrast_acts_sg$p_value < 0.05, na.rm = TRUE)
 
-verdict <- if (sg_n_deg <= 20 && sg_n_gsea <= 30 && sg_n_prc2 == 0) {
+verdict <- if (sg_n_deg <= 20 && sg_n_gsea <= 30 && sg_n_prc2 == 0 &&
+               sg_n_tf_dor <= 5) {
   "CLEAN: sgRNA control appears benign — pooling is well-justified."
 } else if (sg_n_prc2 > 0) {
   "CONFOUNDING: PRC2-axis pathways shift in the sgRNA control. Pooling will dilute the LOY signal; section 4's paired sgCTRL contrast is the safer primary."
@@ -2862,18 +3025,512 @@ verdict <- if (sg_n_deg <= 20 && sg_n_gsea <= 30 && sg_n_prc2 == 0) {
   "MIXED: some non-PRC2 perturbation in sgCTRL. Pooled contrast still informative for power; trust convergent signal between §4 and §11."
 }
 
-cat(sprintf("sgCTRL vs PARENTAL DEGs (FDR<%g, |logFC|>%g): %d\n",
+cat(sprintf("sgCTRL vs PARENTAL DEGs (FDR<%g, |logFC|>%g):       %d\n",
             ALPHA, LFC_THR, sg_n_deg))
 cat(sprintf("sgCTRL vs PARENTAL significant pathways (padj<0.05): %d\n",
             sg_n_gsea))
-cat(sprintf("...of which PRC2/H3K27 axis:                          %d\n\n",
+cat(sprintf("...of which PRC2/H3K27 axis:                          %d\n",
             sg_n_prc2))
+cat(sprintf("Significant TFs (DoRothEA, padj<0.05):                %d\n",
+            sg_n_tf_dor))
+cat(sprintf("Significant TFs (decoupleR contrast, p<0.05):         %d\n\n",
+            sg_n_tf_dc))
 cat("VERDICT:\n", verdict, "\n", sep = "")
 ```
 
 ***
 
-# 13. Session Info
+# 13. msVIPER master-regulator analysis (all three contrasts) {.tabset}
+
+Master-regulator inference via **msVIPER** (Alvarez et al., 2016) on the
+LOY-vs-sgCTRL, LOY-vs-pooled, and sgCTRL-vs-PARENTAL contrasts. Two regulon
+sources are run side-by-side:
+
+1. **CollecTRI** (HGNC-keyed) — the same human regulome decoupleR uses (§9).
+2. **TCGA-SARC ARACNe** (Entrez-keyed; `aracne.networks::regulonsarc`) —
+   tissue-matched to HT1080 (fibrosarcoma).
+
+Point estimates only (no bootstrap, shadow, or synergy) to keep render time
+manageable. Outputs feed the cross-source consistency analysis in §14.
+
+## 13.1 Regulons + helpers
+
+```{r viper-setup}
+suppressPackageStartupMessages({
+  library(Biobase)
+  library(viper)
+  library(aracne.networks)
+})
+
+# --- CollecTRI -> viper regulon -------------------------------------------
+collectri_to_regulon <- function(df) {
+  d <- df[, c("source", "target", "mor")]
+  d$mor[!is.finite(d$mor)] <- 0
+  d <- d[d$mor != 0, , drop = FALSE]
+  d <- unique(d)
+  reg <- split(d, d$source)
+  reg <- lapply(reg, function(x) {
+    list(tfmode = setNames(sign(x$mor), x$target),
+         likelihood = rep(1, length(x$mor)))
+  })
+  class(reg) <- "regulon"
+  reg
+}
+
+reg_collectri <- collectri_to_regulon(net)
+cat(sprintf("CollecTRI regulon: %d TFs (median target size %d)\n",
+            length(reg_collectri),
+            median(sapply(reg_collectri, function(x) length(x$tfmode)))))
+
+# --- TCGA-SARC ARACNe (Entrez) -> relabel to HGNC ------------------------
+data("regulonsarc", package = "aracne.networks")
+
+entrez_symbol_map <- function(gene_info) {
+  ent <- gene_info$entrezid
+  if (is.list(ent)) {
+    ent <- vapply(ent, function(x) {
+      if (length(x) == 0 || is.na(x[[1]])) NA_character_
+      else as.character(x[[1]])
+    }, character(1))
+  } else ent <- as.character(ent)
+  sym <- as.character(gene_info$gene_name)
+  keep <- !is.na(ent) & !is.na(sym) & nzchar(sym)
+  setNames(sym[keep], ent[keep])
+}
+
+relabel_regulon_tfs <- function(regulon, e2s_map) {
+  keys      <- as.character(names(regulon))
+  new_names <- unname(e2s_map[keys])
+  ok <- !is.na(new_names) & !duplicated(new_names)
+  reg <- regulon[ok]
+  names(reg) <- new_names[ok]
+  reg
+}
+
+e2s_map    <- entrez_symbol_map(dge$genes)
+reg_aracne <- relabel_regulon_tfs(regulonsarc, e2s_map)
+cat(sprintf("TCGA-SARC ARACNe regulon (relabeled TF names to HGNC; targets remain Entrez): %d TFs (median target size %d)\n",
+            length(reg_aracne),
+            median(sapply(reg_aracne, function(x) length(x$tfmode)))))
+
+# Reverse-direction lookup: HGNC symbol -> Entrez (single Entrez per symbol).
+# Required because relabel_regulon_tfs() renames TF *entries* to HGNC but
+# leaves regulon **targets** as Entrez IDs — so the GES vector going into
+# msviper(reg_aracne) must also be Entrez-keyed.
+sym_to_entrez <- {
+  ent_list <- dge$genes$entrezid
+  if (is.list(ent_list)) {
+    ent_chr <- vapply(ent_list, function(x) {
+      if (length(x) == 0 || is.na(x[[1]])) NA_character_
+      else as.character(x[[1]])
+    }, character(1))
+  } else ent_chr <- as.character(ent_list)
+  sym_chr <- as.character(dge$genes$gene_name)
+  keep    <- !is.na(ent_chr) & !is.na(sym_chr) & nzchar(sym_chr)
+  setNames(ent_chr[keep], sym_chr[keep])
+}
+cat(sprintf("HGNC -> Entrez map: %d entries\n", length(sym_to_entrez)))
+
+# --- Convert a DE table to a msVIPER input vector ------------------------
+# ges = signed z-score from t-statistic (matches viper_HT1080.Rmd style).
+# key_type = "symbol" for CollecTRI; "entrez" for ARACNe.
+de_to_ges <- function(de_df, key_type = c("symbol", "entrez")) {
+  key_type <- match.arg(key_type)
+  d <- de_df %>%
+    dplyr::filter(!is.na(gene_name), !is.na(t)) %>%
+    distinct(gene_name, .keep_all = TRUE)
+  ges_val <- qnorm(pmax(d$PValue, 1e-300) / 2,
+                   lower.tail = FALSE) * sign(d$t)
+  if (key_type == "symbol") {
+    keys <- d$gene_name
+  } else {
+    keys <- unname(sym_to_entrez[d$gene_name])
+  }
+  keep <- !is.na(keys) & nzchar(keys)
+  setNames(ges_val[keep], keys[keep])
+}
+
+run_msviper_contrast <- function(de_df, regulon, label,
+                                 key_type = c("symbol", "entrez"),
+                                 minsize = 25) {
+  key_type <- match.arg(key_type)
+  ges <- de_to_ges(de_df, key_type = key_type)
+  msv <- msviper(ges, regulon, minsize = minsize,
+                 ges.filter = TRUE, verbose = FALSE)
+  data.frame(
+    TF       = names(msv$es$nes),
+    NES      = unname(msv$es$nes),
+    size     = unname(msv$es$size),
+    p.value  = unname(msv$es$p.value),
+    FDR      = p.adjust(msv$es$p.value, method = "BH"),
+    contrast = label,
+    stringsAsFactors = FALSE) %>% arrange(p.value)
+}
+
+plot_msviper_bar <- function(tab, title, top_n = 20) {
+  if (nrow(tab) == 0) return(NULL)
+  d <- bind_rows(
+    tab %>% arrange(desc(NES)) %>% slice_head(n = top_n),
+    tab %>% arrange(NES)       %>% slice_head(n = top_n)
+  ) %>% distinct(TF, .keep_all = TRUE) %>%
+    mutate(TF = fct_reorder(TF, NES))
+  ggplot(d, aes(x = NES, y = TF, fill = NES)) +
+    geom_col(color = "grey20", linewidth = 0.2) +
+    scale_fill_gradient2(low = "#0072B2", mid = "white", high = "#D55E00",
+                         midpoint = 0, guide = "none") +
+    geom_vline(xintercept = 0, color = "grey40", linewidth = 0.3) +
+    labs(title = title, x = "msVIPER NES", y = NULL) +
+    theme_classic(base_size = 10) +
+    theme(plot.title  = element_text(face = "bold", size = 11),
+          axis.text.y = element_text(size = 8))
+}
+
+# Save dir for msVIPER outputs (CSV)
+VIPER_DIR <- file.path(CELL_DIR, "VIPER")
+if (!dir.exists(VIPER_DIR)) dir.create(VIPER_DIR, recursive = TRUE)
+```
+
+## 13.2 LOY vs sgCTRL — canonical {.tabset}
+
+### CollecTRI
+
+```{r viper-loy-ctrl-collectri, fig.height=7, fig.width=7}
+msv_lc_col <- run_msviper_contrast(de_loy_ctrl, reg_collectri,
+                                   "LOY_v_sgCTRL")
+fwrite(msv_lc_col,
+       file.path(VIPER_DIR, "msviper_LOY_v_sgCTRL_collectri.csv"))
+cat(sprintf("msVIPER CollecTRI (LOY vs sgCTRL): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_lc_col),
+            sum(msv_lc_col$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_lc_col <- plot_msviper_bar(
+  msv_lc_col,
+  "msVIPER — LOY vs sgCTRL · CollecTRI (top 20 up + 20 down)")
+print(p_msv_lc_col)
+save_fig(p_msv_lc_col, "msviper_bar_LOY_v_sgCTRL_collectri",
+         width = 7, height = 8)
+```
+
+### TCGA-SARC ARACNe
+
+```{r viper-loy-ctrl-aracne, fig.height=7, fig.width=7}
+msv_lc_arc <- run_msviper_contrast(de_loy_ctrl, reg_aracne,
+                                   "LOY_v_sgCTRL", key_type = "entrez")
+fwrite(msv_lc_arc,
+       file.path(VIPER_DIR, "msviper_LOY_v_sgCTRL_aracne_sarc.csv"))
+cat(sprintf("msVIPER ARACNe (LOY vs sgCTRL): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_lc_arc),
+            sum(msv_lc_arc$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_lc_arc <- plot_msviper_bar(
+  msv_lc_arc,
+  "msVIPER — LOY vs sgCTRL · TCGA-SARC ARACNe (top 20 up + 20 down)")
+print(p_msv_lc_arc)
+save_fig(p_msv_lc_arc, "msviper_bar_LOY_v_sgCTRL_aracne_sarc",
+         width = 7, height = 8)
+```
+
+## 13.3 LOY vs pooled Y+ {.tabset}
+
+### CollecTRI
+
+```{r viper-loy-pool-collectri, fig.height=7, fig.width=7}
+msv_pool_col <- run_msviper_contrast(de_loy_pool, reg_collectri,
+                                     "LOY_v_pooled")
+fwrite(msv_pool_col,
+       file.path(VIPER_DIR, "msviper_LOY_v_pooled_collectri.csv"))
+cat(sprintf("msVIPER CollecTRI (LOY vs pooled): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_pool_col),
+            sum(msv_pool_col$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_pool_col <- plot_msviper_bar(
+  msv_pool_col,
+  "msVIPER — LOY vs pooled Y+ · CollecTRI")
+print(p_msv_pool_col)
+save_fig(p_msv_pool_col, "msviper_bar_LOY_v_pooled_collectri",
+         width = 7, height = 8)
+```
+
+### TCGA-SARC ARACNe
+
+```{r viper-loy-pool-aracne, fig.height=7, fig.width=7}
+msv_pool_arc <- run_msviper_contrast(de_loy_pool, reg_aracne,
+                                     "LOY_v_pooled", key_type = "entrez")
+fwrite(msv_pool_arc,
+       file.path(VIPER_DIR, "msviper_LOY_v_pooled_aracne_sarc.csv"))
+cat(sprintf("msVIPER ARACNe (LOY vs pooled): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_pool_arc),
+            sum(msv_pool_arc$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_pool_arc <- plot_msviper_bar(
+  msv_pool_arc,
+  "msVIPER — LOY vs pooled Y+ · TCGA-SARC ARACNe")
+print(p_msv_pool_arc)
+save_fig(p_msv_pool_arc, "msviper_bar_LOY_v_pooled_aracne_sarc",
+         width = 7, height = 8)
+```
+
+## 13.4 sgCTRL vs PARENTAL — sanity check {.tabset}
+
+### CollecTRI
+
+```{r viper-sg-par-collectri, fig.height=7, fig.width=7}
+msv_sg_col <- run_msviper_contrast(de_sg_par, reg_collectri,
+                                   "sgCTRL_v_PARENTAL")
+fwrite(msv_sg_col,
+       file.path(VIPER_DIR, "msviper_sgCTRL_v_PARENTAL_collectri.csv"))
+cat(sprintf("msVIPER CollecTRI (sgCTRL vs PARENTAL): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_sg_col),
+            sum(msv_sg_col$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_sg_col <- plot_msviper_bar(
+  msv_sg_col,
+  "msVIPER — sgCTRL vs PARENTAL · CollecTRI")
+if (!is.null(p_msv_sg_col)) {
+  print(p_msv_sg_col)
+  save_fig(p_msv_sg_col, "msviper_bar_sgCTRL_v_PARENTAL_collectri",
+           width = 7, height = 8)
+}
+```
+
+### TCGA-SARC ARACNe
+
+```{r viper-sg-par-aracne, fig.height=7, fig.width=7}
+msv_sg_arc <- run_msviper_contrast(de_sg_par, reg_aracne,
+                                   "sgCTRL_v_PARENTAL", key_type = "entrez")
+fwrite(msv_sg_arc,
+       file.path(VIPER_DIR, "msviper_sgCTRL_v_PARENTAL_aracne_sarc.csv"))
+cat(sprintf("msVIPER ARACNe (sgCTRL vs PARENTAL): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_sg_arc),
+            sum(msv_sg_arc$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_sg_arc <- plot_msviper_bar(
+  msv_sg_arc,
+  "msVIPER — sgCTRL vs PARENTAL · TCGA-SARC ARACNe")
+if (!is.null(p_msv_sg_arc)) {
+  print(p_msv_sg_arc)
+  save_fig(p_msv_sg_arc, "msviper_bar_sgCTRL_v_PARENTAL_aracne_sarc",
+           width = 7, height = 8)
+}
+```
+
+## {-}
+
+***
+
+# 14. Cross-source TF consistency
+
+This section integrates **every TF result generated above** — three contrasts
+(LOY-vs-sgCTRL, LOY-vs-pooled, sgCTRL-vs-PARENTAL) × four methods (DoRothEA
+fgsea, decoupleR ULM, msVIPER CollecTRI, msVIPER TCGA-SARC ARACNe) = up to 12
+NES values per TF — and asks: **which TFs are consistently flagged across the
+LOY-relevant contrasts, and which are spuriously driven by a single method or
+the sgRNA control?**
+
+A TF that scores highly in BOTH LOY contrasts (canonical + pooled) across
+multiple methods, AND is silent in the sgCTRL-vs-PARENTAL sanity check, is a
+robust master-regulator candidate. Conversely, TFs that score highly only in
+the sgCTRL-vs-PARENTAL contrast are sgRNA artifacts to discount.
+
+## 14.1 Aggregate all TF NES results
+
+```{r tf-consistency-collect}
+# Normalize each source to a common 4-column long format:
+#   TF, NES, sig, contrast, source
+to_long <- function(df, tf_col, val_col, sig_expr, contrast_val, source_lab) {
+  df %>%
+    dplyr::transmute(
+      TF       = .data[[tf_col]],
+      NES      = .data[[val_col]],
+      sig      = !!sig_expr,
+      contrast = contrast_val,
+      source   = source_lab
+    )
+}
+
+tf_long <- bind_rows(
+  # DoRothEA × 3 contrasts -------------------------------------------------
+  to_long(tf_gsea_lc,   "pathway", "NES", rlang::expr(padj < 0.05),
+          "LOY_v_sgCTRL",      "DoRothEA"),
+  to_long(tf_gsea_pool, "pathway", "NES", rlang::expr(padj < 0.05),
+          "LOY_v_pooled",      "DoRothEA"),
+  to_long(tf_gsea_sg,   "pathway", "NES", rlang::expr(padj < 0.05),
+          "sgCTRL_v_PARENTAL", "DoRothEA"),
+
+  # decoupleR × 3 contrasts ------------------------------------------------
+  to_long(contrast_acts_lc,   "source", "score", rlang::expr(p_value < 0.05),
+          "LOY_v_sgCTRL",      "decoupleR"),
+  to_long(contrast_acts_pool, "source", "score", rlang::expr(p_value < 0.05),
+          "LOY_v_pooled",      "decoupleR"),
+  to_long(contrast_acts_sg,   "source", "score", rlang::expr(p_value < 0.05),
+          "sgCTRL_v_PARENTAL", "decoupleR"),
+
+  # msVIPER CollecTRI × 3 contrasts ---------------------------------------
+  to_long(msv_lc_col,   "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_sgCTRL",      "msVIPER_CollecTRI"),
+  to_long(msv_pool_col, "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_pooled",      "msVIPER_CollecTRI"),
+  to_long(msv_sg_col,   "TF", "NES", rlang::expr(FDR < 0.05),
+          "sgCTRL_v_PARENTAL", "msVIPER_CollecTRI"),
+
+  # msVIPER ARACNe × 3 contrasts ------------------------------------------
+  to_long(msv_lc_arc,   "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_sgCTRL",      "msVIPER_ARACNe"),
+  to_long(msv_pool_arc, "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_pooled",      "msVIPER_ARACNe"),
+  to_long(msv_sg_arc,   "TF", "NES", rlang::expr(FDR < 0.05),
+          "sgCTRL_v_PARENTAL", "msVIPER_ARACNe")
+)
+
+fwrite(tf_long, file.path(TF_DIR, "ht1080_tf_consistency_long.csv"))
+
+tf_long %>%
+  group_by(contrast, source) %>%
+  summarize(tested = n(),
+            sig    = sum(sig, na.rm = TRUE),
+            .groups = "drop") %>%
+  knitr::kable(caption = "TF result counts by contrast × source")
+```
+
+## 14.2 Consistency heatmap (top robust TFs)
+
+Score each TF by how many of the **two LOY-relevant** source × contrast
+combinations it reaches significance in (max = 8: 4 sources × 2 LOY
+contrasts). Heatmap the NES of the top scorers across all 12 cells.
+
+```{r tf-consistency-heatmap, fig.height=12, fig.width=10}
+# Restrict to LOY contrasts for ranking
+loy_only <- tf_long %>%
+  dplyr::filter(contrast %in% c("LOY_v_sgCTRL", "LOY_v_pooled"))
+
+tf_score <- loy_only %>%
+  group_by(TF) %>%
+  summarize(
+    sig_count    = sum(sig, na.rm = TRUE),
+    abs_NES_mean = mean(abs(NES), na.rm = TRUE),
+    NES_direction_mean = mean(NES, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(sig_count), desc(abs_NES_mean))
+
+# Pick top robust TFs (≥3 of 8 LOY hits) — clamp to 40 for plot readability
+top_tfs_consistent <- tf_score %>%
+  dplyr::filter(sig_count >= 3) %>%
+  slice_head(n = 40) %>%
+  pull(TF)
+
+cat(sprintf("TFs significant in >=3 LOY-relevant source x contrast cells: %d (showing top %d)\n",
+            sum(tf_score$sig_count >= 3), length(top_tfs_consistent)))
+
+if (length(top_tfs_consistent) > 0) {
+  hm_df <- tf_long %>%
+    dplyr::filter(TF %in% top_tfs_consistent) %>%
+    mutate(cell = paste(source, contrast, sep = " · "),
+           TF   = factor(TF, levels = rev(top_tfs_consistent)))
+
+  hm_cells <- expand.grid(
+    TF   = top_tfs_consistent,
+    cell = c(
+      "DoRothEA · LOY_v_sgCTRL", "DoRothEA · LOY_v_pooled",
+      "DoRothEA · sgCTRL_v_PARENTAL",
+      "decoupleR · LOY_v_sgCTRL", "decoupleR · LOY_v_pooled",
+      "decoupleR · sgCTRL_v_PARENTAL",
+      "msVIPER_CollecTRI · LOY_v_sgCTRL",
+      "msVIPER_CollecTRI · LOY_v_pooled",
+      "msVIPER_CollecTRI · sgCTRL_v_PARENTAL",
+      "msVIPER_ARACNe · LOY_v_sgCTRL",
+      "msVIPER_ARACNe · LOY_v_pooled",
+      "msVIPER_ARACNe · sgCTRL_v_PARENTAL"
+    ), stringsAsFactors = FALSE)
+
+  hm_full <- hm_cells %>%
+    left_join(hm_df %>% dplyr::select(TF, cell, NES, sig),
+              by = c("TF", "cell")) %>%
+    mutate(
+      TF   = factor(TF, levels = rev(top_tfs_consistent)),
+      cell = factor(cell, levels = unique(hm_cells$cell)),
+      sig_marker = ifelse(isTRUE(sig) | (!is.na(sig) & sig), "*", "")
+    )
+
+  p_consist_hm <- ggplot(hm_full, aes(x = cell, y = TF, fill = NES)) +
+    geom_tile(color = "white", linewidth = 0.4) +
+    geom_text(aes(label = sig_marker), color = "black",
+              size = 3.5, vjust = 0.7) +
+    scale_fill_gradient2(low = "#0072B2", mid = "grey92", high = "#D55E00",
+                         midpoint = 0, na.value = "grey80",
+                         name = "NES / score") +
+    labs(title = sprintf("TF cross-source consistency (top %d robust TFs)",
+                         length(top_tfs_consistent)),
+         subtitle = "* = significant; columns grouped LOY-vs-sgCTRL | LOY-vs-pooled | sgCTRL-vs-PARENTAL",
+         x = NULL, y = NULL) +
+    theme_minimal(base_size = 9) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(face = "italic", size = 8),
+      panel.grid  = element_blank(),
+      plot.title  = element_text(face = "bold")
+    )
+  print(p_consist_hm)
+  save_fig(p_consist_hm, "tf_consistency_heatmap",
+           width = 10, height = 12)
+} else {
+  cat("No TF reached significance in >=3 LOY-relevant source x contrast cells.\n")
+}
+```
+
+## 14.3 Robust hits — TFs flagged by multiple sources in BOTH LOY contrasts and SILENT in sgCTRL-vs-PARENTAL
+
+The cleanest robust hits: significant in BOTH LOY contrasts under at least
+two methods, NOT significant in sgCTRL-vs-PARENTAL (i.e., not an sgRNA
+artifact).
+
+```{r tf-robust-hits}
+sig_in_contrast <- function(tf, ctr) {
+  tf_long %>%
+    dplyr::filter(TF == tf, contrast == ctr, sig) %>%
+    dplyr::pull(source) %>% unique()
+}
+
+robust_tbl <- tf_score %>%
+  rowwise() %>%
+  mutate(
+    sources_LOY_v_sgCTRL = paste(sig_in_contrast(TF, "LOY_v_sgCTRL"),
+                                 collapse = ", "),
+    sources_LOY_v_pooled = paste(sig_in_contrast(TF, "LOY_v_pooled"),
+                                 collapse = ", "),
+    n_src_canonical = length(sig_in_contrast(TF, "LOY_v_sgCTRL")),
+    n_src_pooled    = length(sig_in_contrast(TF, "LOY_v_pooled")),
+    n_src_sgctrl    = length(sig_in_contrast(TF, "sgCTRL_v_PARENTAL"))
+  ) %>%
+  ungroup() %>%
+  dplyr::filter(
+    n_src_canonical >= 2,
+    n_src_pooled    >= 2,
+    n_src_sgctrl    == 0
+  ) %>%
+  arrange(desc(sig_count), desc(abs_NES_mean))
+
+cat(sprintf("Robust LOY TFs (>=2 sources in both LOY contrasts, silent in sgCTRL_v_PARENTAL): %d\n",
+            nrow(robust_tbl)))
+
+fwrite(robust_tbl,
+       file.path(TF_DIR, "ht1080_tf_robust_hits.csv"))
+
+if (nrow(robust_tbl) > 0) {
+  robust_tbl %>%
+    dplyr::select(TF, sig_count, NES_direction_mean,
+                  sources_LOY_v_sgCTRL, sources_LOY_v_pooled) %>%
+    head(30) %>%
+    knitr::kable(digits = 2,
+                 caption = "Top 30 robust LOY TFs (>=2 methods agree in both LOY contrasts; not artifacts of sgRNA control)")
+} else {
+  cat("No TF met the strict robust-hit criteria.\n")
+}
+```
+
+***
+
+# 15. Session Info
 
 ```{r session-info}
 sessionInfo()
