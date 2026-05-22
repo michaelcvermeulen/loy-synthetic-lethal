@@ -7,10 +7,6 @@ HT1080 as independent efforts**; the **drug screen was performed in HT1080
 only**. Cross-line CRISPR concordance and CRISPR-vs-drug overlap (HT1080) are
 examined in the integration notebook (8.4).
 
-> **Open question (CRISPR screen placement).** The CRISPR synthetic-lethal
-> screens (8.1, 8.2) could alternatively live under section 1 (engineering →
-> screen on engineered lines). Parked here for now; relocate if preferred.
-
 ## Planned analyses
 
 | #   | File                                       | Description |
