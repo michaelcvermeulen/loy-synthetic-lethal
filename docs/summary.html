@@ -2561,23 +2561,33 @@ border-color: var(--queens-gold) !important;
 color: var(--queens-blue) !important;
 }
 
+
 #content code {
 background: var(--queens-blue-tint);
 color: var(--queens-blue);
 padding: 1px 5px;
 border-radius: 3px;
 font-size: 92%;
+white-space: normal;
+word-break: break-word;
+overflow-wrap: anywhere;
 }
+
 #content pre {
 background: #f7f8fa;
 border-left: 3px solid var(--queens-blue);
 padding: 0.8em 1em;
 border-radius: 0 4px 4px 0;
+overflow-x: auto;
+max-width: 100%;
 }
 #content pre code {
 background: transparent;
 color: var(--ink);
 padding: 0;
+white-space: pre;
+word-break: normal;
+overflow-wrap: normal;
 }
 
 #content table {
