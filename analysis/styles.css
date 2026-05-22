@@ -16,28 +16,56 @@
 }
 
 /* --- Sidebar (TOC column) ------------------------------------------- */
+/* Note: readthedown ships its own #sidebar rules. We use !important on
+   color rules to win the specificity tie reliably. */
 #sidebar {
-  background: var(--queens-blue);
+  background: var(--queens-blue) !important;
+}
+#sidebar header {
+  /* readthedown's "DOCS" label is hard-coded dark-red (#9F2042) — unreadable
+     on our blue background. Override. */
+  color: #ffffff !important;
+  background: var(--queens-blue) !important;
+  letter-spacing: 0.06em;
 }
 #sidebar h2 {
-  background: var(--queens-blue);
-  color: #ffffff;
+  background: var(--queens-blue) !important;
+  color: #ffffff !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
 }
+#sidebar h2 a,
+#sidebar h2 a:link,
+#sidebar h2 a:visited {
+  color: #ffffff !important;
+}
 #sidebar a,
-#postamble a,
-#postamble {
-  color: #f0f3f8;
+#sidebar a:link,
+#sidebar a:visited {
+  color: #e8edf3 !important;     /* off-white, high contrast on blue */
 }
 #sidebar a:hover,
+#sidebar a:focus,
 #sidebar a.active {
-  color: var(--queens-gold);
+  color: var(--queens-blue) !important;
+  background-color: var(--queens-gold) !important;
   text-decoration: none;
 }
-#sidebar ul li.active > a {
-  background: rgba(184, 157, 41, 0.18);  /* gold tint */
-  color: var(--queens-gold);
-  border-left: 3px solid var(--queens-gold);
+#sidebar ul li.active > a,
+#sidebar .list-group-item.active {
+  background: rgba(184, 157, 41, 0.22) !important;  /* gold tint */
+  color: #ffffff !important;
+  border-left: 3px solid var(--queens-gold) !important;
+}
+/* Postamble (author + date footer in sidebar) */
+#postamble,
+#postamble p,
+#postamble a,
+#postamble a:link,
+#postamble a:visited {
+  color: #e8edf3 !important;
+}
+#postamble a:hover {
+  color: var(--queens-gold) !important;
 }
 
 /* --- Main content typography ---------------------------------------- */
