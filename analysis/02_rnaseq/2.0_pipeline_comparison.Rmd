@@ -1,0 +1,585 @@
+---
+title: "2.0 RNA-seq pipeline comparison — OLD vs NEW counts (A549 + HT1080)"
+author: "Mike Vermeulen"
+date: "`r Sys.Date()`"
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, message = FALSE,
+  fig.width = 9, fig.height = 6, dpi = 150
+)
+set.seed(42)
+```
+
+# Why this notebook exists
+
+The HT1080 and A549 cell lines were each sequenced once, but the FASTQ files
+have been **re-quantified through two different upstream pipelines** at
+different points in the project. Per-cell-line analyses (2.1.1 A549,
+2.2.1 HT1080) all use the **NEW** counts; older reports (in
+`data/RNAseq/AUG_13_2025_LOY_A549_HT1080/`) use the **OLD** counts. This
+notebook asks: **how comparable are the two count tables, and would the
+biological conclusions change if we'd kept the OLD counts?**
+
+## Pipeline difference summary
+
+| Field | OLD pipeline | NEW pipeline |
+|---|---|---|
+| Counts dir | `data/RNAseq/AUG_13_2025_LOY_A549_HT1080/counts/` | `projects/RNAseq/counts/AUG_2025_<cell>_LOY/` |
+| Aligner | HISAT2 | STAR two-pass |
+| Reference annotation | GENCODE v47 (`chr_patch_hapl_scaff`) | GENCODE v49 (primary assembly) |
+| featureCounts | v2.0.1 | v2.1.1 |
+| Sample composition | identical (9 HT1080 + 11 A549) | identical |
+
+Same biological samples; same FASTQs; different aligner + reference + quantifier
+version. Differences between the two count tables are therefore **technical** —
+they tell us how much downstream interpretation is sensitive to the upstream
+pipeline choice.
+
+# 1. Setup
+
+```{r load-packages}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(data.table)
+  library(edgeR)
+  library(limma)
+  library(EnsDb.Hsapiens.v86)
+  library(ggplot2)
+  library(ggpubr)
+  library(ggrepel)
+  library(patchwork)
+  library(pheatmap)
+  library(RColorBrewer)
+})
+```
+
+```{r paths}
+DATA_ROOT      <- "A:/Dropbox/LOY_paralogs"
+OLD_COUNTS_DIR <- file.path(DATA_ROOT, "data/RNAseq/AUG_13_2025_LOY_A549_HT1080/counts")
+NEW_COUNTS_DIR <- file.path(DATA_ROOT, "projects/RNAseq/counts")
+
+BASE_DIR <- getwd()
+OUT_DIR  <- file.path(BASE_DIR, "pipeline_comparison")
+FIG_DIR  <- file.path(OUT_DIR, "figures")
+TAB_DIR  <- file.path(OUT_DIR, "tables")
+for (d in c(OUT_DIR, FIG_DIR, TAB_DIR)) {
+  if (!dir.exists(d)) dir.create(d, recursive = TRUE)
+}
+
+save_fig <- function(plot, name, width = 8, height = 6, dpi = 300) {
+  ggsave(file.path(FIG_DIR, paste0(name, ".png")),
+         plot, width = width, height = height, dpi = dpi, bg = "white")
+  ggsave(file.path(FIG_DIR, paste0(name, ".pdf")),
+         plot, width = width, height = height, dpi = dpi)
+  cat(sprintf("Saved: %s.(png|pdf)\n", name))
+  invisible(plot)
+}
+
+ALPHA <- 0.05
+LFC_THR <- 0.75
+MIN_CPM <- 1
+MIN_SAMPLES <- 3
+```
+
+# 2. Load count tables
+
+```{r load-counts}
+load_featurecounts <- function(dir, cell_line, pipeline_label) {
+  pat <- sprintf("^%s.*\\.txt$", cell_line)
+  files <- list.files(dir, pattern = pat, full.names = TRUE)
+  files <- files[!grepl("\\.summary$", files)]
+  if (length(files) == 0) stop("No count files for ", cell_line, " in ", dir)
+
+  dfs <- lapply(files, function(f) {
+    # featureCounts header has a comment line + a column-name line; the count
+    # column is the 7th (or last) column. Read with skip=1 (header line is
+    # row 2 after the # comment).
+    d <- fread(f, data.table = FALSE, skip = 1)
+    sample_id <- sub("\\.txt$", "", basename(f))
+    d <- d[, c(1, ncol(d))]
+    names(d) <- c("geneID", sample_id)
+    d
+  })
+  mat <- Reduce(function(a, b) merge(a, b, by = "geneID", all = TRUE), dfs)
+  rownames(mat) <- mat$geneID
+  mat$geneID <- NULL
+  mat <- as.matrix(mat)
+  mat[is.na(mat)] <- 0
+  mat <- mat[grepl("^ENSG", rownames(mat)), , drop = FALSE]
+  list(counts = mat, pipeline = pipeline_label, cell_line = cell_line)
+}
+
+ht_old <- load_featurecounts(OLD_COUNTS_DIR, "HT1080", "OLD")
+ht_new <- load_featurecounts(file.path(NEW_COUNTS_DIR, "AUG_2025_HT1080_LOY"),
+                             "HT1080", "NEW")
+a549_old <- load_featurecounts(OLD_COUNTS_DIR, "A549", "OLD")
+a549_new <- load_featurecounts(file.path(NEW_COUNTS_DIR, "AUG_2025_A549_LOY"),
+                               "A549", "NEW")
+
+cat(sprintf("HT1080 OLD: %d genes x %d samples\n",
+            nrow(ht_old$counts), ncol(ht_old$counts)))
+cat(sprintf("HT1080 NEW: %d genes x %d samples\n",
+            nrow(ht_new$counts), ncol(ht_new$counts)))
+cat(sprintf("A549  OLD: %d genes x %d samples\n",
+            nrow(a549_old$counts), ncol(a549_old$counts)))
+cat(sprintf("A549  NEW: %d genes x %d samples\n",
+            nrow(a549_new$counts), ncol(a549_new$counts)))
+```
+
+# 3. Library sizes by pipeline
+
+```{r library-sizes, fig.height=5, fig.width=10}
+build_libsize_df <- function(...) {
+  bind_rows(lapply(list(...), function(obj) {
+    data.frame(
+      sample   = colnames(obj$counts),
+      libsize  = colSums(obj$counts),
+      cell     = obj$cell_line,
+      pipeline = obj$pipeline,
+      stringsAsFactors = FALSE)
+  }))
+}
+
+libsize_df <- build_libsize_df(ht_old, ht_new, a549_old, a549_new) %>%
+  mutate(
+    treatment = case_when(
+      grepl("-LOY-", sample)      ~ "LOY",
+      grepl("-CTRL-", sample)     ~ "CTRL",
+      grepl("-PARENTAL-", sample) ~ "PARENTAL"),
+    replicate = sub(".*-(\\d+)$", "\\1", sample),
+    panel     = paste(cell, pipeline, sep = " · "))
+
+p_libsize <- ggplot(libsize_df,
+                    aes(x = sample, y = libsize / 1e6,
+                        fill = treatment)) +
+  geom_col(color = "black", linewidth = 0.2) +
+  facet_wrap(~ panel, scales = "free_x", ncol = 4) +
+  scale_fill_manual(values = c("CTRL" = "#009E73",
+                               "LOY" = "#E69F00",
+                               "PARENTAL" = "#999999")) +
+  labs(title = "Library size by pipeline",
+       y = "Total assigned reads (million)", x = NULL, fill = NULL) +
+  theme_classic(base_size = 10) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+        plot.title = element_text(face = "bold"),
+        strip.background = element_blank(),
+        strip.text = element_text(face = "bold"))
+print(p_libsize)
+save_fig(p_libsize, "libsize_by_pipeline", width = 14, height = 5)
+
+# Per-sample paired difference (NEW - OLD)
+libsize_diff <- libsize_df %>%
+  dplyr::select(sample, cell, pipeline, libsize) %>%
+  pivot_wider(names_from = pipeline, values_from = libsize) %>%
+  mutate(rel_diff = (NEW - OLD) / OLD,
+         abs_diff = NEW - OLD)
+
+fwrite(libsize_diff, file.path(TAB_DIR, "libsize_diff_per_sample.csv"))
+
+libsize_diff %>%
+  group_by(cell) %>%
+  summarize(
+    mean_OLD_M   = mean(OLD) / 1e6,
+    mean_NEW_M   = mean(NEW) / 1e6,
+    mean_rel_diff = mean(rel_diff),
+    .groups = "drop"
+  ) %>%
+  knitr::kable(digits = 3,
+               caption = "Per-cell-line library size: OLD vs NEW")
+```
+
+# 4. Gene-ID harmonization + filtering
+
+The OLD pipeline annotated with GENCODE v47, NEW with v49. Both produce
+Ensembl IDs like `ENSG00000123456.18` (with version suffix). The integer
+ENSG accession is stable across versions; the suffix changes when the
+gene's annotation is updated. We harmonize by stripping the suffix and
+intersecting on the accession.
+
+```{r harmonize}
+strip_version <- function(ids) sub("\\.\\d+$", "", ids)
+
+build_aligned <- function(old, new) {
+  cm_old <- old$counts; rownames(cm_old) <- strip_version(rownames(cm_old))
+  cm_new <- new$counts; rownames(cm_new) <- strip_version(rownames(cm_new))
+
+  # If multiple rows collapse to the same stripped accession, sum.
+  collapse <- function(m) {
+    if (anyDuplicated(rownames(m))) {
+      idx <- factor(rownames(m), levels = unique(rownames(m)))
+      out <- rowsum(m, group = idx, reorder = FALSE)
+      rownames(out) <- levels(idx)
+      out
+    } else m
+  }
+  cm_old <- collapse(cm_old)
+  cm_new <- collapse(cm_new)
+
+  shared <- intersect(rownames(cm_old), rownames(cm_new))
+  list(
+    counts_old = cm_old[shared, , drop = FALSE],
+    counts_new = cm_new[shared, , drop = FALSE],
+    n_old_unique  = length(setdiff(rownames(cm_old), rownames(cm_new))),
+    n_new_unique  = length(setdiff(rownames(cm_new), rownames(cm_old))),
+    n_shared = length(shared))
+}
+
+ht_aligned   <- build_aligned(ht_old, ht_new)
+a549_aligned <- build_aligned(a549_old, a549_new)
+
+cat("--- HT1080 ----------------------------------------\n")
+cat(sprintf("  OLD-unique ENSG: %d\n", ht_aligned$n_old_unique))
+cat(sprintf("  NEW-unique ENSG: %d\n", ht_aligned$n_new_unique))
+cat(sprintf("  Shared ENSG:     %d\n", ht_aligned$n_shared))
+cat("--- A549 ------------------------------------------\n")
+cat(sprintf("  OLD-unique ENSG: %d\n", a549_aligned$n_old_unique))
+cat(sprintf("  NEW-unique ENSG: %d\n", a549_aligned$n_new_unique))
+cat(sprintf("  Shared ENSG:     %d\n", a549_aligned$n_shared))
+```
+
+## 4.1 Filter + TMM normalize each pipeline independently
+
+```{r normalize}
+normalize_counts <- function(cm) {
+  dge <- DGEList(counts = cm)
+  keep <- rowSums(cpm(dge) >= MIN_CPM) >= MIN_SAMPLES
+  dge <- dge[keep, , keep.lib.sizes = FALSE]
+  dge <- calcNormFactors(dge, method = "TMM")
+  list(dge = dge,
+       lcpm = cpm(dge, log = TRUE, prior.count = 2),
+       kept = sum(keep))
+}
+
+ht_n_old <- normalize_counts(ht_aligned$counts_old)
+ht_n_new <- normalize_counts(ht_aligned$counts_new)
+a_n_old  <- normalize_counts(a549_aligned$counts_old)
+a_n_new  <- normalize_counts(a549_aligned$counts_new)
+
+cat(sprintf("HT1080 OLD kept after CPM filter: %d genes\n", ht_n_old$kept))
+cat(sprintf("HT1080 NEW kept after CPM filter: %d genes\n", ht_n_new$kept))
+cat(sprintf("A549   OLD kept after CPM filter: %d genes\n", a_n_old$kept))
+cat(sprintf("A549   NEW kept after CPM filter: %d genes\n", a_n_new$kept))
+```
+
+# 5. Per-sample correlation: OLD vs NEW (same sample, two pipelines)
+
+For each biological sample, compute Pearson correlation of logCPM between the
+OLD and NEW pipelines on the intersection of kept genes.
+
+```{r per-sample-correlation, fig.height=5, fig.width=10}
+per_sample_cor <- function(lcpm_old, lcpm_new, cell_label) {
+  shared <- intersect(rownames(lcpm_old), rownames(lcpm_new))
+  shared_samples <- intersect(colnames(lcpm_old), colnames(lcpm_new))
+  if (length(shared_samples) == 0) stop("No shared sample names")
+
+  bind_rows(lapply(shared_samples, function(s) {
+    x <- lcpm_old[shared, s]
+    y <- lcpm_new[shared, s]
+    data.frame(
+      sample = s, cell = cell_label,
+      pearson_r  = cor(x, y, method = "pearson"),
+      spearman_r = cor(x, y, method = "spearman"))
+  }))
+}
+
+cor_ht <- per_sample_cor(ht_n_old$lcpm, ht_n_new$lcpm, "HT1080")
+cor_a  <- per_sample_cor(a_n_old$lcpm,  a_n_new$lcpm,  "A549")
+cor_df <- bind_rows(cor_ht, cor_a) %>%
+  mutate(treatment = case_when(
+    grepl("-LOY-", sample)      ~ "LOY",
+    grepl("-CTRL-", sample)     ~ "CTRL",
+    grepl("-PARENTAL-", sample) ~ "PARENTAL"))
+
+fwrite(cor_df, file.path(TAB_DIR, "per_sample_correlation_OLD_vs_NEW.csv"))
+
+p_cor <- ggplot(cor_df,
+                aes(x = sample, y = pearson_r, fill = treatment)) +
+  geom_col(color = "black", linewidth = 0.2) +
+  geom_text(aes(label = sprintf("%.3f", pearson_r)),
+            vjust = -0.4, size = 2.6, color = "grey20") +
+  scale_fill_manual(values = c("CTRL" = "#009E73",
+                               "LOY" = "#E69F00",
+                               "PARENTAL" = "#999999")) +
+  facet_wrap(~ cell, scales = "free_x", ncol = 2) +
+  coord_cartesian(ylim = c(0.9, 1.0)) +
+  labs(title = "Per-sample logCPM correlation: OLD vs NEW pipeline",
+       y = "Pearson r (logCPM)", x = NULL, fill = NULL,
+       subtitle = "Each bar is the same biological sample quantified two ways") +
+  theme_classic(base_size = 10) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+    plot.title  = element_text(face = "bold"),
+    strip.background = element_blank(),
+    strip.text  = element_text(face = "bold"))
+
+print(p_cor)
+save_fig(p_cor, "per_sample_correlation_OLD_vs_NEW",
+         width = 12, height = 5)
+
+cor_df %>%
+  group_by(cell) %>%
+  summarize(
+    median_pearson  = median(pearson_r),
+    min_pearson     = min(pearson_r),
+    median_spearman = median(spearman_r),
+    .groups = "drop"
+  ) %>%
+  knitr::kable(digits = 4,
+               caption = "Cross-pipeline correlation summary")
+```
+
+# 6. Per-gene mean expression scatter
+
+For each cell line, mean logCPM per gene across all samples in OLD vs the
+same gene's mean across all samples in NEW. Identity line for reference.
+
+```{r per-gene-scatter, fig.height=6, fig.width=12}
+per_gene_scatter <- function(lcpm_old, lcpm_new, cell_label) {
+  shared <- intersect(rownames(lcpm_old), rownames(lcpm_new))
+  d <- data.frame(
+    gene = shared,
+    mean_old = rowMeans(lcpm_old[shared, , drop = FALSE]),
+    mean_new = rowMeans(lcpm_new[shared, , drop = FALSE])
+  )
+  d$diff <- d$mean_new - d$mean_old
+  r <- cor(d$mean_old, d$mean_new)
+
+  ggplot(d, aes(x = mean_old, y = mean_new)) +
+    geom_hex(bins = 80) +
+    scale_fill_viridis_c(option = "B", trans = "log10",
+                         name = "n genes") +
+    geom_abline(slope = 1, intercept = 0,
+                linetype = "dashed", color = "white", linewidth = 0.4) +
+    labs(title = sprintf("%s — per-gene mean logCPM, OLD vs NEW", cell_label),
+         subtitle = sprintf("Pearson r = %.4f  ·  %d genes", r, nrow(d)),
+         x = "Mean logCPM (OLD pipeline)",
+         y = "Mean logCPM (NEW pipeline)") +
+    theme_classic(base_size = 10) +
+    theme(plot.title    = element_text(face = "bold"),
+          plot.subtitle = element_text(size = 9, color = "grey30"))
+}
+
+p_g_ht <- per_gene_scatter(ht_n_old$lcpm, ht_n_new$lcpm, "HT1080")
+p_g_a  <- per_gene_scatter(a_n_old$lcpm,  a_n_new$lcpm,  "A549")
+p_g_combined <- p_g_ht | p_g_a
+print(p_g_combined)
+save_fig(p_g_combined, "per_gene_mean_scatter_OLD_vs_NEW",
+         width = 14, height = 6)
+```
+
+# 7. Sample correlation heatmap (concatenated OLD + NEW)
+
+Concatenate OLD and NEW logCPM matrices for each cell line and cluster all
+samples together. Same biological sample under two pipelines should cluster
+together — and if pipeline effects dominate biology, we'd see OLD vs NEW
+samples cluster by pipeline instead.
+
+```{r concat-heatmap, fig.height=7, fig.width=9}
+make_concat_heatmap <- function(lcpm_old, lcpm_new, cell_label) {
+  shared <- intersect(rownames(lcpm_old), rownames(lcpm_new))
+  # Annotate sample names with pipeline tag
+  colnames(lcpm_old) <- paste0(colnames(lcpm_old), "_OLD")
+  colnames(lcpm_new) <- paste0(colnames(lcpm_new), "_NEW")
+  M <- cbind(lcpm_old[shared, , drop = FALSE],
+             lcpm_new[shared, , drop = FALSE])
+
+  cor_mat <- cor(M)
+  ann <- data.frame(
+    pipeline  = sub(".*_(OLD|NEW)$", "\\1", colnames(M)),
+    treatment = case_when(
+      grepl("-LOY-", colnames(M))      ~ "LOY",
+      grepl("-CTRL-", colnames(M))     ~ "CTRL",
+      grepl("-PARENTAL-", colnames(M)) ~ "PARENTAL"),
+    row.names = colnames(M)
+  )
+  ann_colors <- list(
+    pipeline  = c(OLD = "#984EA3", NEW = "#FF7F00"),
+    treatment = c(CTRL = "#009E73", LOY = "#E69F00", PARENTAL = "#999999"))
+
+  pheatmap(
+    cor_mat,
+    annotation_col = ann, annotation_row = ann,
+    annotation_colors = ann_colors,
+    color = colorRampPalette(rev(RColorBrewer::brewer.pal(11, "RdBu")))(100),
+    breaks = seq(0.85, 1.0, length.out = 100),
+    main = sprintf("%s — Pearson r heatmap (OLD + NEW concatenated)",
+                   cell_label),
+    fontsize = 7, fontsize_row = 6, fontsize_col = 6,
+    filename = file.path(FIG_DIR,
+                         paste0("sample_cor_heatmap_", cell_label, ".png")),
+    width = 9, height = 7)
+
+  pheatmap(
+    cor_mat,
+    annotation_col = ann, annotation_row = ann,
+    annotation_colors = ann_colors,
+    color = colorRampPalette(rev(RColorBrewer::brewer.pal(11, "RdBu")))(100),
+    breaks = seq(0.85, 1.0, length.out = 100),
+    main = sprintf("%s — Pearson r heatmap (OLD + NEW concatenated)",
+                   cell_label),
+    fontsize = 7, fontsize_row = 6, fontsize_col = 6)
+}
+
+make_concat_heatmap(ht_n_old$lcpm, ht_n_new$lcpm, "HT1080")
+make_concat_heatmap(a_n_old$lcpm,  a_n_new$lcpm,  "A549")
+```
+
+# 8. Differential expression on OLD vs NEW: do the conclusions change?
+
+Run the same paired LOY-vs-sgCTRL contrast on each pipeline's counts and
+compare top-ranked DEGs. Identical underlying biology → high overlap; if
+pipeline-driven artefacts dominate, the top-gene lists diverge.
+
+```{r de-comparison}
+run_loy_vs_ctrl <- function(dge, sample_meta) {
+  m <- sample_meta[colnames(dge), , drop = FALSE]
+  keep <- m$treatment %in% c("CTRL", "LOY")
+  dge <- dge[, keep, keep.lib.sizes = FALSE]
+  m <- m[keep, ]
+  m$treatment <- factor(m$treatment, levels = c("CTRL", "LOY"))
+  m$passage   <- factor(m$replicate)
+  # Re-normalize on the LOY+CTRL subset only
+  dge <- calcNormFactors(dge, method = "TMM")
+  des <- model.matrix(~ 0 + treatment + passage, data = m)
+  colnames(des) <- gsub("^treatment", "", colnames(des))
+  cm  <- makeContrasts(contrasts = "LOY - CTRL", levels = colnames(des))
+  v   <- voom(dge, des, plot = FALSE)
+  fit <- lmFit(v, des) %>% contrasts.fit(cm) %>% eBayes()
+  topTable(fit, coef = 1, n = Inf, sort.by = "P") %>%
+    rownames_to_column("gene") %>%
+    dplyr::rename(PValue = P.Value, FDR = adj.P.Val)
+}
+
+build_meta <- function(sample_ids) {
+  data.frame(
+    sample_id = sample_ids,
+    treatment = case_when(
+      grepl("-LOY-", sample_ids)      ~ "LOY",
+      grepl("-CTRL-", sample_ids)     ~ "CTRL",
+      grepl("-PARENTAL-", sample_ids) ~ "PARENTAL"),
+    replicate = sub(".*-(\\d+)$", "\\1", sample_ids),
+    row.names = sample_ids,
+    stringsAsFactors = FALSE)
+}
+
+meta_ht <- build_meta(colnames(ht_n_old$lcpm))
+meta_a  <- build_meta(colnames(a_n_old$lcpm))
+
+# A549 OLD/NEW: drop CTRL-4 + LOY-4? No — both pipelines have 4 reps, but
+# PARENTAL only has 3. We're contrasting LOY vs CTRL so we keep 4+4.
+de_ht_old <- run_loy_vs_ctrl(ht_n_old$dge, meta_ht)
+de_ht_new <- run_loy_vs_ctrl(ht_n_new$dge, meta_ht)
+de_a_old  <- run_loy_vs_ctrl(a_n_old$dge,  meta_a)
+de_a_new  <- run_loy_vs_ctrl(a_n_new$dge,  meta_a)
+
+fwrite(de_ht_old, file.path(TAB_DIR, "DE_HT1080_LOY_v_CTRL_OLD.csv"))
+fwrite(de_ht_new, file.path(TAB_DIR, "DE_HT1080_LOY_v_CTRL_NEW.csv"))
+fwrite(de_a_old,  file.path(TAB_DIR, "DE_A549_LOY_v_CTRL_OLD.csv"))
+fwrite(de_a_new,  file.path(TAB_DIR, "DE_A549_LOY_v_CTRL_NEW.csv"))
+
+compare_de <- function(de_old, de_new, cell_label) {
+  shared <- inner_join(
+    de_old %>% dplyr::select(gene, logFC_old = logFC, FDR_old = FDR),
+    de_new %>% dplyr::select(gene, logFC_new = logFC, FDR_new = FDR),
+    by = "gene")
+  sig_old <- de_old %>% dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
+    pull(gene) %>% unique()
+  sig_new <- de_new %>% dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
+    pull(gene) %>% unique()
+  ov  <- intersect(sig_old, sig_new)
+  un  <- union(sig_old, sig_new)
+  jac <- length(ov) / max(length(un), 1)
+  r_lfc <- cor(shared$logFC_old, shared$logFC_new, use = "complete.obs")
+  list(cell = cell_label,
+       n_old = length(sig_old),
+       n_new = length(sig_new),
+       intersect = length(ov),
+       jaccard = jac,
+       lfc_pearson_r = r_lfc,
+       shared_df = shared)
+}
+
+cmp_ht <- compare_de(de_ht_old, de_ht_new, "HT1080")
+cmp_a  <- compare_de(de_a_old,  de_a_new,  "A549")
+
+summary_tbl <- bind_rows(
+  data.frame(cell = cmp_ht$cell, sig_OLD = cmp_ht$n_old,
+             sig_NEW = cmp_ht$n_new, intersect = cmp_ht$intersect,
+             jaccard = cmp_ht$jaccard, lfc_r = cmp_ht$lfc_pearson_r),
+  data.frame(cell = cmp_a$cell, sig_OLD = cmp_a$n_old,
+             sig_NEW = cmp_a$n_new, intersect = cmp_a$intersect,
+             jaccard = cmp_a$jaccard, lfc_r = cmp_a$lfc_pearson_r))
+
+fwrite(summary_tbl, file.path(TAB_DIR, "DE_OLD_vs_NEW_summary.csv"))
+knitr::kable(summary_tbl, digits = 4,
+             caption = "DE concordance: OLD vs NEW pipeline, same paired LOY-vs-CTRL contrast")
+```
+
+## 8.1 logFC concordance scatter
+
+```{r lfc-concordance, fig.height=6, fig.width=12}
+plot_lfc_concord <- function(cmp, cell_label) {
+  d <- cmp$shared_df %>%
+    mutate(both_sig = FDR_old < ALPHA & FDR_new < ALPHA &
+                      abs(logFC_old) > LFC_THR & abs(logFC_new) > LFC_THR)
+  ggplot(d, aes(x = logFC_old, y = logFC_new)) +
+    geom_point(alpha = 0.25, size = 0.5, color = "grey60") +
+    geom_point(data = d %>% dplyr::filter(both_sig),
+               alpha = 0.85, size = 1.2, color = "#D55E00") +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+                color = "grey40", linewidth = 0.4) +
+    geom_hline(yintercept = 0, linetype = "dotted", color = "grey60") +
+    geom_vline(xintercept = 0, linetype = "dotted", color = "grey60") +
+    labs(title = sprintf("%s — LOY vs CTRL logFC, OLD vs NEW",
+                         cell_label),
+         subtitle = sprintf("Pearson r = %.3f · orange = sig in BOTH pipelines (FDR<%g, |logFC|>%g)",
+                            cmp$lfc_pearson_r, ALPHA, LFC_THR),
+         x = expression(log[2]~"FC (OLD pipeline)"),
+         y = expression(log[2]~"FC (NEW pipeline)")) +
+    theme_classic(base_size = 10) +
+    theme(plot.title    = element_text(face = "bold"),
+          plot.subtitle = element_text(size = 9, color = "grey30"))
+}
+
+p_l_ht <- plot_lfc_concord(cmp_ht, "HT1080")
+p_l_a  <- plot_lfc_concord(cmp_a,  "A549")
+p_l_combined <- p_l_ht | p_l_a
+print(p_l_combined)
+save_fig(p_l_combined, "lfc_concordance_OLD_vs_NEW",
+         width = 14, height = 6)
+```
+
+# 9. Verdict
+
+```{r verdict}
+verdict_line <- function(cmp) {
+  if (cmp$lfc_pearson_r > 0.9 && cmp$jaccard > 0.5) {
+    "CONCORDANT: high logFC correlation and >50% DEG overlap. Conclusions are pipeline-robust."
+  } else if (cmp$lfc_pearson_r > 0.8) {
+    "MOSTLY CONCORDANT: logFC correlation strong; some DEG-list drift driven by rank-vs-threshold effects."
+  } else {
+    "DIVERGENT: substantial pipeline-driven differences in expression estimates."
+  }
+}
+
+cat(sprintf("HT1080: %s\n", verdict_line(cmp_ht)))
+cat(sprintf("        - OLD DEGs: %d, NEW DEGs: %d, intersect: %d (Jaccard %.2f)\n",
+            cmp_ht$n_old, cmp_ht$n_new, cmp_ht$intersect, cmp_ht$jaccard))
+cat(sprintf("        - logFC Pearson r: %.3f\n",
+            cmp_ht$lfc_pearson_r))
+cat("\n")
+cat(sprintf("A549:   %s\n", verdict_line(cmp_a)))
+cat(sprintf("        - OLD DEGs: %d, NEW DEGs: %d, intersect: %d (Jaccard %.2f)\n",
+            cmp_a$n_old, cmp_a$n_new, cmp_a$intersect, cmp_a$jaccard))
+cat(sprintf("        - logFC Pearson r: %.3f\n",
+            cmp_a$lfc_pearson_r))
+```
+
+# 10. Session Info
+
+```{r session-info}
+sessionInfo()
+```

@@ -16,10 +16,11 @@ Pipeline: STAR two-pass + featureCounts (v2.1.1, GENCODE v49) →
 
 | #     | File                                       | Description |
 |-------|--------------------------------------------|-------------|
-| 2.1.1 | `2.1.1_rnaseq_A549_base.Rmd`               | A549 base — paired limma–voom DE + fgsea (Hallmark/Reactome/KEGG/GO:BP) + DoRothEA/decoupleR TFs. TODO. |
+| 2.0   | `2.0_pipeline_comparison.Rmd`              | QC: compares OLD (HISAT2 / GENCODE v47 / featureCounts v2.0.1) vs NEW (STAR / GENCODE v49 / fc 2.1.1) count tables for HT1080 + A549. Library sizes, per-sample logCPM correlation, per-gene scatter, sample-correlation heatmap, DE concordance with logFC Pearson + Jaccard, automated verdict. **migrated** |
+| 2.1.1 | `2.1.1_rnaseq_A549_base.Rmd`               | A549 base — paired limma–voom DE + fgsea + DoRothEA/decoupleR TFs + pooled and sgCTRL-vs-PARENTAL contrasts + msVIPER + cross-source TF consistency. **migrated** |
 | 2.1.2 | `2.1.2_rnaseq_A549_extended.Rmd`           | A549 extended — robustness layer. TODO. |
 | 2.1.3 | `2.1.3_rnaseq_A549_viper.Rmd`              | A549 VIPER — master-regulator inference. TODO. |
-| 2.2.1 | `2.2.1_rnaseq_HT1080_base.Rmd`             | HT1080 base — paired limma–voom DE + fgsea + DoRothEA/decoupleR TFs. **migrated** |
+| 2.2.1 | `2.2.1_rnaseq_HT1080_base.Rmd`             | HT1080 base — paired limma–voom DE + fgsea + DoRothEA/decoupleR TFs + pooled and sgCTRL-vs-PARENTAL contrasts + msVIPER + cross-source TF consistency. **migrated** |
 | 2.2.2 | `2.2.2_rnaseq_HT1080_extended.Rmd`         | HT1080 extended — robustness layer. TODO. |
 | 2.2.3 | `2.2.3_rnaseq_HT1080_viper.Rmd`            | HT1080 VIPER — master-regulator inference. TODO. |
 | 2.3.1 | `2.3.1_rnaseq_LNCaP_base.Rmd`              | LNCaP base. TODO. |

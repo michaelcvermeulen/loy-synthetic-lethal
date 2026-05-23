@@ -3423,24 +3423,22 @@ cat(sprintf("TFs significant in >=3 LOY-relevant source x contrast cells: %d (sh
             sum(tf_score$sig_count >= 3), length(top_tfs_consistent)))
 
 if (length(top_tfs_consistent) > 0) {
+  # Show only the LOY contrasts in the heatmap. sgCTRL_v_PARENTAL is still
+  # used in §14.3 to filter out sgRNA-driven artifacts, but is not plotted
+  # here — it muddies the cross-LOY pattern we're trying to read.
   hm_df <- tf_long %>%
-    dplyr::filter(TF %in% top_tfs_consistent) %>%
+    dplyr::filter(TF %in% top_tfs_consistent,
+                  contrast %in% c("LOY_v_sgCTRL", "LOY_v_pooled")) %>%
     mutate(cell = paste(source, contrast, sep = " · "),
            TF   = factor(TF, levels = rev(top_tfs_consistent)))
 
   hm_cells <- expand.grid(
     TF   = top_tfs_consistent,
     cell = c(
-      "DoRothEA · LOY_v_sgCTRL", "DoRothEA · LOY_v_pooled",
-      "DoRothEA · sgCTRL_v_PARENTAL",
-      "decoupleR · LOY_v_sgCTRL", "decoupleR · LOY_v_pooled",
-      "decoupleR · sgCTRL_v_PARENTAL",
-      "msVIPER_CollecTRI · LOY_v_sgCTRL",
-      "msVIPER_CollecTRI · LOY_v_pooled",
-      "msVIPER_CollecTRI · sgCTRL_v_PARENTAL",
-      "msVIPER_ARACNe · LOY_v_sgCTRL",
-      "msVIPER_ARACNe · LOY_v_pooled",
-      "msVIPER_ARACNe · sgCTRL_v_PARENTAL"
+      "DoRothEA · LOY_v_sgCTRL",          "DoRothEA · LOY_v_pooled",
+      "decoupleR · LOY_v_sgCTRL",         "decoupleR · LOY_v_pooled",
+      "msVIPER_CollecTRI · LOY_v_sgCTRL", "msVIPER_CollecTRI · LOY_v_pooled",
+      "msVIPER_ARACNe · LOY_v_sgCTRL",    "msVIPER_ARACNe · LOY_v_pooled"
     ), stringsAsFactors = FALSE)
 
   hm_full <- hm_cells %>%
@@ -3461,7 +3459,7 @@ if (length(top_tfs_consistent) > 0) {
                          name = "NES / score") +
     labs(title = sprintf("TF cross-source consistency (top %d robust TFs)",
                          length(top_tfs_consistent)),
-         subtitle = "* = significant; columns grouped LOY-vs-sgCTRL | LOY-vs-pooled | sgCTRL-vs-PARENTAL",
+         subtitle = "* = significant. Columns: 4 methods x 2 LOY contrasts (sgCTRL_v_PARENTAL excluded here; still used in section 14.3 to filter sgRNA artifacts).",
          x = NULL, y = NULL) +
     theme_minimal(base_size = 9) +
     theme(
@@ -3472,7 +3470,7 @@ if (length(top_tfs_consistent) > 0) {
     )
   print(p_consist_hm)
   save_fig(p_consist_hm, "tf_consistency_heatmap",
-           width = 10, height = 12)
+           width = 8, height = 12)
 } else {
   cat("No TF reached significance in >=3 LOY-relevant source x contrast cells.\n")
 }
