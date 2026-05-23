@@ -377,10 +377,12 @@ samples together. Same biological sample under two pipelines should cluster
 together — and if pipeline effects dominate biology, we'd see OLD vs NEW
 samples cluster by pipeline instead.
 
-```{r concat-heatmap, fig.height=7, fig.width=9}
+```{r concat-heatmap-save}
+# Build the correlation matrices and SAVE the heatmaps to PNG + PDF.
+# Inline display is handled below via knitr::include_graphics() — more
+# reliable than relying on pheatmap's grid behavior inside a knit chunk.
 make_concat_heatmap <- function(lcpm_old, lcpm_new, cell_label) {
   shared <- intersect(rownames(lcpm_old), rownames(lcpm_new))
-  # Annotate sample names with pipeline tag
   colnames(lcpm_old) <- paste0(colnames(lcpm_old), "_OLD")
   colnames(lcpm_new) <- paste0(colnames(lcpm_new), "_NEW")
   M <- cbind(lcpm_old[shared, , drop = FALSE],
@@ -399,7 +401,7 @@ make_concat_heatmap <- function(lcpm_old, lcpm_new, cell_label) {
     pipeline  = c(OLD = "#984EA3", NEW = "#FF7F00"),
     treatment = c(CTRL = "#009E73", LOY = "#E69F00", PARENTAL = "#999999"))
 
-  pheatmap(
+  common_args <- list(
     cor_mat,
     annotation_col = ann, annotation_row = ann,
     annotation_colors = ann_colors,
@@ -408,50 +410,47 @@ make_concat_heatmap <- function(lcpm_old, lcpm_new, cell_label) {
     main = sprintf("%s — Pearson r heatmap (OLD + NEW concatenated)",
                    cell_label),
     fontsize = 7, fontsize_row = 6, fontsize_col = 6,
-    filename = file.path(FIG_DIR,
-                         paste0("sample_cor_heatmap_", cell_label, ".png")),
     width = 9, height = 7)
 
-  pheatmap(
-    cor_mat,
-    annotation_col = ann, annotation_row = ann,
-    annotation_colors = ann_colors,
-    color = colorRampPalette(rev(RColorBrewer::brewer.pal(11, "RdBu")))(100),
-    breaks = seq(0.85, 1.0, length.out = 100),
-    main = sprintf("%s — Pearson r heatmap (OLD + NEW concatenated)",
-                   cell_label),
-    fontsize = 7, fontsize_row = 6, fontsize_col = 6)
+  do.call(pheatmap, c(common_args,
+    list(filename = file.path(FIG_DIR,
+           paste0("sample_cor_heatmap_", cell_label, ".png")))))
+  do.call(pheatmap, c(common_args,
+    list(filename = file.path(FIG_DIR,
+           paste0("sample_cor_heatmap_", cell_label, ".pdf")))))
+  cat(sprintf("Saved: sample_cor_heatmap_%s.(png|pdf)\n", cell_label))
 }
 
 make_concat_heatmap(ht_n_old$lcpm, ht_n_new$lcpm, "HT1080")
 make_concat_heatmap(a_n_old$lcpm,  a_n_new$lcpm,  "A549")
 ```
 
+```{r concat-heatmap-display, out.width="48%", fig.show="hold", echo=FALSE}
+knitr::include_graphics(c(
+  file.path(FIG_DIR, "sample_cor_heatmap_HT1080.png"),
+  file.path(FIG_DIR, "sample_cor_heatmap_A549.png")
+))
+```
+
 # 8. Differential expression on OLD vs NEW: do the conclusions change?
 
-Run the same paired LOY-vs-sgCTRL contrast on each pipeline's counts and
-compare top-ranked DEGs. Identical underlying biology → high overlap; if
-pipeline-driven artefacts dominate, the top-gene lists diverge.
+Three contrasts run on each pipeline's counts:
 
-```{r de-comparison}
-run_loy_vs_ctrl <- function(dge, sample_meta) {
-  m <- sample_meta[colnames(dge), , drop = FALSE]
-  keep <- m$treatment %in% c("CTRL", "LOY")
-  dge <- dge[, keep, keep.lib.sizes = FALSE]
-  m <- m[keep, ]
-  m$treatment <- factor(m$treatment, levels = c("CTRL", "LOY"))
-  m$passage   <- factor(m$replicate)
-  # Re-normalize on the LOY+CTRL subset only
-  dge <- calcNormFactors(dge, method = "TMM")
-  des <- model.matrix(~ 0 + treatment + passage, data = m)
-  colnames(des) <- gsub("^treatment", "", colnames(des))
-  cm  <- makeContrasts(contrasts = "LOY - CTRL", levels = colnames(des))
-  v   <- voom(dge, des, plot = FALSE)
-  fit <- lmFit(v, des) %>% contrasts.fit(cm) %>% eBayes()
-  topTable(fit, coef = 1, n = Inf, sort.by = "P") %>%
-    rownames_to_column("gene") %>%
-    dplyr::rename(PValue = P.Value, FDR = adj.P.Val)
-}
+1. **Paired** LOY vs sgCTRL (`~ 0 + treatment + passage`) — canonical
+2. **Unpaired** LOY vs sgCTRL (`~ 0 + treatment`) — passage drift not modeled
+3. **Pooled** LOY vs (PARENTAL + sgCTRL) — combined Y+ baseline, n=6 vs n=3 (HT1080) or n=7 vs n=4 (A549)
+
+Identical underlying biology under both pipelines → high logFC correlation and
+substantial DEG overlap regardless of which contrast we pick.
+
+```{r de-helpers}
+# HGNC symbol map keyed by Ensembl gene accession (stripped of version)
+gene_anno <- ensembldb::genes(EnsDb.Hsapiens.v86) %>%
+  as.data.frame() %>%
+  dplyr::select(gene_id, gene_name) %>%
+  dplyr::filter(!is.na(gene_name), nzchar(gene_name)) %>%
+  distinct(gene_id, .keep_all = TRUE)
+ens_to_sym <- setNames(gene_anno$gene_name, gene_anno$gene_id)
 
 build_meta <- function(sample_ids) {
   data.frame(
@@ -465,66 +464,86 @@ build_meta <- function(sample_ids) {
     stringsAsFactors = FALSE)
 }
 
-meta_ht <- build_meta(colnames(ht_n_old$lcpm))
-meta_a  <- build_meta(colnames(a_n_old$lcpm))
+# Run any of the three contrast types on a DGEList.
+run_de <- function(dge, meta, design_type = c("paired", "unpaired", "pooled")) {
+  design_type <- match.arg(design_type)
+  m <- meta[colnames(dge), , drop = FALSE]
 
-# A549 OLD/NEW: drop CTRL-4 + LOY-4? No — both pipelines have 4 reps, but
-# PARENTAL only has 3. We're contrasting LOY vs CTRL so we keep 4+4.
-de_ht_old <- run_loy_vs_ctrl(ht_n_old$dge, meta_ht)
-de_ht_new <- run_loy_vs_ctrl(ht_n_new$dge, meta_ht)
-de_a_old  <- run_loy_vs_ctrl(a_n_old$dge,  meta_a)
-de_a_new  <- run_loy_vs_ctrl(a_n_new$dge,  meta_a)
+  if (design_type %in% c("paired", "unpaired")) {
+    keep <- m$treatment %in% c("CTRL", "LOY")
+    dge <- dge[, keep, keep.lib.sizes = FALSE]; m <- m[keep, ]
+    m$treatment <- factor(m$treatment, levels = c("CTRL", "LOY"))
+    m$passage   <- factor(m$replicate)
+    dge <- calcNormFactors(dge, method = "TMM")
+    if (design_type == "paired") {
+      # Drop passages represented in only one treatment to avoid rank
+      # deficiency (e.g., A549 PARENTAL absent — only here for symmetry —
+      # but also covers any other unbalanced edge case).
+      pt <- table(m$passage, m$treatment)
+      shared <- rownames(pt)[rowSums(pt > 0) == ncol(pt)]
+      keep_p <- m$passage %in% shared
+      dge <- dge[, keep_p, keep.lib.sizes = FALSE]; m <- m[keep_p, ]
+      m$passage <- droplevels(m$passage)
+      des <- model.matrix(~ 0 + treatment + passage, data = m)
+    } else {
+      des <- model.matrix(~ 0 + treatment, data = m)
+    }
+    colnames(des) <- gsub("^treatment", "", colnames(des))
+    cm <- makeContrasts(contrasts = "LOY - CTRL", levels = colnames(des))
+  } else {
+    # pooled: LOY vs Y+ (PARENTAL + CTRL); unpaired by construction.
+    m$y_pool <- factor(
+      ifelse(m$treatment == "LOY", "Y_NEG", "Y_POS"),
+      levels = c("Y_POS", "Y_NEG"))
+    dge <- calcNormFactors(dge, method = "TMM")
+    des <- model.matrix(~ 0 + y_pool, data = m)
+    colnames(des) <- gsub("^y_pool", "", colnames(des))
+    cm <- makeContrasts(contrasts = "Y_NEG - Y_POS", levels = colnames(des))
+  }
 
-fwrite(de_ht_old, file.path(TAB_DIR, "DE_HT1080_LOY_v_CTRL_OLD.csv"))
-fwrite(de_ht_new, file.path(TAB_DIR, "DE_HT1080_LOY_v_CTRL_NEW.csv"))
-fwrite(de_a_old,  file.path(TAB_DIR, "DE_A549_LOY_v_CTRL_OLD.csv"))
-fwrite(de_a_new,  file.path(TAB_DIR, "DE_A549_LOY_v_CTRL_NEW.csv"))
+  v   <- voom(dge, des, plot = FALSE)
+  fit <- lmFit(v, des) %>% contrasts.fit(cm) %>% eBayes()
+  topTable(fit, coef = 1, n = Inf, sort.by = "P") %>%
+    rownames_to_column("gene") %>%
+    dplyr::rename(PValue = P.Value, FDR = adj.P.Val) %>%
+    mutate(symbol = unname(ens_to_sym[gene]),
+           symbol = ifelse(is.na(symbol) | symbol == "", gene, symbol))
+}
 
-compare_de <- function(de_old, de_new, cell_label) {
+# Compare two DE tables, returning shared logFC + significance flags.
+compare_de <- function(de_old, de_new, cell_label, contrast_label) {
   shared <- inner_join(
-    de_old %>% dplyr::select(gene, logFC_old = logFC, FDR_old = FDR),
-    de_new %>% dplyr::select(gene, logFC_new = logFC, FDR_new = FDR),
+    de_old %>% dplyr::select(gene, symbol, logFC_old = logFC,
+                             FDR_old = FDR, P_old = PValue),
+    de_new %>% dplyr::select(gene,         logFC_new = logFC,
+                             FDR_new = FDR, P_new = PValue),
     by = "gene")
   sig_old <- de_old %>% dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
     pull(gene) %>% unique()
   sig_new <- de_new %>% dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
     pull(gene) %>% unique()
-  ov  <- intersect(sig_old, sig_new)
-  un  <- union(sig_old, sig_new)
-  jac <- length(ov) / max(length(un), 1)
-  r_lfc <- cor(shared$logFC_old, shared$logFC_new, use = "complete.obs")
-  list(cell = cell_label,
-       n_old = length(sig_old),
-       n_new = length(sig_new),
-       intersect = length(ov),
-       jaccard = jac,
-       lfc_pearson_r = r_lfc,
+  list(cell      = cell_label,
+       contrast  = contrast_label,
+       n_old     = length(sig_old),
+       n_new     = length(sig_new),
+       intersect = length(intersect(sig_old, sig_new)),
+       jaccard   = length(intersect(sig_old, sig_new)) /
+                   max(length(union(sig_old, sig_new)), 1),
+       lfc_pearson_r = cor(shared$logFC_old, shared$logFC_new,
+                           use = "complete.obs"),
        shared_df = shared)
 }
 
-cmp_ht <- compare_de(de_ht_old, de_ht_new, "HT1080")
-cmp_a  <- compare_de(de_a_old,  de_a_new,  "A549")
-
-summary_tbl <- bind_rows(
-  data.frame(cell = cmp_ht$cell, sig_OLD = cmp_ht$n_old,
-             sig_NEW = cmp_ht$n_new, intersect = cmp_ht$intersect,
-             jaccard = cmp_ht$jaccard, lfc_r = cmp_ht$lfc_pearson_r),
-  data.frame(cell = cmp_a$cell, sig_OLD = cmp_a$n_old,
-             sig_NEW = cmp_a$n_new, intersect = cmp_a$intersect,
-             jaccard = cmp_a$jaccard, lfc_r = cmp_a$lfc_pearson_r))
-
-fwrite(summary_tbl, file.path(TAB_DIR, "DE_OLD_vs_NEW_summary.csv"))
-knitr::kable(summary_tbl, digits = 4,
-             caption = "DE concordance: OLD vs NEW pipeline, same paired LOY-vs-CTRL contrast")
-```
-
-## 8.1 logFC concordance scatter
-
-```{r lfc-concordance, fig.height=6, fig.width=12}
-plot_lfc_concord <- function(cmp, cell_label) {
+# Concordance scatter with ggrepel labels on the top DEGs (significant in
+# BOTH pipelines, ranked by combined -log10(FDR)).
+plot_lfc_concord <- function(cmp, cell_label, contrast_label, n_label = 15) {
   d <- cmp$shared_df %>%
     mutate(both_sig = FDR_old < ALPHA & FDR_new < ALPHA &
-                      abs(logFC_old) > LFC_THR & abs(logFC_new) > LFC_THR)
+                      abs(logFC_old) > LFC_THR & abs(logFC_new) > LFC_THR,
+           rank_score = -log10(pmax(FDR_old, 1e-300)) +
+                        -log10(pmax(FDR_new, 1e-300)))
+  top_lab <- d %>% dplyr::filter(both_sig) %>%
+    slice_max(rank_score, n = n_label)
   ggplot(d, aes(x = logFC_old, y = logFC_new)) +
     geom_point(alpha = 0.25, size = 0.5, color = "grey60") +
     geom_point(data = d %>% dplyr::filter(both_sig),
@@ -533,23 +552,110 @@ plot_lfc_concord <- function(cmp, cell_label) {
                 color = "grey40", linewidth = 0.4) +
     geom_hline(yintercept = 0, linetype = "dotted", color = "grey60") +
     geom_vline(xintercept = 0, linetype = "dotted", color = "grey60") +
-    labs(title = sprintf("%s — LOY vs CTRL logFC, OLD vs NEW",
-                         cell_label),
-         subtitle = sprintf("Pearson r = %.3f · orange = sig in BOTH pipelines (FDR<%g, |logFC|>%g)",
-                            cmp$lfc_pearson_r, ALPHA, LFC_THR),
+    geom_text_repel(
+      data = top_lab, aes(label = symbol),
+      size = 2.7, fontface = "italic", color = "grey15",
+      max.overlaps = Inf, segment.color = "grey50",
+      segment.size = 0.25, box.padding = 0.4, min.segment.length = 0.1,
+      force = 2) +
+    labs(title = sprintf("%s — %s, OLD vs NEW logFC",
+                         cell_label, contrast_label),
+         subtitle = sprintf("Pearson r = %.3f · orange = sig in BOTH pipelines · top %d labeled",
+                            cmp$lfc_pearson_r, nrow(top_lab)),
          x = expression(log[2]~"FC (OLD pipeline)"),
          y = expression(log[2]~"FC (NEW pipeline)")) +
     theme_classic(base_size = 10) +
-    theme(plot.title    = element_text(face = "bold"),
+    theme(plot.title    = element_text(face = "bold", size = 11),
           plot.subtitle = element_text(size = 9, color = "grey30"))
 }
+```
 
-p_l_ht <- plot_lfc_concord(cmp_ht, "HT1080")
-p_l_a  <- plot_lfc_concord(cmp_a,  "A549")
-p_l_combined <- p_l_ht | p_l_a
-print(p_l_combined)
-save_fig(p_l_combined, "lfc_concordance_OLD_vs_NEW",
-         width = 14, height = 6)
+```{r de-run-all}
+meta_ht <- build_meta(colnames(ht_n_old$lcpm))
+meta_a  <- build_meta(colnames(a_n_old$lcpm))
+
+all_de <- list(
+  HT1080_OLD_paired   = run_de(ht_n_old$dge, meta_ht, "paired"),
+  HT1080_NEW_paired   = run_de(ht_n_new$dge, meta_ht, "paired"),
+  HT1080_OLD_unpaired = run_de(ht_n_old$dge, meta_ht, "unpaired"),
+  HT1080_NEW_unpaired = run_de(ht_n_new$dge, meta_ht, "unpaired"),
+  HT1080_OLD_pooled   = run_de(ht_n_old$dge, meta_ht, "pooled"),
+  HT1080_NEW_pooled   = run_de(ht_n_new$dge, meta_ht, "pooled"),
+  A549_OLD_paired     = run_de(a_n_old$dge,  meta_a,  "paired"),
+  A549_NEW_paired     = run_de(a_n_new$dge,  meta_a,  "paired"),
+  A549_OLD_unpaired   = run_de(a_n_old$dge,  meta_a,  "unpaired"),
+  A549_NEW_unpaired   = run_de(a_n_new$dge,  meta_a,  "unpaired"),
+  A549_OLD_pooled     = run_de(a_n_old$dge,  meta_a,  "pooled"),
+  A549_NEW_pooled     = run_de(a_n_new$dge,  meta_a,  "pooled"))
+
+# Save all 12 DE tables
+for (nm in names(all_de)) {
+  fwrite(all_de[[nm]],
+         file.path(TAB_DIR, sprintf("DE_%s.csv", nm)))
+}
+
+cmp_list <- list(
+  HT1080_paired   = compare_de(all_de$HT1080_OLD_paired,
+                               all_de$HT1080_NEW_paired,
+                               "HT1080", "LOY vs sgCTRL (paired)"),
+  HT1080_unpaired = compare_de(all_de$HT1080_OLD_unpaired,
+                               all_de$HT1080_NEW_unpaired,
+                               "HT1080", "LOY vs sgCTRL (unpaired)"),
+  HT1080_pooled   = compare_de(all_de$HT1080_OLD_pooled,
+                               all_de$HT1080_NEW_pooled,
+                               "HT1080", "LOY vs pooled Y+"),
+  A549_paired     = compare_de(all_de$A549_OLD_paired,
+                               all_de$A549_NEW_paired,
+                               "A549",   "LOY vs sgCTRL (paired)"),
+  A549_unpaired   = compare_de(all_de$A549_OLD_unpaired,
+                               all_de$A549_NEW_unpaired,
+                               "A549",   "LOY vs sgCTRL (unpaired)"),
+  A549_pooled     = compare_de(all_de$A549_OLD_pooled,
+                               all_de$A549_NEW_pooled,
+                               "A549",   "LOY vs pooled Y+"))
+
+summary_tbl <- bind_rows(lapply(cmp_list, function(x) {
+  data.frame(cell = x$cell, contrast = x$contrast,
+             sig_OLD = x$n_old, sig_NEW = x$n_new,
+             intersect = x$intersect, jaccard = x$jaccard,
+             lfc_r = x$lfc_pearson_r) }))
+
+fwrite(summary_tbl, file.path(TAB_DIR, "DE_OLD_vs_NEW_summary.csv"))
+knitr::kable(summary_tbl, digits = 4,
+             caption = "DE concordance: OLD vs NEW pipeline across three contrast types")
+```
+
+## 8.1 Paired LOY vs sgCTRL — concordance
+
+```{r lfc-concord-paired, fig.height=6, fig.width=14}
+p_paired <- plot_lfc_concord(cmp_list$HT1080_paired, "HT1080",
+                             "LOY vs sgCTRL (paired)") |
+            plot_lfc_concord(cmp_list$A549_paired,   "A549",
+                             "LOY vs sgCTRL (paired)")
+print(p_paired)
+save_fig(p_paired, "lfc_concordance_paired",     width = 14, height = 6)
+```
+
+## 8.2 Unpaired LOY vs sgCTRL — concordance
+
+```{r lfc-concord-unpaired, fig.height=6, fig.width=14}
+p_unpaired <- plot_lfc_concord(cmp_list$HT1080_unpaired, "HT1080",
+                               "LOY vs sgCTRL (unpaired)") |
+              plot_lfc_concord(cmp_list$A549_unpaired,   "A549",
+                               "LOY vs sgCTRL (unpaired)")
+print(p_unpaired)
+save_fig(p_unpaired, "lfc_concordance_unpaired", width = 14, height = 6)
+```
+
+## 8.3 Pooled LOY vs Y+ — concordance
+
+```{r lfc-concord-pooled, fig.height=6, fig.width=14}
+p_pooled <- plot_lfc_concord(cmp_list$HT1080_pooled, "HT1080",
+                             "LOY vs pooled Y+") |
+            plot_lfc_concord(cmp_list$A549_pooled,   "A549",
+                             "LOY vs pooled Y+")
+print(p_pooled)
+save_fig(p_pooled, "lfc_concordance_pooled",     width = 14, height = 6)
 ```
 
 # 9. Verdict
@@ -557,25 +663,22 @@ save_fig(p_l_combined, "lfc_concordance_OLD_vs_NEW",
 ```{r verdict}
 verdict_line <- function(cmp) {
   if (cmp$lfc_pearson_r > 0.9 && cmp$jaccard > 0.5) {
-    "CONCORDANT: high logFC correlation and >50% DEG overlap. Conclusions are pipeline-robust."
+    "CONCORDANT"
   } else if (cmp$lfc_pearson_r > 0.8) {
-    "MOSTLY CONCORDANT: logFC correlation strong; some DEG-list drift driven by rank-vs-threshold effects."
+    "MOSTLY CONCORDANT"
   } else {
-    "DIVERGENT: substantial pipeline-driven differences in expression estimates."
+    "DIVERGENT"
   }
 }
 
-cat(sprintf("HT1080: %s\n", verdict_line(cmp_ht)))
-cat(sprintf("        - OLD DEGs: %d, NEW DEGs: %d, intersect: %d (Jaccard %.2f)\n",
-            cmp_ht$n_old, cmp_ht$n_new, cmp_ht$intersect, cmp_ht$jaccard))
-cat(sprintf("        - logFC Pearson r: %.3f\n",
-            cmp_ht$lfc_pearson_r))
-cat("\n")
-cat(sprintf("A549:   %s\n", verdict_line(cmp_a)))
-cat(sprintf("        - OLD DEGs: %d, NEW DEGs: %d, intersect: %d (Jaccard %.2f)\n",
-            cmp_a$n_old, cmp_a$n_new, cmp_a$intersect, cmp_a$jaccard))
-cat(sprintf("        - logFC Pearson r: %.3f\n",
-            cmp_a$lfc_pearson_r))
+for (nm in names(cmp_list)) {
+  x <- cmp_list[[nm]]
+  cat(sprintf("%-32s %s\n", paste0(x$cell, " · ", x$contrast),
+              verdict_line(x)))
+  cat(sprintf("  OLD DEGs %d | NEW DEGs %d | intersect %d (Jaccard %.2f) | logFC r = %.3f\n\n",
+              x$n_old, x$n_new, x$intersect, x$jaccard,
+              x$lfc_pearson_r))
+}
 ```
 
 # 10. Session Info
