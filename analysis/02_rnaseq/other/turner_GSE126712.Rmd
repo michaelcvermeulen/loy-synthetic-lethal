@@ -84,6 +84,8 @@ suppressPackageStartupMessages({
   library(RColorBrewer)
   library(ComplexHeatmap)
   library(circlize)
+
+  library(DT)
 })
 ```
 
@@ -693,6 +695,46 @@ make_pub_enrichment <- function(pathway_genes, stats, pathway_label,
           plot.margin = margin(8, 12, 8, 8))
 }
 
+# Paginated DT table for a limma topTable-style data frame. Filters to
+# FDR < ALPHA, sorts by FDR ascending, and renders an interactive table
+# with 50-row pagination, search, and column-sort. Used in §5.4 and §5.6
+# to surface the full DEG list directly in the knit HTML.
+de_datatable <- function(de_df, caption,
+                          fdr_col   = "adj.P.Val",
+                          page_size = 50) {
+  cols_keep <- intersect(
+    c("gene_symbol", "ensembl_id", "logFC", "AveExpr", "t",
+      "P.Value", fdr_col, "B"),
+    colnames(de_df))
+  tbl <- de_df %>%
+    dplyr::filter(.data[[fdr_col]] < ALPHA) %>%
+    dplyr::arrange(.data[[fdr_col]]) %>%
+    dplyr::select(dplyr::all_of(cols_keep))
+
+  numeric_cols <- intersect(c("logFC", "AveExpr", "t", "B"),
+                            colnames(tbl))
+  pval_cols    <- intersect(c("P.Value", fdr_col),
+                            colnames(tbl))
+
+  DT::datatable(
+    tbl,
+    rownames = FALSE,
+    filter   = "top",
+    caption  = caption,
+    extensions = "Buttons",
+    options  = list(
+      pageLength   = page_size,
+      lengthMenu   = c(25, 50, 100, 200),
+      order        = list(),
+      dom          = "Blfrtip",
+      buttons      = c("copy", "csv", "excel"),
+      scrollX      = TRUE
+    )
+  ) %>%
+    DT::formatRound(columns = numeric_cols, digits = 3) %>%
+    DT::formatSignif(columns = pval_cols, digits = 3)
+}
+
 # DoRothEA / decoupleR helper: re-sign a rank vector by mode-of-regulation
 # so that downstream fgsea picks up activated and repressed targets together.
 adjust_stats_by_mor <- function(stats, tf_name, tf_mor_list) {
@@ -844,6 +886,17 @@ de_x0_xy %>%
   dplyr::select(gene_symbol, logFC, adj.P.Val) %>% print()
 ```
 
+### All X0 vs XY DEGs (paginated, FDR < `r ALPHA`)
+
+```{r de-x0-xy-datatable}
+de_datatable(
+  de_x0_xy,
+  caption = sprintf("Turner X0 vs XY — all DEGs at FDR < %g (%d genes; 50 per page; sortable / filterable)",
+                    ALPHA,
+                    sum(de_x0_xy$adj.P.Val < ALPHA, na.rm = TRUE))
+)
+```
+
 ## 5.5 Secondary contrast: X0 vs XX
 
 ```{r de-x0-vs-xx}
@@ -881,6 +934,17 @@ de_dose %>%
   dplyr::filter(adj.P.Val < ALPHA, logFC < 0) %>%
   head(10) %>%
   dplyr::select(gene_symbol, logFC, adj.P.Val) %>% print()
+```
+
+### All dose-response DEGs (paginated, FDR < `r ALPHA`)
+
+```{r de-dose-datatable}
+de_datatable(
+  de_dose,
+  caption = sprintf("Dose-response — all DEGs at FDR < %g (%d genes; positive logFC = increases with X-chromosome dose; 50 per page)",
+                    ALPHA,
+                    sum(de_dose$adj.P.Val < ALPHA, na.rm = TRUE))
+)
 ```
 
 ***
