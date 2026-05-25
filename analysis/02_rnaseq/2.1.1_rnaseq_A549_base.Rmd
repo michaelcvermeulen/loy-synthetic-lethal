@@ -37,6 +37,13 @@ paired DE model (`~ 0 + treatment + passage`) is well-defined.
 Every figure is saved to `figures_LOY_sgCTRL/` as both PNG (for iterative review)
 and PDF (for publication).
 
+**Counts pipeline.** Counts come from `STAR_v2_PARfix/AUG_2025_A549_LOY/`
+— a PAR-Y-masked STAR realignment + featureCounts re-quantification done
+specifically to recover chrX-PAR reads that the original AUG_2025 STAR run
+silently dropped at multi-mapper filtering. MSY (true chrY) counts are
+unchanged; PAR1/PAR2 counts (SHOX, CSF2RA, SLC25A6, etc.) are now non-zero.
+Y-region annotation lives in §2.1.5; the Y/PAR-retaining volcano is §3.5.
+
 | Group     | Samples | Y Status | Role |
 |-----------|---------|----------|------|
 | CTRL      | 4 (rep 1, 2, 3, 4) | Y+ | sgRNA control (reference for the LOY-vs-sgCTRL contrast) |
@@ -83,7 +90,11 @@ suppressPackageStartupMessages({
 # Dropbox tree. Update this single line if data moves (e.g., to a central
 # HPC mount or after GEO deposition at manuscript submission).
 DATA_ROOT  <- "A:/Dropbox/LOY_paralogs/projects"
-COUNTS_DIR <- file.path(DATA_ROOT, "RNAseq", "counts", "AUG_2025_A549_LOY")
+# STAR_v2_PARfix tables — PAR-Y-masked realignment so chrX PAR genes (SHOX,
+# CSF2RA, SLC25A6, etc.) actually have reads. The previous AUG_2025_A549_LOY/
+# tables silently dropped PAR multi-mappers (~0 reads on every PAR1 gene).
+COUNTS_DIR <- file.path(DATA_ROOT, "RNAseq", "counts",
+                        "STAR_v2_PARfix", "AUG_2025_A549_LOY")
 
 # --- Output paths ------------------------------------------------------
 # This Rmd renders from analysis/02_rnaseq/. All outputs are namespaced
@@ -209,6 +220,72 @@ keep_genes <- !is.na(dge$genes$gene_name) & !is.na(dge$genes$entrezid)
 cat("Removing", sum(!keep_genes), "genes without full annotation\n")
 dge <- dge[keep_genes, , keep.lib.sizes = FALSE]
 cat("Genes remaining:", nrow(dge), "\n")
+```
+
+## 2.1.5 Y-region annotation (PAR1 / PAR2 / MSY-Yp / MSY-Yq)
+
+GRCh38 PAR coordinates (Ensembl/GENCODE). PAR genes are annotated on chrX
+only (chrY PAR positions are masked at the annotation level), so PAR
+identification scans chrX. MSY = remaining chrY genes (non-PAR), split into
+Yp / Yq by the chrY centromere midpoint (~10.43 Mb, UCSC).
+
+Two filter sets are exposed downstream:
+
+- **`chrY_gene_ids`** (MSY only) is stripped from the DGEList before
+  differential expression. PAR genes stay in `dge_lc` so they get logFC +
+  FDR values like any other gene — useful for the §3.5 Y-region volcano and
+  for §11-style per-gene PAR summaries.
+- **`excluded_gene_ids`** (chrY ∪ PAR) is stripped from pathway-analysis
+  inputs (fgsea ranks, camera, decoupleR ULM, DoRothEA, GSVA / ssGSEA,
+  PROGENy, msVIPER). PAR contamination of those ranks is library-composition
+  artefact (LOY samples lose the chrY-PAR copy), not pathway biology.
+  Filtering happens inside `prep_ranks_t()` (which then cascades to every
+  fgsea-derived pathway call) plus at each gene-symbol-keyed matrix-input
+  call site (decoupleR / GSVA / PROGENy).
+
+```{r y-region-annotation}
+PAR1_X_START <- 10001L;       PAR1_X_END   <- 2781479L
+PAR2_X_START <- 155701383L;   PAR2_X_END   <- 156030895L
+Y_CENTROMERE_MID <- 10430000L
+
+y_panel <- dge$genes %>%
+  rownames_to_column("ensembl_id_ver") %>%
+  mutate(ensembl_id = gsub("\\.\\d+$", "", ensembl_id_ver)) %>%
+  mutate(region = case_when(
+    seqnames == "X" & start >= PAR1_X_START & end <= PAR1_X_END ~ "PAR1",
+    seqnames == "X" & start >= PAR2_X_START & end <= PAR2_X_END ~ "PAR2",
+    seqnames == "Y" & end   <= Y_CENTROMERE_MID                 ~ "MSY-Yp",
+    seqnames == "Y" & start >= Y_CENTROMERE_MID                 ~ "MSY-Yq",
+    TRUE                                                         ~ NA_character_)) %>%
+  dplyr::filter(!is.na(region))
+
+# Stable id vectors for use against `gsub("\\.\\d+$", "", rownames(...))`
+par_gene_ids        <- y_panel$ensembl_id[y_panel$region %in% c("PAR1", "PAR2")]
+chrY_gene_ids       <- y_panel$ensembl_id[y_panel$region %in% c("MSY-Yp", "MSY-Yq")]
+excluded_gene_ids   <- unique(c(chrY_gene_ids, par_gene_ids))
+
+# gene-symbol versions for filtering symbol-keyed inputs (rank vectors,
+# decoupleR matrices, ssGSEA matrices)
+par_gene_names      <- y_panel$gene_name[y_panel$region %in% c("PAR1", "PAR2")]
+chrY_gene_names     <- y_panel$gene_name[y_panel$region %in% c("MSY-Yp", "MSY-Yq")]
+excluded_gene_names <- unique(c(chrY_gene_names, par_gene_names))
+
+cat(sprintf(
+  "Y-region panel: %d genes  [PAR1=%d, PAR2=%d, MSY-Yp=%d, MSY-Yq=%d]\n",
+  nrow(y_panel),
+  sum(y_panel$region == "PAR1"),
+  sum(y_panel$region == "PAR2"),
+  sum(y_panel$region == "MSY-Yp"),
+  sum(y_panel$region == "MSY-Yq")))
+cat(sprintf("Exclusion set for pathway analyses: %d genes (chrY ∪ PAR)\n",
+            length(excluded_gene_ids)))
+
+# 4-colour palette for Y-region categories (Okabe-Ito-derived)
+y_region_cols <- c(
+  "PAR1"   = "#0072B2",   # blue
+  "PAR2"   = "#56B4E9",   # light blue
+  "MSY-Yp" = "#D55E00",   # red
+  "MSY-Yq" = "#E69F00")   # orange
 ```
 
 ## 2.2 Filter Low-Expressed Genes
@@ -568,24 +645,132 @@ if (length(key_y_present) > 0) {
 
 ***
 
+# 3.5 Y-region volcano (pre-strip)
+
+A LOY-vs-sgCTRL paired DE run on a **Y-retaining and PAR-retaining** working
+set. Every chrY (MSY-Yp / MSY-Yq) and chrX-PAR (PAR1 / PAR2) gene that
+passes filterByExpr appears here with a real `logFC` + `FDR` value — so the
+volcano shows exactly *what* the LOY perturbation does to the Y-linked + PAR
+expression landscape before §4 strips those genes for pathway analysis.
+
+This view was previously impossible because the upstream STAR pipeline
+dropped PAR multi-mappers (all PAR genes had ~0 reads). Now that
+`STAR_v2_PARfix` counts are loaded (see §1.2), PAR genes are present and
+testable.
+
+Expected pattern: MSY-Yp + MSY-Yq genes (UTY, KDM5D, DDX3Y, RPS4Y1,
+EIF1AY, USP9Y) cluster strongly in the bottom-left (down in LOY). PAR1 +
+PAR2 genes sit near logFC ≈ 0, since LOY removes only the chrY PAR copy and
+the chrX copy still expresses.
+
+```{r y-region-de-setup}
+# Y-retaining working set: same MIN_COUNT filterByExpr + CTRL+LOY subset +
+# TMM as §4's `dge_lc`, but skip the chrY/PAR strip so we can see those
+# genes in the DE result.
+dge_y_ret <- dge[, dge$samples$treatment %in% c("CTRL", "LOY")]
+dge_y_ret$samples$treatment <- droplevels(dge_y_ret$samples$treatment)
+dge_y_ret$samples$passage   <- droplevels(dge_y_ret$samples$passage)
+dge_y_ret <- calcNormFactors(dge_y_ret, method = "TMM")
+
+# Same paired DE as §4 (treatment + passage) on the Y-retaining set.
+# Inlined lmFit/eBayes since run_de_contrast() is defined in §4 below.
+design_y_ret <- model.matrix(~ 0 + treatment + passage,
+                             data = dge_y_ret$samples)
+colnames(design_y_ret) <- gsub("^treatment", "", colnames(design_y_ret))
+cm_y_ret <- makeContrasts("LOY - CTRL", levels = colnames(design_y_ret))
+v_y_ret   <- voom(dge_y_ret, design_y_ret, plot = FALSE)
+fit_y_ret <- lmFit(v_y_ret, design_y_ret) %>%
+  contrasts.fit(cm_y_ret) %>%
+  eBayes()
+de_y_ret <- topTable(fit_y_ret, coef = 1, n = Inf, sort.by = "P") %>%
+  dplyr::rename(PValue = P.Value, FDR = adj.P.Val, logCPM = AveExpr) %>%
+  rownames_to_column("ensembl_id_ver") %>%
+  mutate(ensembl_id = gsub("\\.\\d+$", "", ensembl_id_ver))
+
+de_y_ret <- de_y_ret %>%
+  left_join(y_panel %>% dplyr::select(ensembl_id, region),
+            by = "ensembl_id") %>%
+  mutate(region = factor(region,
+                         levels = c("PAR1", "PAR2", "MSY-Yp", "MSY-Yq")))
+
+cat(sprintf("\nY-retaining paired DE: %d genes tested\n", nrow(de_y_ret)))
+cat(sprintf("  Y-region genes with FDR/logFC: %d  [PAR1=%d, PAR2=%d, MSY-Yp=%d, MSY-Yq=%d]\n",
+            sum(!is.na(de_y_ret$region)),
+            sum(de_y_ret$region == "PAR1",   na.rm = TRUE),
+            sum(de_y_ret$region == "PAR2",   na.rm = TRUE),
+            sum(de_y_ret$region == "MSY-Yp", na.rm = TRUE),
+            sum(de_y_ret$region == "MSY-Yq", na.rm = TRUE)))
+
+fwrite(de_y_ret %>% dplyr::filter(!is.na(region)) %>%
+         dplyr::select(ensembl_id, gene_name, region,
+                       logFC, PValue, FDR, logCPM),
+       file.path(DE_DIR, "a549_LOY_v_sgCTRL_DE_yregion.csv"))
+```
+
+```{r y-region-volcano, fig.height=6, fig.width=8}
+y_region_volcano <- function(de_df, title, n_label = 25) {
+  bg <- de_df %>% dplyr::filter(is.na(region)) %>%
+    mutate(nlp = -log10(pmax(PValue, 1e-300)))
+  fg <- de_df %>% dplyr::filter(!is.na(region)) %>%
+    mutate(nlp = -log10(pmax(PValue, 1e-300)))
+  lab <- fg %>% group_by(region) %>%
+    slice_max(abs(logFC), n = n_label, with_ties = FALSE) %>% ungroup()
+
+  ggplot() +
+    geom_point(data = bg, aes(logFC, nlp),
+               color = "grey85", alpha = 0.4, size = 0.7) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_vline(xintercept = c(-LFC_THR, LFC_THR), linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_point(data = fg, aes(logFC, nlp, color = region),
+               size = 2.4, alpha = 0.9) +
+    ggrepel::geom_text_repel(
+      data = lab, aes(logFC, nlp, label = gene_name, color = region),
+      size = 3.1, fontface = "italic", max.overlaps = Inf,
+      segment.size = 0.3, box.padding = 0.4, force = 2,
+      show.legend = FALSE) +
+    scale_color_manual(values = y_region_cols, drop = FALSE,
+                       name = "Y region") +
+    labs(x = expression(log[2]~"Fold Change (LOY / sgCTRL)"),
+         y = expression(-log[10]~"(P-value)"),
+         title = title,
+         subtitle = "Paired contrast on Y/PAR-retaining DGEList; grey = non-Y/non-PAR background") +
+    theme_classic(base_size = 12) +
+    theme(legend.position = "top",
+          plot.title = element_text(hjust = 0.5, face = "bold", size = 13))
+}
+
+p_y_vol <- y_region_volcano(
+  de_y_ret,
+  "A549: LOY vs sgCTRL — Y region (PAR1 / PAR2 / MSY-Yp / MSY-Yq)")
+print(p_y_vol)
+save_fig(p_y_vol, "volcano_LOY_v_sgCTRL_yregion", width = 8, height = 6)
+```
+
+***
+
 # 4. Differential Expression: LOY vs sgCTRL {.tabset}
 
-Two designs are fit on `dge_lc` (Y-chromosome genes removed, TMM recalculated):
-**paired** (treatment + passage) is the recommended primary analysis;
-**unpaired** is shown for reference. Downstream GSEA in section 5+ uses the
-paired results.
+Two designs are fit on `dge_lc` (chrY MSY genes removed, PAR genes retained,
+TMM recalculated — see §2.1.5 for the split policy): **paired** (treatment
++ passage) is the recommended primary analysis; **unpaired** is shown for
+reference. PAR genes get logFC + FDR like every other gene and appear in
+the volcanos below. Downstream GSEA in §5+ excludes PAR genes at the rank
+boundary via `prep_ranks_t()`. The Y-region landscape on a Y/PAR-retaining
+DGEList is in §3.5.
 
 ```{r de-setup}
-chrY_gene_ids <- genes %>%
-  dplyr::filter(seqnames == "Y") %>%
-  pull(gene_id)
-
+# Strip chrY (MSY) before DE — its LOY signal would dominate the contrast.
+# PAR genes stay in the DGEList so DE produces logFC/FDR values for them
+# (they get filtered out at pathway-input boundaries — see prep_ranks_t
+# and gene-symbol-keyed matrix builds further down).
 dge_lc <- dge
-chrY_idx <- which(
+strip_idx <- which(
   gsub("\\.\\d+$", "", rownames(dge_lc$counts)) %in% chrY_gene_ids)
-if (length(chrY_idx) > 0) {
-  cat("Removing", length(chrY_idx), "Y chromosome genes\n")
-  dge_lc <- dge_lc[-chrY_idx, , keep.lib.sizes = FALSE]
+if (length(strip_idx) > 0) {
+  cat("Removing", length(strip_idx), "chrY (MSY) genes\n")
+  dge_lc <- dge_lc[-strip_idx, , keep.lib.sizes = FALSE]
 }
 
 # Drop PARENTAL for the contrast — PARENTAL contributed to gene filtering
@@ -760,9 +945,13 @@ de_loy_ctrl <- de_loy_ctrl_paired
 
 ```{r gsea-setup}
 prep_ranks_t <- function(de_results, gene_col = "gene_name") {
+  # Drops PAR genes (par_gene_names from §2.1.5) before ranking so every
+  # downstream fgsea / DoRothEA / msVIPER call sees pathway-clean ranks.
+  # PAR LOY signal is library-composition artefact, not pathway biology.
   de_results %>%
     transmute(gene = .data[[gene_col]], stat = t) %>%
-    dplyr::filter(!is.na(gene), is.finite(stat)) %>%
+    dplyr::filter(!is.na(gene), is.finite(stat),
+                  !gene %in% par_gene_names) %>%
     group_by(gene) %>%
     summarize(stat = stat[which.max(abs(stat))], .groups = "drop") %>%
     { setNames(.$stat, .$gene) } %>%
@@ -1894,6 +2083,9 @@ cat(sprintf("CollecTRI network: %d interactions, %d TFs, %d targets\n",
 ```{r decouple-sample-ulm}
 lcpm_lc <- cpm(dge_lc, log = TRUE, prior.count = 2)
 rownames(lcpm_lc) <- dge_lc$genes$gene_name
+# Drop PAR rows before sample-level TF inference — PAR LOY signal is library-
+# composition artefact and would distort the TF activity matrix.
+lcpm_lc <- lcpm_lc[!rownames(lcpm_lc) %in% par_gene_names, , drop = FALSE]
 
 sample_acts_lc <- run_ulm(
   mat = lcpm_lc, net = net,
@@ -1983,7 +2175,7 @@ cat(sprintf("Saved: decouple_TF_heatmap_LOY_v_sgCTRL.(png|pdf) [8x10 in]\n"))
 
 ```{r decouple-contrast-ulm}
 deg_df <- de_loy_ctrl %>%
-  dplyr::filter(!is.na(t)) %>%
+  dplyr::filter(!is.na(t), !gene_name %in% par_gene_names) %>%   # drop PAR
   dplyr::select(gene_name, t) %>%
   distinct(gene_name, .keep_all = TRUE) %>%
   as.data.frame()
@@ -1995,7 +2187,38 @@ contrast_acts_lc <- run_ulm(
   .source = "source", .target = "target", .mor = "mor",
   minsize = 5)
 
-cat(sprintf("Contrast-level ULM: %d TFs scored\n", nrow(contrast_acts_lc)))
+cat(sprintf("Contrast-level ULM (CollecTRI): %d TFs scored\n",
+            nrow(contrast_acts_lc)))
+
+# --- TRRUST v2 ULM (orthogonal regulon source) ----------------------------
+# Network is built once here and reused in §14.1 to seed the msVIPER
+# regulon.
+suppressPackageStartupMessages(library(OmnipathR))
+trrust_raw <- import_transcriptional_interactions(resources = "TRRUST")
+trrust_net <- trrust_raw %>%
+  dplyr::transmute(
+    source = source_genesymbol,
+    target = target_genesymbol,
+    mor    = dplyr::case_when(
+      is_stimulation == 1 & is_inhibition == 0 ~  1,
+      is_inhibition  == 1 & is_stimulation == 0 ~ -1,
+      TRUE                                       ~  0)) %>%
+  dplyr::filter(mor != 0,
+                !is.na(source), !is.na(target),
+                nzchar(source), nzchar(target)) %>%
+  dplyr::distinct(source, target, .keep_all = TRUE)
+
+cat(sprintf("TRRUST v2 network: %d interactions, %d TFs\n",
+            nrow(trrust_net), dplyr::n_distinct(trrust_net$source)))
+
+contrast_acts_trrust_lc <- run_ulm(
+  mat = deg_mat, net = trrust_net,
+  .source = "source", .target = "target", .mor = "mor",
+  minsize = 5)
+cat(sprintf("Contrast-level ULM (TRRUST): %d TFs scored\n",
+            nrow(contrast_acts_trrust_lc)))
+fwrite(contrast_acts_trrust_lc,
+       file.path(TF_DIR, "decoupler_ulm_trrust_LOY_v_sgCTRL.csv"))
 ```
 
 ## 9.12 TF activity bar plot
@@ -2348,11 +2571,12 @@ section is the complementary view.
 dge_pool <- dge
 
 # Remove Y-chromosome genes (consistent with the LOY-vs-sgCTRL contrast).
-chrY_idx_pool <- which(
+# Strip chrY (MSY) only — PAR genes stay for DE (filtered at pathway entries).
+strip_idx_pool <- which(
   gsub("\\.\\d+$", "", rownames(dge_pool$counts)) %in% chrY_gene_ids)
-if (length(chrY_idx_pool) > 0) {
-  cat("Removing", length(chrY_idx_pool), "Y chromosome genes\n")
-  dge_pool <- dge_pool[-chrY_idx_pool, , keep.lib.sizes = FALSE]
+if (length(strip_idx_pool) > 0) {
+  cat("Removing", length(strip_idx_pool), "chrY (MSY) genes\n")
+  dge_pool <- dge_pool[-strip_idx_pool, , keep.lib.sizes = FALSE]
 }
 
 # Re-normalize on the full 9-sample working set.
@@ -2705,10 +2929,12 @@ run_dorothea_panel <- function(de_df, contrast_label) {
     arrange(padj)
 }
 
-# decoupleR contrast-level ULM (CollecTRI) on a DE t-statistic vector.
-run_decoupler_panel <- function(de_df, contrast_label) {
+# decoupleR contrast-level ULM on a DE t-statistic vector.
+# `net_obj` defaults to CollecTRI but can be swapped for TRRUST or any other
+# (source, target, mor) data.frame.
+run_decoupler_panel <- function(de_df, contrast_label, net_obj = net) {
   deg_df <- de_df %>%
-    dplyr::filter(!is.na(t)) %>%
+    dplyr::filter(!is.na(t), !gene_name %in% par_gene_names) %>%  # drop PAR
     dplyr::select(gene_name, t) %>%
     distinct(gene_name, .keep_all = TRUE) %>%
     as.data.frame()
@@ -2716,7 +2942,7 @@ run_decoupler_panel <- function(de_df, contrast_label) {
   deg_mat <- as.matrix(deg_df[, "t", drop = FALSE])
 
   run_ulm(
-    mat = deg_mat, net = net,
+    mat = deg_mat, net = net_obj,
     .source = "source", .target = "target", .mor = "mor",
     minsize = 5) %>%
     mutate(contrast = contrast_label)
@@ -2788,6 +3014,15 @@ p_dc_pool <- plot_tf_bar(
 print(p_dc_pool)
 save_fig(p_dc_pool, "decouple_TF_barplot_LOY_v_pooled",
          width = 7, height = 8)
+
+# --- TRRUST decoupleR ULM on the pooled contrast --------------------------
+contrast_acts_trrust_pool <- run_decoupler_panel(
+  de_loy_pool, "LOY_v_pooled", net_obj = trrust_net)
+fwrite(contrast_acts_trrust_pool,
+       file.path(TF_DIR, "a549_LOY_v_pooled_decoupler_ulm_trrust.csv"))
+cat(sprintf("decoupleR ULM TRRUST (pooled): %d TFs scored, %d at p<0.05\n",
+            nrow(contrast_acts_trrust_pool),
+            sum(contrast_acts_trrust_pool$p_value < 0.05, na.rm = TRUE)))
 ```
 
 ***
@@ -2806,11 +3041,11 @@ paired sgCTRL contrast remains the more conservative choice.
 ```{r sgctrl-setup}
 dge_sg <- dge
 
-chrY_idx_sg <- which(
+strip_idx_sg <- which(
   gsub("\\.\\d+$", "", rownames(dge_sg$counts)) %in% chrY_gene_ids)
-if (length(chrY_idx_sg) > 0) {
-  cat("Removing", length(chrY_idx_sg), "Y chromosome genes\n")
-  dge_sg <- dge_sg[-chrY_idx_sg, , keep.lib.sizes = FALSE]
+if (length(strip_idx_sg) > 0) {
+  cat("Removing", length(strip_idx_sg), "chrY (MSY) genes\n")
+  dge_sg <- dge_sg[-strip_idx_sg, , keep.lib.sizes = FALSE]
 }
 
 # Keep only PARENTAL + CTRL for this contrast.
@@ -3061,20 +3296,349 @@ cat("VERDICT:\n", verdict, "\n", sep = "")
 
 ***
 
-# 13. msVIPER master-regulator analysis (all three contrasts) {.tabset}
+# 13. LOY vs PARENTAL (alternative baseline)
+
+A third LOY contrast, run against the unmodified parental population instead
+of against the matched sgRNA control. Concept: §4 asks "does LOY differ from a
+non-targeting sgRNA?", §11 asks "does LOY differ from a Y+ baseline pooled
+across PARENTAL + sgCTRL?", and this section asks "does LOY differ from the
+untouched parental cells?". Convergence across these baselines flags
+LOY-driven biology that's robust to control choice; divergence between this
+and §4 (when §12 is non-quiet) localizes how much of the §4 signal comes from
+sgRNA-itself effects vs. true LOY perturbation.
+
+## 13.1 Setup
+
+```{r loypar-setup}
+dge_lp <- dge
+
+strip_idx_lp <- which(
+  gsub("\\.\\d+$", "", rownames(dge_lp$counts)) %in% chrY_gene_ids)
+if (length(strip_idx_lp) > 0) {
+  cat("Removing", length(strip_idx_lp), "chrY (MSY) genes\n")
+  dge_lp <- dge_lp[-strip_idx_lp, , keep.lib.sizes = FALSE]
+}
+
+# Keep only PARENTAL + LOY for this contrast.
+dge_lp <- dge_lp[, dge_lp$samples$treatment %in% c("PARENTAL", "LOY")]
+dge_lp$samples$treatment <- droplevels(dge_lp$samples$treatment)
+dge_lp$samples$passage   <- droplevels(dge_lp$samples$passage)
+
+# Auto-balance passages: drop passages present in only one treatment to
+# avoid rank-deficient designs (A549 has 4 CTRL but 3 LOY/PARENTAL).
+pt_lp <- table(dge_lp$samples$passage, dge_lp$samples$treatment)
+shared_lp <- rownames(pt_lp)[rowSums(pt_lp > 0) == ncol(pt_lp)]
+keep_lp <- as.character(dge_lp$samples$passage) %in% shared_lp
+if (any(!keep_lp)) {
+  cat(sprintf("Auto-balance: dropping %d sample(s) in passages without both treatments\n",
+              sum(!keep_lp)))
+  dge_lp <- dge_lp[, keep_lp]
+  dge_lp$samples$passage <- droplevels(dge_lp$samples$passage)
+}
+
+dge_lp <- calcNormFactors(dge_lp, method = "TMM")
+cat(sprintf(
+  "LOY-vs-PARENTAL working set: %d samples (%s)\n",
+  ncol(dge_lp),
+  paste(levels(dge_lp$samples$treatment), collapse = " / ")))
+```
+
+## 13.2 DE: paired (treatment + passage)
+
+```{r loypar-de}
+design_lp <- model.matrix(~ 0 + treatment + passage, data = dge_lp$samples)
+colnames(design_lp) <- gsub("^treatment", "", colnames(design_lp))
+
+de_loy_par <- run_de_contrast(
+  dge_lp, design_lp, contrast_name = "LOY - PARENTAL")
+
+cat(sprintf("\nLOY vs PARENTAL: %d genes tested\n", nrow(de_loy_par)))
+cat(sprintf("  FDR < 0.05:              %d\n",
+            sum(de_loy_par$FDR < 0.05)))
+cat(sprintf("  FDR < %g & |logFC| > %g:  %d (up: %d, down: %d)\n",
+            ALPHA, LFC_THR,
+            sum(de_loy_par$FDR < ALPHA & abs(de_loy_par$logFC) > LFC_THR),
+            sum(de_loy_par$FDR < ALPHA & de_loy_par$logFC >  LFC_THR),
+            sum(de_loy_par$FDR < ALPHA & de_loy_par$logFC < -LFC_THR)))
+
+fwrite(de_loy_par,
+       file.path(DE_DIR, "a549_LOY_v_PARENTAL_DE.csv"))
+```
+
+## 13.3 Volcano
+
+```{r loypar-volcano, fig.height=6, fig.width=7}
+p_v_lp <- make_volcano(
+  de_loy_par,
+  "A549: LOY vs PARENTAL (alternative baseline)") +
+  labs(x = expression(log[2]~"Fold Change (LOY / PARENTAL)"))
+print(p_v_lp)
+save_fig(p_v_lp, "volcano_LOY_v_PARENTAL", width = 7, height = 6)
+```
+
+## 13.4 fgsea + dotplot (top 30)
+
+```{r loypar-gsea-run}
+ranks_lp <- prep_ranks_t(de_loy_par)
+ranks_lp <- ranks_lp[!names(ranks_lp) %in% ribo_hits]
+cat(sprintf("LOY-vs-PARENTAL ranks: %d genes (after RPS/RPL filter)\n",
+            length(ranks_lp)))
+
+set.seed(42)
+cat("Running fgsea for LOY vs PARENTAL...\n")
+gsea_lp <- run_fgsea_all(ranks_lp, pathways)
+fwrite(gsea_lp, file.path(GSEA_DIR, "a549_LOY_v_PARENTAL_gsea.csv"))
+
+gsea_lp %>%
+  group_by(collection) %>%
+  summarize(
+    total    = n(),
+    sig_up   = sum(padj < 0.05 & NES > 0),
+    sig_down = sum(padj < 0.05 & NES < 0),
+    .groups  = "drop"
+  ) %>%
+  knitr::kable(caption = "LOY vs PARENTAL — Significant pathways by collection")
+```
+
+```{r loypar-gsea-dotplot, fig.height=6, fig.width=5.5}
+sig_lp <- sum(gsea_lp$padj < 0.05)
+if (sig_lp == 0) {
+  cat("No pathways reach padj < 0.05 in the LOY vs PARENTAL contrast.\n")
+} else {
+  pub_dot_lp <- gsea_lp %>%
+    group_by(sign(NES)) %>%
+    slice_min(pval, n = 15) %>%
+    ungroup() %>%
+    mutate(
+      pathway_clean = gsub("^HALLMARK_|^REACTOME_|^KEGG_|^GOBP_|^GO_",
+                           "", pathway),
+      pathway_clean = gsub("_", " ", pathway_clean),
+      pathway_clean = str_to_title(pathway_clean),
+      pathway_clean = str_wrap(pathway_clean, 40),
+      sig_label = case_when(
+        padj < 0.001 ~ "***", padj < 0.01 ~ "**",
+        padj < 0.05  ~ "*",   TRUE         ~ ""),
+      pathway_label = paste0(pathway_clean, "  ", sig_label),
+      pathway_label = fct_reorder(pathway_label, NES)
+    )
+
+  p_dot_lp <- ggplot(pub_dot_lp,
+                     aes(x = NES, y = pathway_label,
+                         size = -log10(padj), fill = NES)) +
+    geom_point(shape = 21, color = "black", stroke = 0.3) +
+    scale_fill_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B",
+                         midpoint = 0, name = "NES",
+                         guide = guide_colorbar(barwidth = 0.5,
+                                                barheight = 2.5)) +
+    scale_size_continuous(range = c(1.5, 5),
+                          name = expression(-log[10](p[adj]))) +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               color = "grey50", linewidth = 0.3) +
+    labs(x = "Normalized Enrichment Score (NES)", y = NULL,
+         subtitle = "← Enriched in PARENTAL      Enriched in LOY →",
+         caption = "* padj < 0.05    ** padj < 0.01    *** padj < 0.001") +
+    theme_classic(base_size = 8) +
+    theme(
+      axis.text.y      = element_text(size = 5.5, lineheight = 0.85),
+      plot.subtitle    = element_text(size = 6.5, hjust = 0.5,
+                                      face = "italic"),
+      legend.title     = element_text(size = 6),
+      legend.text      = element_text(size = 5.5),
+      legend.key.size  = unit(0.3, "cm"))
+
+  print(p_dot_lp)
+  save_fig(p_dot_lp, "gsea_dotplot_LOY_v_PARENTAL",
+           width = 5.5, height = 6)
+}
+```
+
+## 13.5 All-significant-pathways dotplot
+
+```{r loypar-gsea-all-sig, fig.height=14, fig.width=9}
+p_all_lp <- plot_gsea_all_sig(
+  gsea_lp, "LOY vs PARENTAL — all significant pathways")
+if (!is.null(p_all_lp)) {
+  print(p_all_lp)
+  save_fig(p_all_lp, "gsea_all_sig_LOY_v_PARENTAL",
+           width = 9, height = 14)
+}
+```
+
+## 13.6 PRC2 / H3K27me3 pathway check
+
+Direct comparison against the parental untreated cells — if the Polycomb /
+H3K27me3 axis is the core LOY-driven program in §7, it should reappear here
+*with the same direction*. Convergence with §7 strengthens the chromatin-axis
+story.
+
+```{r loypar-gsea-prc2, fig.height=5, fig.width=9}
+p_prc2_lp <- plot_gsea_prc2(
+  gsea_lp, "LOY vs PARENTAL — PRC2 / H3K27me3 pathways")
+if (!is.null(p_prc2_lp)) {
+  print(p_prc2_lp)
+  save_fig(p_prc2_lp, "gsea_prc2_LOY_v_PARENTAL",
+           width = 9, height = 5)
+}
+```
+
+## 13.7 TF activity panel (DoRothEA) — LOY vs PARENTAL
+
+```{r loypar-tf-dorothea}
+tf_gsea_lp <- run_dorothea_panel(de_loy_par, "LOY_v_PARENTAL")
+cat(sprintf("DoRothEA fgsea (LOY vs PARENTAL): %d TFs tested, %d significant (padj<0.05)\n",
+            nrow(tf_gsea_lp),
+            sum(tf_gsea_lp$padj < 0.05, na.rm = TRUE)))
+fwrite(tf_gsea_lp,
+       file.path(TF_DIR, "a549_LOY_v_PARENTAL_tf_activity.csv"))
+```
+
+```{r loypar-tf-dorothea-bar, fig.height=8, fig.width=7}
+tf_lp_sig <- tf_gsea_lp %>% dplyr::filter(padj < 0.05)
+if (nrow(tf_lp_sig) > 0) {
+  p_tf_lp_bar <- plot_tf_bar(
+    tf_lp_sig, tf_col = "pathway", value_col = "NES",
+    title = "DoRothEA NES — LOY vs PARENTAL (padj < 0.05)",
+    x_lab = "DoRothEA NES (LOY - PARENTAL)")
+  print(p_tf_lp_bar)
+  save_fig(p_tf_lp_bar, "tf_dorothea_bar_LOY_v_PARENTAL",
+           width = 7, height = 8)
+} else {
+  cat("No TFs significant at padj < 0.05 in DoRothEA for LOY vs PARENTAL.\n")
+}
+```
+
+## 13.8 decoupleR contrast-level TF activity — LOY vs PARENTAL
+
+```{r loypar-tf-decoupler, fig.height=8, fig.width=7}
+contrast_acts_lp <- run_decoupler_panel(de_loy_par, "LOY_v_PARENTAL")
+fwrite(contrast_acts_lp,
+       file.path(TF_DIR, "a549_LOY_v_PARENTAL_decoupleR_contrast.csv"))
+
+cat(sprintf("decoupleR contrast ULM (LOY vs PARENTAL): %d TFs scored, %d at p<0.05\n",
+            nrow(contrast_acts_lp),
+            sum(contrast_acts_lp$p_value < 0.05, na.rm = TRUE)))
+
+p_dc_lp <- plot_tf_bar(
+  contrast_acts_lp, tf_col = "source", value_col = "score",
+  title = "decoupleR ULM — LOY vs PARENTAL (top 25 up + 25 down)",
+  x_lab = "decoupleR ULM score (LOY - PARENTAL)")
+print(p_dc_lp)
+save_fig(p_dc_lp, "decouple_TF_barplot_LOY_v_PARENTAL",
+         width = 7, height = 8)
+```
+
+## 13.9 Concordance with the canonical LOY-vs-sgCTRL contrast
+
+Direct head-to-head: do the LOY-driven changes look the same whether we
+reference against PARENTAL or against sgCTRL? Strong concordance means the
+canonical §4 result is not driven by the sgRNA itself; weak concordance flags
+the §12 sgRNA-effect contamination as material.
+
+```{r loypar-vs-lc-concordance, fig.height=5, fig.width=11}
+cmp_df <- inner_join(
+  de_loy_ctrl %>% dplyr::select(gene_name, lfc_sgCTRL = logFC,
+                                fdr_sgCTRL = FDR, p_sgCTRL = PValue),
+  de_loy_par  %>% dplyr::select(gene_name, lfc_PARENTAL = logFC,
+                                fdr_PARENTAL = FDR, p_PARENTAL = PValue),
+  by = "gene_name") %>%
+  dplyr::filter(!is.na(gene_name), nzchar(gene_name))
+
+both_sig <- cmp_df %>%
+  dplyr::filter(fdr_sgCTRL < ALPHA, fdr_PARENTAL < ALPHA,
+                abs(lfc_sgCTRL) > LFC_THR, abs(lfc_PARENTAL) > LFC_THR)
+
+lfc_r  <- cor(cmp_df$lfc_sgCTRL, cmp_df$lfc_PARENTAL, use = "complete.obs")
+sign_a <- mean(sign(cmp_df$lfc_sgCTRL) == sign(cmp_df$lfc_PARENTAL),
+               na.rm = TRUE)
+
+top_lab <- both_sig %>%
+  mutate(rank_score = -log10(pmax(fdr_sgCTRL, 1e-300)) +
+                      -log10(pmax(fdr_PARENTAL, 1e-300))) %>%
+  slice_max(rank_score, n = 25)
+
+p_concord <- ggplot(cmp_df, aes(x = lfc_sgCTRL, y = lfc_PARENTAL)) +
+  geom_point(alpha = 0.25, size = 0.5, color = "grey60") +
+  geom_point(data = both_sig, alpha = 0.85, size = 1.2, color = "#D55E00") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+              color = "grey40", linewidth = 0.4) +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "grey60") +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "grey60") +
+  geom_text_repel(
+    data = top_lab, aes(label = gene_name),
+    size = 2.7, fontface = "italic", color = "grey15",
+    max.overlaps = Inf, segment.color = "grey50", segment.size = 0.25,
+    box.padding = 0.4, min.segment.length = 0.1, force = 2) +
+  labs(title = "A549 LOY: PARENTAL vs sgCTRL as reference",
+       subtitle = sprintf("Pearson r = %.3f · sign agreement = %.0f%% · orange = sig in BOTH",
+                          lfc_r, 100 * sign_a),
+       x = expression(log[2]~"FC (LOY vs sgCTRL)"),
+       y = expression(log[2]~"FC (LOY vs PARENTAL)")) +
+  theme_classic(base_size = 10)
+
+print(p_concord)
+save_fig(p_concord, "concordance_LOY_vs_sgCTRL_vs_PARENTAL",
+         width = 11, height = 5)
+
+cat(sprintf("Shared genes: %d   |   sig in BOTH: %d   |   logFC Pearson r = %.3f   |   sign agreement = %.1f%%\n",
+            nrow(cmp_df), nrow(both_sig), lfc_r, 100 * sign_a))
+```
+
+## 13.10 Verdict
+
+```{r loypar-verdict}
+lp_n_deg  <- sum(de_loy_par$FDR < ALPHA & abs(de_loy_par$logFC) > LFC_THR)
+lp_n_gsea <- sum(gsea_lp$padj < 0.05)
+lp_n_prc2 <- gsea_lp %>%
+  dplyr::filter(grepl("PRC2|H3K27|EZH2|EED|SUZ12|POLYCOMB",
+                      pathway, ignore.case = TRUE),
+                padj < 0.05) %>% nrow()
+lp_n_tf_dor <- sum(tf_gsea_lp$padj < 0.05, na.rm = TRUE)
+lp_n_tf_dc  <- sum(contrast_acts_lp$p_value < 0.05, na.rm = TRUE)
+
+verdict_lp <- if (lfc_r > 0.7 && lp_n_prc2 > 0) {
+  "CONVERGENT: LOY drives the same direction of change whether referenced against PARENTAL or sgCTRL, AND the PRC2 axis reappears. Strong support for the canonical §4 LOY-vs-sgCTRL biology."
+} else if (lfc_r > 0.7) {
+  "CONVERGENT (logFC): LOY-driven changes are reproducible across reference choice; PRC2 enrichment is weaker against PARENTAL than against sgCTRL (worth comparing §7 vs §13.6 directly)."
+} else if (lfc_r > 0.4) {
+  "PARTIAL: moderate logFC agreement between baselines. Some §4 signal may include sgRNA-vs-PARENTAL drift; cross-reference §12's verdict."
+} else {
+  "DIVERGENT: weak logFC concordance between PARENTAL and sgCTRL as reference. The §4 canonical contrast may be partly driven by the sgRNA control rather than LOY itself."
+}
+
+cat(sprintf("LOY vs PARENTAL DEGs (FDR<%g, |logFC|>%g):       %d\n",
+            ALPHA, LFC_THR, lp_n_deg))
+cat(sprintf("LOY vs PARENTAL significant pathways (padj<0.05): %d\n",
+            lp_n_gsea))
+cat(sprintf("...of which PRC2/H3K27 axis:                       %d\n",
+            lp_n_prc2))
+cat(sprintf("Significant TFs (DoRothEA, padj<0.05):             %d\n",
+            lp_n_tf_dor))
+cat(sprintf("Significant TFs (decoupleR contrast, p<0.05):      %d\n\n",
+            lp_n_tf_dc))
+cat("VERDICT:\n", verdict_lp, "\n", sep = "")
+```
+
+***
+
+# 14. msVIPER master-regulator analysis {.tabset}
 
 Master-regulator inference via **msVIPER** (Alvarez et al., 2016) on the
-LOY-vs-sgCTRL, LOY-vs-pooled, and sgCTRL-vs-PARENTAL contrasts. Two regulon
-sources are run side-by-side:
+LOY-vs-sgCTRL, LOY-vs-pooled, and sgCTRL-vs-PARENTAL contrasts. Four regulon
+sources are run side-by-side on the two LOY contrasts (and the canonical
+CollecTRI/ARACNe pair on the sgRNA sanity-check contrast):
 
 1. **CollecTRI** (HGNC-keyed) — the same human regulome decoupleR uses (§9).
-2. **TCGA-SARC ARACNe** (Entrez-keyed; `aracne.networks::regulonsarc`) —
-   tissue-matched to A549 (fibrosarcoma).
+2. **TCGA-LUAD ARACNe** (Entrez-keyed; `aracne.networks::regulonluad`) —
+   tissue-matched to A549 (lung adenocarcinoma).
+3. **TRRUST v2** (HGNC-keyed; OmnipathR) — independently curated literature
+   regulons; orthogonal to CollecTRI.
+4. **MSigDB C3:TFT:GTRD** (HGNC-keyed; msigdbr) — ChIP-derived TF target
+   gene sets; orthogonal to literature curation.
 
 Point estimates only (no bootstrap, shadow, or synergy) to keep render time
-manageable. Outputs feed the cross-source consistency analysis in §14.
+manageable. Outputs feed the cross-source consistency analysis in §15.
 
-## 13.1 Regulons + helpers
+## 14.1 Regulons + helpers
 
 ```{r viper-setup}
 suppressPackageStartupMessages({
@@ -3103,8 +3667,8 @@ cat(sprintf("CollecTRI regulon: %d TFs (median target size %d)\n",
             length(reg_collectri),
             median(sapply(reg_collectri, function(x) length(x$tfmode)))))
 
-# --- TCGA-SARC ARACNe (Entrez) -> relabel to HGNC ------------------------
-data("regulonsarc", package = "aracne.networks")
+# --- TCGA-LUAD ARACNe (Entrez) -> relabel to HGNC ------------------------
+data("regulonluad", package = "aracne.networks")
 
 entrez_symbol_map <- function(gene_info) {
   ent <- gene_info$entrezid
@@ -3129,10 +3693,33 @@ relabel_regulon_tfs <- function(regulon, e2s_map) {
 }
 
 e2s_map    <- entrez_symbol_map(dge$genes)
-reg_aracne <- relabel_regulon_tfs(regulonsarc, e2s_map)
-cat(sprintf("TCGA-SARC ARACNe regulon (relabeled TF names to HGNC; targets remain Entrez): %d TFs (median target size %d)\n",
+reg_aracne <- relabel_regulon_tfs(regulonluad, e2s_map)
+cat(sprintf("TCGA-LUAD ARACNe regulon (relabeled TF names to HGNC; targets remain Entrez): %d TFs (median target size %d)\n",
             length(reg_aracne),
             median(sapply(reg_aracne, function(x) length(x$tfmode)))))
+
+# --- TRRUST v2 -> viper regulon (HGNC) -----------------------------------
+# Network already built in §9.11 (also used by decoupleR ULM there).
+reg_trrust <- collectri_to_regulon(trrust_net)
+cat(sprintf("TRRUST v2 regulon: %d TFs (median target size %d)\n",
+            length(reg_trrust),
+            median(sapply(reg_trrust, function(x) length(x$tfmode)))))
+
+# --- MSigDB C3:TFT:GTRD -> viper regulon (HGNC) --------------------------
+# ChIP-derived TF target sets. Set names look like "AR_TARGET_GENES" — TF
+# is the prefix. Direction is unknown (ChIP doesn't resolve activation vs
+# repression), so mor = 1 for every (TF, target) pair.
+tft_raw <- msigdbr(species = "Homo sapiens", collection = "C3",
+                   subcollection = "TFT:GTRD")
+tft_net <- tft_raw %>%
+  dplyr::filter(grepl("_TARGET_GENES$", gs_name)) %>%
+  dplyr::transmute(source = sub("_TARGET_GENES$", "", gs_name),
+                   target = gene_symbol, mor = 1) %>%
+  dplyr::distinct(source, target, .keep_all = TRUE)
+reg_tft <- collectri_to_regulon(tft_net)
+cat(sprintf("MSigDB C3:TFT:GTRD regulon: %d TFs (median target size %d)\n",
+            length(reg_tft),
+            median(sapply(reg_tft, function(x) length(x$tfmode)))))
 
 # Reverse-direction lookup: HGNC symbol -> Entrez (single Entrez per symbol).
 # Required because relabel_regulon_tfs() renames TF *entries* to HGNC but
@@ -3211,7 +3798,7 @@ VIPER_DIR <- file.path(CELL_DIR, "VIPER")
 if (!dir.exists(VIPER_DIR)) dir.create(VIPER_DIR, recursive = TRUE)
 ```
 
-## 13.2 LOY vs sgCTRL — canonical {.tabset}
+## 14.2 LOY vs sgCTRL — canonical {.tabset}
 
 ### CollecTRI
 
@@ -3232,26 +3819,64 @@ save_fig(p_msv_lc_col, "msviper_bar_LOY_v_sgCTRL_collectri",
          width = 7, height = 8)
 ```
 
-### TCGA-SARC ARACNe
+### TCGA-LUAD ARACNe
 
 ```{r viper-loy-ctrl-aracne, fig.height=7, fig.width=7}
 msv_lc_arc <- run_msviper_contrast(de_loy_ctrl, reg_aracne,
                                    "LOY_v_sgCTRL", key_type = "entrez")
 fwrite(msv_lc_arc,
-       file.path(VIPER_DIR, "msviper_LOY_v_sgCTRL_aracne_sarc.csv"))
+       file.path(VIPER_DIR, "msviper_LOY_v_sgCTRL_aracne_luad.csv"))
 cat(sprintf("msVIPER ARACNe (LOY vs sgCTRL): %d TFs, %d at FDR<0.05\n",
             nrow(msv_lc_arc),
             sum(msv_lc_arc$FDR < 0.05, na.rm = TRUE)))
 
 p_msv_lc_arc <- plot_msviper_bar(
   msv_lc_arc,
-  "msVIPER — LOY vs sgCTRL · TCGA-SARC ARACNe (top 20 up + 20 down)")
+  "msVIPER — LOY vs sgCTRL · TCGA-LUAD ARACNe (top 20 up + 20 down)")
 print(p_msv_lc_arc)
-save_fig(p_msv_lc_arc, "msviper_bar_LOY_v_sgCTRL_aracne_sarc",
+save_fig(p_msv_lc_arc, "msviper_bar_LOY_v_sgCTRL_aracne_luad",
          width = 7, height = 8)
 ```
 
-## 13.3 LOY vs pooled Y+ {.tabset}
+### TRRUST v2
+
+```{r viper-loy-ctrl-trrust, fig.height=7, fig.width=7}
+msv_lc_trrust <- run_msviper_contrast(de_loy_ctrl, reg_trrust,
+                                      "LOY_v_sgCTRL")
+fwrite(msv_lc_trrust,
+       file.path(VIPER_DIR, "msviper_LOY_v_sgCTRL_trrust.csv"))
+cat(sprintf("msVIPER TRRUST (LOY vs sgCTRL): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_lc_trrust),
+            sum(msv_lc_trrust$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_lc_trrust <- plot_msviper_bar(
+  msv_lc_trrust,
+  "msVIPER — LOY vs sgCTRL · TRRUST v2 (top 20 up + 20 down)")
+print(p_msv_lc_trrust)
+save_fig(p_msv_lc_trrust, "msviper_bar_LOY_v_sgCTRL_trrust",
+         width = 7, height = 8)
+```
+
+### MSigDB C3:TFT:GTRD
+
+```{r viper-loy-ctrl-tft, fig.height=7, fig.width=7}
+msv_lc_tft <- run_msviper_contrast(de_loy_ctrl, reg_tft,
+                                   "LOY_v_sgCTRL")
+fwrite(msv_lc_tft,
+       file.path(VIPER_DIR, "msviper_LOY_v_sgCTRL_msigdb_tft.csv"))
+cat(sprintf("msVIPER MSigDB C3:TFT:GTRD (LOY vs sgCTRL): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_lc_tft),
+            sum(msv_lc_tft$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_lc_tft <- plot_msviper_bar(
+  msv_lc_tft,
+  "msVIPER — LOY vs sgCTRL · MSigDB C3:TFT:GTRD (top 20 up + 20 down)")
+print(p_msv_lc_tft)
+save_fig(p_msv_lc_tft, "msviper_bar_LOY_v_sgCTRL_msigdb_tft",
+         width = 7, height = 8)
+```
+
+## 14.3 LOY vs pooled Y+ {.tabset}
 
 ### CollecTRI
 
@@ -3272,26 +3897,64 @@ save_fig(p_msv_pool_col, "msviper_bar_LOY_v_pooled_collectri",
          width = 7, height = 8)
 ```
 
-### TCGA-SARC ARACNe
+### TCGA-LUAD ARACNe
 
 ```{r viper-loy-pool-aracne, fig.height=7, fig.width=7}
 msv_pool_arc <- run_msviper_contrast(de_loy_pool, reg_aracne,
                                      "LOY_v_pooled", key_type = "entrez")
 fwrite(msv_pool_arc,
-       file.path(VIPER_DIR, "msviper_LOY_v_pooled_aracne_sarc.csv"))
+       file.path(VIPER_DIR, "msviper_LOY_v_pooled_aracne_luad.csv"))
 cat(sprintf("msVIPER ARACNe (LOY vs pooled): %d TFs, %d at FDR<0.05\n",
             nrow(msv_pool_arc),
             sum(msv_pool_arc$FDR < 0.05, na.rm = TRUE)))
 
 p_msv_pool_arc <- plot_msviper_bar(
   msv_pool_arc,
-  "msVIPER — LOY vs pooled Y+ · TCGA-SARC ARACNe")
+  "msVIPER — LOY vs pooled Y+ · TCGA-LUAD ARACNe")
 print(p_msv_pool_arc)
-save_fig(p_msv_pool_arc, "msviper_bar_LOY_v_pooled_aracne_sarc",
+save_fig(p_msv_pool_arc, "msviper_bar_LOY_v_pooled_aracne_luad",
          width = 7, height = 8)
 ```
 
-## 13.4 sgCTRL vs PARENTAL — sanity check {.tabset}
+### TRRUST v2
+
+```{r viper-loy-pool-trrust, fig.height=7, fig.width=7}
+msv_pool_trrust <- run_msviper_contrast(de_loy_pool, reg_trrust,
+                                        "LOY_v_pooled")
+fwrite(msv_pool_trrust,
+       file.path(VIPER_DIR, "msviper_LOY_v_pooled_trrust.csv"))
+cat(sprintf("msVIPER TRRUST (LOY vs pooled): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_pool_trrust),
+            sum(msv_pool_trrust$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_pool_trrust <- plot_msviper_bar(
+  msv_pool_trrust,
+  "msVIPER — LOY vs pooled Y+ · TRRUST v2")
+print(p_msv_pool_trrust)
+save_fig(p_msv_pool_trrust, "msviper_bar_LOY_v_pooled_trrust",
+         width = 7, height = 8)
+```
+
+### MSigDB C3:TFT:GTRD
+
+```{r viper-loy-pool-tft, fig.height=7, fig.width=7}
+msv_pool_tft <- run_msviper_contrast(de_loy_pool, reg_tft,
+                                     "LOY_v_pooled")
+fwrite(msv_pool_tft,
+       file.path(VIPER_DIR, "msviper_LOY_v_pooled_msigdb_tft.csv"))
+cat(sprintf("msVIPER MSigDB C3:TFT:GTRD (LOY vs pooled): %d TFs, %d at FDR<0.05\n",
+            nrow(msv_pool_tft),
+            sum(msv_pool_tft$FDR < 0.05, na.rm = TRUE)))
+
+p_msv_pool_tft <- plot_msviper_bar(
+  msv_pool_tft,
+  "msVIPER — LOY vs pooled Y+ · MSigDB C3:TFT:GTRD")
+print(p_msv_pool_tft)
+save_fig(p_msv_pool_tft, "msviper_bar_LOY_v_pooled_msigdb_tft",
+         width = 7, height = 8)
+```
+
+## 14.4 sgCTRL vs PARENTAL — sanity check {.tabset}
 
 ### CollecTRI
 
@@ -3314,23 +3977,23 @@ if (!is.null(p_msv_sg_col)) {
 }
 ```
 
-### TCGA-SARC ARACNe
+### TCGA-LUAD ARACNe
 
 ```{r viper-sg-par-aracne, fig.height=7, fig.width=7}
 msv_sg_arc <- run_msviper_contrast(de_sg_par, reg_aracne,
                                    "sgCTRL_v_PARENTAL", key_type = "entrez")
 fwrite(msv_sg_arc,
-       file.path(VIPER_DIR, "msviper_sgCTRL_v_PARENTAL_aracne_sarc.csv"))
+       file.path(VIPER_DIR, "msviper_sgCTRL_v_PARENTAL_aracne_luad.csv"))
 cat(sprintf("msVIPER ARACNe (sgCTRL vs PARENTAL): %d TFs, %d at FDR<0.05\n",
             nrow(msv_sg_arc),
             sum(msv_sg_arc$FDR < 0.05, na.rm = TRUE)))
 
 p_msv_sg_arc <- plot_msviper_bar(
   msv_sg_arc,
-  "msVIPER — sgCTRL vs PARENTAL · TCGA-SARC ARACNe")
+  "msVIPER — sgCTRL vs PARENTAL · TCGA-LUAD ARACNe")
 if (!is.null(p_msv_sg_arc)) {
   print(p_msv_sg_arc)
-  save_fig(p_msv_sg_arc, "msviper_bar_sgCTRL_v_PARENTAL_aracne_sarc",
+  save_fig(p_msv_sg_arc, "msviper_bar_sgCTRL_v_PARENTAL_aracne_luad",
            width = 7, height = 8)
 }
 ```
@@ -3339,21 +4002,27 @@ if (!is.null(p_msv_sg_arc)) {
 
 ***
 
-# 14. Cross-source TF consistency
+# 15. Cross-source TF consistency
 
-This section integrates **every TF result generated above** — three contrasts
-(LOY-vs-sgCTRL, LOY-vs-pooled, sgCTRL-vs-PARENTAL) × four methods (DoRothEA
-fgsea, decoupleR ULM, msVIPER CollecTRI, msVIPER TCGA-SARC ARACNe) = up to 12
-NES values per TF — and asks: **which TFs are consistently flagged across the
-LOY-relevant contrasts, and which are spuriously driven by a single method or
-the sgRNA control?**
+This section integrates **every TF result generated above**. The
+LOY-relevant axis now spans **seven methods** (DoRothEA fgsea,
+decoupleR ULM × {CollecTRI, TRRUST}, msVIPER × {CollecTRI, TCGA-LUAD ARACNe,
+TRRUST, MSigDB C3:TFT:GTRD}) over **two LOY contrasts** (canonical
+sgCTRL-paired + pooled Y+) = up to **14 NES values** per TF. The
+sgCTRL-vs-PARENTAL sanity check keeps its original four-method panel and is
+used only to filter out sgRNA-driven artifacts.
 
 A TF that scores highly in BOTH LOY contrasts (canonical + pooled) across
 multiple methods, AND is silent in the sgCTRL-vs-PARENTAL sanity check, is a
 robust master-regulator candidate. Conversely, TFs that score highly only in
 the sgCTRL-vs-PARENTAL contrast are sgRNA artifacts to discount.
 
-## 14.1 Aggregate all TF NES results
+A TF that scores highly in BOTH LOY contrasts (canonical + pooled) across
+multiple methods, AND is silent in the sgCTRL-vs-PARENTAL sanity check, is a
+robust master-regulator candidate. Conversely, TFs that score highly only in
+the sgCTRL-vs-PARENTAL contrast are sgRNA artifacts to discount.
+
+## 15.1 Aggregate all TF NES results
 
 ```{r tf-consistency-collect}
 # Normalize each source to a common 4-column long format:
@@ -3378,13 +4047,19 @@ tf_long <- bind_rows(
   to_long(tf_gsea_sg,   "pathway", "NES", rlang::expr(padj < 0.05),
           "sgCTRL_v_PARENTAL", "DoRothEA"),
 
-  # decoupleR × 3 contrasts ------------------------------------------------
+  # decoupleR CollecTRI × 3 contrasts -------------------------------------
   to_long(contrast_acts_lc,   "source", "score", rlang::expr(p_value < 0.05),
-          "LOY_v_sgCTRL",      "decoupleR"),
+          "LOY_v_sgCTRL",      "decoupleR_CollecTRI"),
   to_long(contrast_acts_pool, "source", "score", rlang::expr(p_value < 0.05),
-          "LOY_v_pooled",      "decoupleR"),
+          "LOY_v_pooled",      "decoupleR_CollecTRI"),
   to_long(contrast_acts_sg,   "source", "score", rlang::expr(p_value < 0.05),
-          "sgCTRL_v_PARENTAL", "decoupleR"),
+          "sgCTRL_v_PARENTAL", "decoupleR_CollecTRI"),
+
+  # decoupleR TRRUST × 2 LOY contrasts ------------------------------------
+  to_long(contrast_acts_trrust_lc,   "source", "score", rlang::expr(p_value < 0.05),
+          "LOY_v_sgCTRL",      "decoupleR_TRRUST"),
+  to_long(contrast_acts_trrust_pool, "source", "score", rlang::expr(p_value < 0.05),
+          "LOY_v_pooled",      "decoupleR_TRRUST"),
 
   # msVIPER CollecTRI × 3 contrasts ---------------------------------------
   to_long(msv_lc_col,   "TF", "NES", rlang::expr(FDR < 0.05),
@@ -3400,7 +4075,19 @@ tf_long <- bind_rows(
   to_long(msv_pool_arc, "TF", "NES", rlang::expr(FDR < 0.05),
           "LOY_v_pooled",      "msVIPER_ARACNe"),
   to_long(msv_sg_arc,   "TF", "NES", rlang::expr(FDR < 0.05),
-          "sgCTRL_v_PARENTAL", "msVIPER_ARACNe")
+          "sgCTRL_v_PARENTAL", "msVIPER_ARACNe"),
+
+  # msVIPER TRRUST × 2 LOY contrasts --------------------------------------
+  to_long(msv_lc_trrust,   "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_sgCTRL",      "msVIPER_TRRUST"),
+  to_long(msv_pool_trrust, "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_pooled",      "msVIPER_TRRUST"),
+
+  # msVIPER MSigDB C3:TFT:GTRD × 2 LOY contrasts --------------------------
+  to_long(msv_lc_tft,   "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_sgCTRL",      "msVIPER_TFT"),
+  to_long(msv_pool_tft, "TF", "NES", rlang::expr(FDR < 0.05),
+          "LOY_v_pooled",      "msVIPER_TFT")
 )
 
 fwrite(tf_long, file.path(TF_DIR, "a549_tf_consistency_long.csv"))
@@ -3413,13 +4100,13 @@ tf_long %>%
   knitr::kable(caption = "TF result counts by contrast × source")
 ```
 
-## 14.2 Consistency heatmap (top robust TFs)
+## 15.2 Consistency heatmap (top robust TFs)
 
 Score each TF by how many of the **two LOY-relevant** source × contrast
-combinations it reaches significance in (max = 8: 4 sources × 2 LOY
-contrasts). Heatmap the NES of the top scorers across all 12 cells.
+combinations it reaches significance in (max = 14: 7 sources × 2 LOY
+contrasts). Heatmap the NES of the top scorers across all 14 cells.
 
-```{r tf-consistency-heatmap, fig.height=12, fig.width=10}
+```{r tf-consistency-heatmap, fig.height=14, fig.width=13}
 # Restrict to LOY contrasts for ranking
 loy_only <- tf_long %>%
   dplyr::filter(contrast %in% c("LOY_v_sgCTRL", "LOY_v_pooled"))
@@ -3434,18 +4121,18 @@ tf_score <- loy_only %>%
   ) %>%
   arrange(desc(sig_count), desc(abs_NES_mean))
 
-# Pick top robust TFs (≥3 of 8 LOY hits) — clamp to 40 for plot readability
+# Pick top robust TFs (≥5 of 14 LOY hits) — clamp to 40 for plot readability
 top_tfs_consistent <- tf_score %>%
-  dplyr::filter(sig_count >= 3) %>%
+  dplyr::filter(sig_count >= 5) %>%
   slice_head(n = 40) %>%
   pull(TF)
 
-cat(sprintf("TFs significant in >=3 LOY-relevant source x contrast cells: %d (showing top %d)\n",
-            sum(tf_score$sig_count >= 3), length(top_tfs_consistent)))
+cat(sprintf("TFs significant in >=5 LOY-relevant source x contrast cells: %d (showing top %d)\n",
+            sum(tf_score$sig_count >= 5), length(top_tfs_consistent)))
 
 if (length(top_tfs_consistent) > 0) {
   # Show only the LOY contrasts in the heatmap. sgCTRL_v_PARENTAL is still
-  # used in §14.3 to filter out sgRNA-driven artifacts, but is not plotted
+  # used in §15.3 to filter out sgRNA-driven artifacts, but is not plotted
   # here — it muddies the cross-LOY pattern we're trying to read.
   hm_df <- tf_long %>%
     dplyr::filter(TF %in% top_tfs_consistent,
@@ -3453,14 +4140,17 @@ if (length(top_tfs_consistent) > 0) {
     mutate(cell = paste(source, contrast, sep = " · "),
            TF   = factor(TF, levels = rev(top_tfs_consistent)))
 
+  src_order <- c("DoRothEA",
+                 "decoupleR_CollecTRI", "decoupleR_TRRUST",
+                 "msVIPER_CollecTRI",   "msVIPER_ARACNe",
+                 "msVIPER_TRRUST",      "msVIPER_TFT")
+  cell_order <- as.vector(t(outer(src_order,
+                                  c("LOY_v_sgCTRL", "LOY_v_pooled"),
+                                  paste, sep = " · ")))
   hm_cells <- expand.grid(
     TF   = top_tfs_consistent,
-    cell = c(
-      "DoRothEA · LOY_v_sgCTRL",          "DoRothEA · LOY_v_pooled",
-      "decoupleR · LOY_v_sgCTRL",         "decoupleR · LOY_v_pooled",
-      "msVIPER_CollecTRI · LOY_v_sgCTRL", "msVIPER_CollecTRI · LOY_v_pooled",
-      "msVIPER_ARACNe · LOY_v_sgCTRL",    "msVIPER_ARACNe · LOY_v_pooled"
-    ), stringsAsFactors = FALSE)
+    cell = cell_order,
+    stringsAsFactors = FALSE)
 
   hm_full <- hm_cells %>%
     left_join(hm_df %>% dplyr::select(TF, cell, NES, sig),
@@ -3480,7 +4170,7 @@ if (length(top_tfs_consistent) > 0) {
                          name = "NES / score") +
     labs(title = sprintf("TF cross-source consistency (top %d robust TFs)",
                          length(top_tfs_consistent)),
-         subtitle = "* = significant. Columns: 4 methods x 2 LOY contrasts (sgCTRL_v_PARENTAL excluded here; still used in section 14.3 to filter sgRNA artifacts).",
+         subtitle = "* = significant. Columns: 7 methods x 2 LOY contrasts (sgCTRL_v_PARENTAL excluded here; still used in section 15.3 to filter sgRNA artifacts).",
          x = NULL, y = NULL) +
     theme_minimal(base_size = 9) +
     theme(
@@ -3491,17 +4181,19 @@ if (length(top_tfs_consistent) > 0) {
     )
   print(p_consist_hm)
   save_fig(p_consist_hm, "tf_consistency_heatmap",
-           width = 8, height = 12)
+           width = 13, height = 14)
 } else {
-  cat("No TF reached significance in >=3 LOY-relevant source x contrast cells.\n")
+  cat("No TF reached significance in >=5 LOY-relevant source x contrast cells.\n")
 }
 ```
 
-## 14.3 Robust hits — TFs flagged by multiple sources in BOTH LOY contrasts and SILENT in sgCTRL-vs-PARENTAL
+## 15.3 Robust hits — TFs flagged by multiple sources in BOTH LOY contrasts and SILENT in sgCTRL-vs-PARENTAL
 
 The cleanest robust hits: significant in BOTH LOY contrasts under at least
-two methods, NOT significant in sgCTRL-vs-PARENTAL (i.e., not an sgRNA
-artifact).
+**four of the seven methods** per contrast, NOT significant in
+sgCTRL-vs-PARENTAL (i.e., not an sgRNA artifact). Threshold scales with the
+larger panel — at the previous "≥2" cutoff, the 7-method panel would flag a
+TF supported by less than a third of sources.
 
 ```{r tf-robust-hits}
 sig_in_contrast <- function(tf, ctr) {
@@ -3523,13 +4215,13 @@ robust_tbl <- tf_score %>%
   ) %>%
   ungroup() %>%
   dplyr::filter(
-    n_src_canonical >= 2,
-    n_src_pooled    >= 2,
+    n_src_canonical >= 4,
+    n_src_pooled    >= 4,
     n_src_sgctrl    == 0
   ) %>%
   arrange(desc(sig_count), desc(abs_NES_mean))
 
-cat(sprintf("Robust LOY TFs (>=2 sources in both LOY contrasts, silent in sgCTRL_v_PARENTAL): %d\n",
+cat(sprintf("Robust LOY TFs (>=4 of 7 sources in both LOY contrasts, silent in sgCTRL_v_PARENTAL): %d\n",
             nrow(robust_tbl)))
 
 fwrite(robust_tbl,
@@ -3541,7 +4233,7 @@ if (nrow(robust_tbl) > 0) {
                   sources_LOY_v_sgCTRL, sources_LOY_v_pooled) %>%
     head(30) %>%
     knitr::kable(digits = 2,
-                 caption = "Top 30 robust LOY TFs (>=2 methods agree in both LOY contrasts; not artifacts of sgRNA control)")
+                 caption = "Top 30 robust LOY TFs (>=4 of 7 methods agree in both LOY contrasts; not artifacts of sgRNA control)")
 } else {
   cat("No TF met the strict robust-hit criteria.\n")
 }
@@ -3549,7 +4241,194 @@ if (nrow(robust_tbl) > 0) {
 
 ***
 
-# 15. Session Info
+# 16. Label-permutation null
+
+How much of what we see in §4–§15 is real biology vs. method-level noise? This
+section shuffles the **treatment labels** (LOY / sgCTRL / PARENTAL) across
+samples *N* times, re-runs the canonical pipeline on each shuffle (unpaired
+limma–voom DE on the LOY-vs-sgCTRL subset → Hallmark fgsea → decoupleR ULM TF
+activity on CollecTRI), and asks: **how often does a random labeling produce
+as many DEGs / enriched pathways / significant TFs as the real assignment?**
+
+The DE design here is **unpaired** for both the observed reference value and
+the null — many shuffles place both LOY samples in the same passage and would
+otherwise yield rank-deficient paired designs. An unpaired null is the fair
+head-to-head and is generally more permissive (more variance to explain), so
+finding the real result extreme against it is conservative.
+
+## 16.1 Setup
+
+```{r perm-setup}
+N_PERM <- 100
+PERM_SEED <- 42
+set.seed(PERM_SEED)
+
+real_treatment <- as.character(dge$samples$treatment)
+real_passage   <- as.character(dge$samples$passage)
+
+perm_seeds <- seq_len(N_PERM)
+cat(sprintf("N permutations: %d   |   class sizes preserved: %s\n",
+            N_PERM, paste(names(table(real_treatment)),
+                          table(real_treatment), sep = "=",
+                          collapse = ", ")))
+```
+
+## 16.2 Helpers
+
+```{r perm-helpers}
+run_one_perm <- function(shuf_trt, dge_full, net_obj, hallmark_sets) {
+  keep <- shuf_trt %in% c("CTRL", "LOY")
+  s_dge <- dge_full[, keep, keep.lib.sizes = FALSE]
+  s_trt <- factor(shuf_trt[keep], levels = c("CTRL", "LOY"))
+
+  s_dge <- calcNormFactors(s_dge, method = "TMM")
+  des <- model.matrix(~ 0 + s_trt)
+  colnames(des) <- gsub("^s_trt", "", colnames(des))
+  cm  <- makeContrasts(contrasts = "LOY - CTRL", levels = colnames(des))
+  v   <- voom(s_dge, des, plot = FALSE)
+  fit <- lmFit(v, des) %>% contrasts.fit(cm) %>% eBayes()
+  tt  <- topTable(fit, coef = 1, n = Inf, sort.by = "P")
+  tt$gene_name <- s_dge$genes[rownames(tt), "gene_name"]
+
+  n_deg <- sum(tt$adj.P.Val < ALPHA & abs(tt$logFC) > LFC_THR, na.rm = TRUE)
+
+  rdf <- tt %>%
+    dplyr::filter(!is.na(gene_name), nzchar(gene_name), !is.na(t)) %>%
+    dplyr::group_by(gene_name) %>%
+    dplyr::summarize(stat = t[which.max(abs(t))], .groups = "drop")
+  rdf <- rdf[!grepl("^RPS\\d|^RPL\\d", rdf$gene_name), ]
+  rdf <- rdf[!rdf$gene_name %in% par_gene_names, ]  # drop PAR for pathway/TF
+  r <- setNames(rdf$stat, rdf$gene_name)
+  r <- sort(r, decreasing = TRUE)
+
+  set.seed(42)
+  fres <- suppressWarnings(fgsea(pathways = hallmark_sets, stats = r,
+                                  minSize = 15, maxSize = 500))
+  n_gsea <- sum(fres$padj < 0.05, na.rm = TRUE)
+
+  deg_mat <- matrix(rdf$stat, ncol = 1,
+                    dimnames = list(rdf$gene_name, "stat"))
+  acts <- suppressMessages(run_ulm(
+    mat = deg_mat, net = net_obj,
+    .source = "source", .target = "target", .mor = "mor", minsize = 5))
+  n_tf <- sum(acts$p_value < 0.05, na.rm = TRUE)
+
+  list(n_deg = n_deg, n_gsea = n_gsea, n_tf = n_tf)
+}
+
+real_perm <- run_one_perm(real_treatment, dge,
+                          net, pathways$hallmark)
+cat(sprintf("Observed (unpaired, real labels):\n"))
+cat(sprintf("  N_DEG (FDR<%g, |lfc|>%g): %d\n",
+            ALPHA, LFC_THR, real_perm$n_deg))
+cat(sprintf("  N_Hallmark (padj<0.05):   %d\n", real_perm$n_gsea))
+cat(sprintf("  N_TF (CollecTRI ULM p<0.05): %d\n", real_perm$n_tf))
+```
+
+## 16.3 Run permutations
+
+```{r perm-run, cache=TRUE}
+perm_out <- lapply(perm_seeds, function(s) {
+  set.seed(PERM_SEED + s)
+  shuf <- sample(real_treatment)
+  run_one_perm(shuf, dge, net, pathways$hallmark)
+})
+
+null_df <- tibble::tibble(
+  perm  = seq_len(N_PERM),
+  n_deg  = vapply(perm_out, `[[`, integer(1), "n_deg"),
+  n_gsea = vapply(perm_out, `[[`, integer(1), "n_gsea"),
+  n_tf   = vapply(perm_out, `[[`, integer(1), "n_tf"))
+
+fwrite(null_df, file.path(TF_DIR, "a549_permutation_null.csv"))
+
+cat("Permutation summary (median [10th–90th percentile]):\n")
+for (m in c("n_deg", "n_gsea", "n_tf")) {
+  q <- quantile(null_df[[m]], c(0.10, 0.50, 0.90), na.rm = TRUE)
+  cat(sprintf("  %-7s : %6.0f [%6.0f - %6.0f]\n", m, q[2], q[1], q[3]))
+}
+```
+
+## 16.4 Null vs observed histograms
+
+```{r perm-plot, fig.height=4, fig.width=12}
+metric_labels <- c(
+  n_deg  = "DEGs (FDR < 0.05, |lfc| > 0.75)",
+  n_gsea = "Hallmark pathways (padj < 0.05)",
+  n_tf   = "TFs (decoupleR ULM CollecTRI, p < 0.05)")
+
+null_long <- null_df %>%
+  tidyr::pivot_longer(c(n_deg, n_gsea, n_tf),
+                      names_to = "metric", values_to = "value") %>%
+  mutate(metric = factor(metric_labels[metric], levels = metric_labels))
+
+real_long <- tibble::tibble(
+  metric = factor(metric_labels, levels = metric_labels),
+  value  = c(real_perm$n_deg, real_perm$n_gsea, real_perm$n_tf))
+
+p_perm <- ggplot(null_long, aes(x = value)) +
+  geom_histogram(bins = 30, fill = "#11335d", color = "white",
+                 linewidth = 0.2) +
+  geom_vline(data = real_long, aes(xintercept = value),
+             color = "#9d1939", linewidth = 1) +
+  geom_text(data = real_long,
+            aes(x = value, y = Inf, label = sprintf("observed = %d", value)),
+            inherit.aes = FALSE,
+            hjust = -0.1, vjust = 1.5, color = "#9d1939", size = 3.5) +
+  facet_wrap(~ metric, scales = "free", ncol = 3) +
+  labs(title = sprintf(
+        "A549 — label-permutation null distribution (N = %d shuffles)",
+        N_PERM),
+       subtitle = "Treatment labels (LOY / sgCTRL / PARENTAL) shuffled across samples; unpaired DE for both null and observed",
+       x = "Count from one permutation", y = "Number of permutations") +
+  theme_classic(base_size = 10) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face = "bold", size = 9),
+        plot.title = element_text(face = "bold", size = 11))
+
+print(p_perm)
+save_fig(p_perm, "permutation_null_histograms", width = 12, height = 4)
+```
+
+## 16.5 Empirical p-values
+
+```{r perm-pvalues}
+emp_p <- function(real, null_vals) {
+  (sum(null_vals >= real, na.rm = TRUE) + 1) / (length(null_vals) + 1)
+}
+
+perm_summary <- tibble::tibble(
+  metric           = unname(metric_labels),
+  observed         = c(real_perm$n_deg, real_perm$n_gsea, real_perm$n_tf),
+  null_median      = c(median(null_df$n_deg), median(null_df$n_gsea),
+                       median(null_df$n_tf)),
+  null_p10         = c(quantile(null_df$n_deg, 0.10),
+                       quantile(null_df$n_gsea, 0.10),
+                       quantile(null_df$n_tf,   0.10)),
+  null_p90         = c(quantile(null_df$n_deg, 0.90),
+                       quantile(null_df$n_gsea, 0.90),
+                       quantile(null_df$n_tf,   0.90)),
+  empirical_p_right = c(emp_p(real_perm$n_deg,  null_df$n_deg),
+                        emp_p(real_perm$n_gsea, null_df$n_gsea),
+                        emp_p(real_perm$n_tf,   null_df$n_tf)))
+
+fwrite(perm_summary, file.path(TF_DIR, "a549_permutation_summary.csv"))
+knitr::kable(perm_summary, digits = 3,
+             caption = sprintf("Permutation-null summary for A549 (N = %d shuffles)",
+                               N_PERM))
+```
+
+**How to read this:** the null distribution shows how many DEGs / pathways /
+TFs you'd typically recover from a random treatment labeling at the same
+sample sizes. An empirical p-value near 0 ( = real value far above the null)
+means the canonical analysis is producing signal well above what random
+relabeling generates. An empirical p near 1 would mean the real result is
+indistinguishable from random — i.e. the signal isn't separable from
+method-level noise at this sample size.
+
+***
+
+# 17. Session Info
 
 ```{r session-info}
 sessionInfo()

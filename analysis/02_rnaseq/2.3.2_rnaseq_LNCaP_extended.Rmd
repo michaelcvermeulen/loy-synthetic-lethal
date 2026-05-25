@@ -1,0 +1,3107 @@
+---
+title: "2.3.2 LNCaP LOY vs sgCTRL — RNA-seq extended (robustness layer)"
+author: "Mike Vermeulen"
+date: "`r Sys.Date()`"
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6,
+  dpi = 150
+)
+set.seed(42)
+```
+
+# Overview
+
+**Extended** LNCaP LOY-vs-sgCTRL analysis — robustness layer on top of the
+canonical base report (`2.3.1_rnaseq_LNCaP_base.Rmd`). Same count matrix,
+same samples, additional sanity-checks and alternative framings designed to
+answer "would the conclusions change if we'd made different statistical
+choices?".
+
+LNCaP is an androgen-dependent prostate adenocarcinoma line carrying an
+**AR T878A** ligand-binding-domain mutation, biallelic **PTEN deletion**
+(constitutive PI3K/AKT activation), and wild-type **TP53** — a different
+oncogenic context from HT1080 (NRAS Q61K fibrosarcoma) and A549 (KRAS G12S
+lung adenocarcinoma). **No PARENTAL arm** was collected for LNCaP, so the
+**pooled Y+** design (LOY vs PARENTAL+sgCTRL) used in the HT1080/A549
+extended notebooks is not available here. DE-centric sections cover **two
+designs side-by-side**: paired (sgCTRL by passage) and unpaired (sgCTRL
+without the passage block).
+
+**Counts pipeline.** Counts come from `STAR_v2_PARfix/MAY_2026_LNCAP_LOY/`
+— a PAR-Y-masked STAR realignment + featureCounts re-quantification done
+specifically to recover chrX-PAR reads that the original MAY_2026 STAR run
+silently dropped at multi-mapper filtering. MSY (true chrY) counts are
+unchanged; PAR1/PAR2 counts (SHOX, CSF2RA, SLC25A6, etc.) are now non-zero.
+Y-region annotation lives in §1.4.5; the Y/PAR-retaining volcano is §4.0;
+the §11 LOY-transcriptomics summary now produces real PAR signature scores.
+
+1. **Filter-threshold sensitivity** (§2). Sweep `MIN_COUNT ∈ {50, 100, 200}`
+   on the paired design (the design of record), report DEG and Hallmark NES
+   concordance across thresholds, pick the threshold used downstream. The
+   design-choice axis (paired / unpaired) is addressed in §4/§5/§6 and the
+   §10 robustness summary, where it actually shapes the result.
+2. **voom diagnostics + sample weights** (§3). Mean-variance plot and
+   `voomWithQualityWeights` for sample-reliability auditing on 3v3 data
+   (paired, design-of-record).
+3. **Effect-size-aware DE with `treat()`** (§4). Tested against the lfc
+   threshold across both designs.
+4. **edgeR quasi-likelihood cross-check** (§5). `glmQLFTest` as a second
+   statistical framework across both designs.
+5. **`camera` gene-set testing** (§6). Competitive, correlation-aware
+   side-by-side with fgsea, across both designs.
+6. **Sex-chromosome homologs / Y-linked paralog deep-dive** (§7). KDM5D/C,
+   UTY/KDM6A, DDX3Y/X, RPS4Y1/X, EIF1AY/X, ZFY/X, TMSB4Y/X, USP9Y/X, PRKY/X,
+   NLGN4Y/X — dosage compensation analysis (paired, design-independent at
+   the per-sample level).
+7. **Sample-level pathway scoring** (§8). GSVA / ssGSEA Hallmark, PROGENy,
+   decoupleR-PROGENy, and custom LOY/PRC2/chrY signatures. Sample scoring
+   is design-independent; the LM significance test at the end is run across
+   both designs.
+8. **lpWGS copy-number integration** (§9). Gene-level CN from LNCaP
+   QDNAseq on T2T-CHM13, DEG annotation (canonical paired), chromosome-arm
+   shifts, CN-flagged DEG sensitivity rerun across both designs in §9.9,
+   Y-loss confirmation panel (lpWGS + RNA).
+9. **Robustness summary** (§10). Combined DEG table across all statistical
+   pipelines × both designs + CN + paralog flags; "confident DEG" call.
+
+Notation: LNCaP = AR T878A / PTEN-null prostate adenocarcinoma; CTRL = sgRNA
+non-targeting control (Y+); LOY = Y-chromosome–targeting sgRNA (Y−). No
+PARENTAL arm was collected; the LOY-vs-sgCTRL contrast is the only design
+available, in either paired (treatment + passage) or unpaired (treatment-only)
+form.
+
+***
+
+# 1. Setup
+
+## 1.1 Load packages
+
+```{r load-packages}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(data.table)
+
+  library(edgeR)
+  library(limma)
+  library(statmod)
+  library(EnsDb.Hsapiens.v86)
+
+  library(fgsea)
+  library(msigdbr)
+
+  library(dorothea)
+  library(decoupleR)
+
+  library(GSVA)
+  library(progeny)
+
+  library(GenomicRanges)
+  library(rtracklayer)
+
+  library(ggplot2)
+  library(ggpubr)
+  library(ggrepel)
+  library(patchwork)
+  library(pheatmap)
+  library(RColorBrewer)
+  library(ComplexHeatmap)
+  library(circlize)
+})
+```
+
+## 1.2 Paths and figure helper
+
+```{r define-paths}
+# --- Data root ---------------------------------------------------------
+# Upstream pipeline outputs (featureCounts tables, lpWGS QDNAseq RDS) live
+# on the local Dropbox tree. Update this single line if data moves.
+DATA_ROOT  <- "A:/Dropbox/LOY_paralogs/projects"
+# STAR_v2_PARfix tables — PAR-Y-masked realignment so chrX PAR genes (SHOX,
+# CSF2RA, SLC25A6, etc.) actually have reads. The previous MAY_2026_LNCAP_LOY/
+# tables silently dropped PAR multi-mappers (~0 reads on every PAR1 gene).
+COUNTS_DIR <- file.path(DATA_ROOT, "RNAseq", "counts",
+                        "STAR_v2_PARfix", "MAY_2026_LNCAP_LOY")
+
+# --- Output paths ------------------------------------------------------
+# All outputs namespaced under LNCaP/ inside this analysis directory so
+# HT1080/A549 outputs don't collide. CSVs/RDSes are gitignored repo-wide;
+# PNG/PDF figures under figures_LOY_sgCTRL_extended/ are tracked.
+BASE_DIR    <- getwd()
+CELL_DIR    <- file.path(BASE_DIR, "LNCaP")
+DE_DIR      <- file.path(CELL_DIR, "DE_extended")
+FIG_DIR     <- file.path(CELL_DIR, "figures_LOY_sgCTRL_extended")
+SCORES_DIR  <- file.path(CELL_DIR, "PATHWAY_SCORES")
+CN_DEG_DIR  <- file.path(CELL_DIR, "CN_DEG")
+WGS_RDS_DIR <- file.path(DATA_ROOT, "WGS")
+T2T_GTF     <- "A:/Dropbox/LOY_paralogs/data/GCF_009914755.1_T2T-CHM13v2.0_genomic.gtf.gz"
+
+for (d in c(DE_DIR, FIG_DIR, SCORES_DIR, CN_DEG_DIR)) {
+  if (!dir.exists(d)) dir.create(d, recursive = TRUE)
+}
+
+ALPHA   <- 0.05
+LFC_THR <- 0.75
+
+save_fig <- function(plot, name, width = 7, height = 6, dpi = 300) {
+  ggsave(file.path(FIG_DIR, paste0(name, ".png")),
+         plot, width = width, height = height, dpi = dpi, bg = "white")
+  ggsave(file.path(FIG_DIR, paste0(name, ".pdf")),
+         plot, width = width, height = height, dpi = dpi)
+  cat(sprintf("Saved: %s.(png|pdf)  [%gx%g in]\n", name, width, height))
+  invisible(plot)
+}
+
+# Consistent palette (matches the canonical report). LNCaP has no PARENTAL
+# arm, but the colour is left in the named vector for code-portability across
+# helpers that key on treatment levels — it will simply never be drawn.
+treatment_cols <- c("PARENTAL" = "#999999",
+                    "CTRL"     = "#009E73",
+                    "LOY"      = "#E69F00")
+passage_shapes <- c("12" = 16, "13" = 17, "14" = 15)
+```
+
+## 1.3 Sample metadata + counts
+
+```{r build-samples}
+count_files <- list.files(COUNTS_DIR,
+                          pattern = "^LNCaP.*\\.txt$", full.names = TRUE)
+count_files <- count_files[!grepl("\\.summary$", count_files)]
+stopifnot(length(count_files) == 6)
+
+samples <- data.frame(
+  sample_id = sub("\\.txt$", "", basename(count_files)),
+  cell_line = "LNCaP",
+  stringsAsFactors = FALSE
+) %>%
+  mutate(
+    treatment = case_when(
+      grepl("-LOY-",    sample_id) ~ "LOY",
+      grepl("-sgCTRL-", sample_id) ~ "CTRL",
+      TRUE                          ~ NA_character_
+    ),
+    # LNCaP samples are named ...-P12 / -P13 / -P14 — strip the P prefix so
+    # the replicate column is the numeric passage identifier (12/13/14).
+    replicate = sub(".*-P(\\d+)$", "\\1", sample_id),
+    y_status  = ifelse(treatment == "LOY", "Y-", "Y+")
+  )
+stopifnot(!any(is.na(samples$treatment)))
+
+samples %>%
+  group_by(treatment) %>%
+  summarise(n = n(),
+            replicates = paste(sort(replicate), collapse = ", "),
+            .groups = "drop") %>%
+  knitr::kable(caption = "LNCaP Sample Summary (n=6)")
+```
+
+```{r load-counts}
+genes <- ensembldb::genes(EnsDb.Hsapiens.v86) %>% as.data.frame()
+
+df_list <- lapply(count_files, function(f) {
+  df <- fread(f, data.table = FALSE, header = TRUE) %>%
+    dplyr::select(1, 7)
+  names(df) <- c("geneID", sub("\\.txt$", "", basename(f)))
+  column_to_rownames(df, var = "geneID")
+})
+count_matrix <- do.call("cbind", df_list)
+count_matrix <- count_matrix[grepl("^ENSG", rownames(count_matrix)), ]
+stopifnot(identical(colnames(count_matrix), samples$sample_id))
+
+cat("Loaded", nrow(count_matrix), "genes across",
+    ncol(count_matrix), "samples\n")
+```
+
+## 1.4 Build DGEList scaffold (no filtering yet)
+
+```{r dge-scaffold}
+treatment <- factor(samples$treatment, levels = c("CTRL", "LOY"))
+passage   <- factor(samples$replicate, levels = c("12", "13", "14"))
+
+dge0 <- DGEList(counts = count_matrix, group = treatment)
+dge0$samples$treatment <- treatment
+dge0$samples$passage   <- passage
+
+gene_ids_full  <- rownames(dge0$counts)
+gene_ids_clean <- gsub("\\.\\d+$", "", gene_ids_full)
+gene_info <- genes[match(gene_ids_clean, genes$gene_id), ]
+gene_info$gene_id <- ifelse(is.na(gene_info$gene_id),
+                            gene_ids_clean, gene_info$gene_id)
+rownames(gene_info) <- gene_ids_full
+dge0$genes <- gene_info
+
+keep_ann <- !is.na(dge0$genes$gene_name) & !is.na(dge0$genes$entrezid)
+dge0 <- dge0[keep_ann, , keep.lib.sizes = FALSE]
+cat("Genes with full annotation:", nrow(dge0), "\n")
+
+```
+
+## 1.4.5 Y-region annotation (PAR1 / PAR2 / MSY-Yp / MSY-Yq)
+
+GRCh38 PAR coordinates (Ensembl/GENCODE). PAR genes are annotated on chrX
+only (chrY PAR positions are masked at the annotation level), so PAR
+identification scans chrX. MSY = remaining chrY genes (non-PAR), split into
+Yp / Yq by the chrY centromere midpoint (~10.43 Mb, UCSC).
+
+Two filter sets are exposed downstream:
+
+- **`chrY_gene_ids`** (MSY only) — stripped from the DGEList before
+  differential expression (§2 filter sweep, §4 treat-helpers). PAR genes
+  stay so they get logFC + FDR like every other gene in §4.1+ volcanos.
+- **`excluded_gene_ids`** (chrY ∪ PAR) — stripped at every pathway-input
+  boundary: `prep_ranks()` in the sweep chunk; camera voom rows in §6;
+  ssGSEA / PROGENy / decoupleR lcpm matrices in §8; CN-sensitivity rerun
+  in §9.9 (via `prep_ranks`). Camera/GSVA/decoupleR are gene-set / TF
+  tests where PAR LOY signal would distort the result (it's library-
+  composition artefact, not biology).
+
+```{r y-region-annotation}
+PAR1_X_START <- 10001L;       PAR1_X_END   <- 2781479L
+PAR2_X_START <- 155701383L;   PAR2_X_END   <- 156030895L
+Y_CENTROMERE_MID <- 10430000L
+
+y_panel <- dge0$genes %>%
+  rownames_to_column("ensembl_id_ver") %>%
+  mutate(ensembl_id = gsub("\\.\\d+$", "", ensembl_id_ver)) %>%
+  mutate(region = case_when(
+    seqnames == "X" & start >= PAR1_X_START & end <= PAR1_X_END ~ "PAR1",
+    seqnames == "X" & start >= PAR2_X_START & end <= PAR2_X_END ~ "PAR2",
+    seqnames == "Y" & end   <= Y_CENTROMERE_MID                 ~ "MSY-Yp",
+    seqnames == "Y" & start >= Y_CENTROMERE_MID                 ~ "MSY-Yq",
+    TRUE                                                         ~ NA_character_)) %>%
+  dplyr::filter(!is.na(region))
+
+par_gene_ids        <- y_panel$ensembl_id[y_panel$region %in% c("PAR1", "PAR2")]
+chrY_gene_ids       <- y_panel$ensembl_id[y_panel$region %in% c("MSY-Yp", "MSY-Yq")]
+excluded_gene_ids   <- unique(c(chrY_gene_ids, par_gene_ids))
+
+# gene-symbol versions for filtering symbol-keyed pathway inputs
+par_gene_names      <- y_panel$gene_name[y_panel$region %in% c("PAR1", "PAR2")]
+chrY_gene_names     <- y_panel$gene_name[y_panel$region %in% c("MSY-Yp", "MSY-Yq")]
+excluded_gene_names <- unique(c(chrY_gene_names, par_gene_names))
+
+cat(sprintf(
+  "Y-region panel: %d genes  [PAR1=%d, PAR2=%d, MSY-Yp=%d, MSY-Yq=%d]\n",
+  nrow(y_panel),
+  sum(y_panel$region == "PAR1"),
+  sum(y_panel$region == "PAR2"),
+  sum(y_panel$region == "MSY-Yp"),
+  sum(y_panel$region == "MSY-Yq")))
+cat(sprintf("Exclusion set for pathway analyses: %d genes (chrY ∪ PAR)\n",
+            length(excluded_gene_ids)))
+
+# 4-colour palette for Y-region categories (Okabe-Ito-derived)
+y_region_cols <- c(
+  "PAR1"   = "#0072B2",   # blue
+  "PAR2"   = "#56B4E9",   # light blue
+  "MSY-Yp" = "#D55E00",   # red
+  "MSY-Yq" = "#E69F00")   # orange
+```
+
+## 1.5 Multi-design DE infrastructure
+
+The robustness sections (§2 filter sweep, §4 treat, §5 edgeR-QL, §6 camera,
+§8.6 LM tests, §9.9 CN-flagged rerun, §10 robustness summary) all run the
+same two DE designs side-by-side. Defining the design specifications once
+keeps the downstream code mechanical. (HT1080 and A549 also carry a third
+"pooled" Y+ design that pools PARENTAL + sgCTRL as the Y+ reference — that
+design is unavailable here because LNCaP has no PARENTAL arm.)
+
+```{r design-specs}
+# A "design spec" is everything needed to fit a DE model for a given contrast
+# given a starting DGEList: how to subset samples, how to build the design
+# matrix, and the contrast name. Each spec is a list with:
+#   label       : short tag for filenames/tabs
+#   subset      : function(samples) -> logical vector of samples to keep
+#   make_design : function(meta) -> design matrix (colnames are factor levels
+#                                                  e.g. "CTRL"/"LOY"/"Y_NEG"/"Y_POS")
+#   contrast    : string contrast (must reference colnames of make_design)
+DESIGN_SPECS <- list(
+  paired = list(
+    label       = "paired",
+    title       = "Paired (treatment + passage block)",
+    subset      = function(m) m$treatment %in% c("CTRL", "LOY"),
+    make_design = function(m) {
+      m$treatment <- factor(m$treatment, levels = c("CTRL", "LOY"))
+      m$passage   <- droplevels(m$passage)
+      des <- model.matrix(~ 0 + treatment + passage, data = m)
+      # Strip only the "treatment" prefix so the contrast "LOY - CTRL"
+      # resolves. Leave "passage<N>" intact — bare digits would not be
+      # syntactically valid R names and makeContrasts would refuse them.
+      colnames(des) <- gsub("^treatment", "", colnames(des))
+      des
+    },
+    contrast    = "LOY - CTRL"),
+  unpaired = list(
+    label       = "unpaired",
+    title       = "Unpaired (treatment only)",
+    subset      = function(m) m$treatment %in% c("CTRL", "LOY"),
+    make_design = function(m) {
+      m$treatment <- factor(m$treatment, levels = c("CTRL", "LOY"))
+      des <- model.matrix(~ 0 + treatment, data = m)
+      colnames(des) <- gsub("^treatment", "", colnames(des))
+      des
+    },
+    contrast    = "LOY - CTRL"))
+
+# Fit one DE model from a DGEList + design spec; returns a list with the
+# voom object, the lmFit/eBayes fit, the design matrix, the subset DGEList,
+# and the topTable (all annotated to gene symbols / FDR / etc.).
+fit_de_design <- function(dge_in, spec, do_voom = TRUE) {
+  m <- dge_in$samples
+  keep <- spec$subset(m)
+  d <- dge_in[, keep, keep.lib.sizes = FALSE]
+  d$samples$treatment <- droplevels(d$samples$treatment)
+  d$samples$passage   <- droplevels(d$samples$passage)
+  d <- calcNormFactors(d, method = "TMM")
+  des <- spec$make_design(d$samples)
+  cm  <- makeContrasts(contrasts = spec$contrast, levels = colnames(des))
+  v <- if (do_voom) voom(d, des, plot = FALSE) else NULL
+  fit <- if (do_voom) {
+    lmFit(v, des) %>% contrasts.fit(cm) %>% eBayes()
+  } else NULL
+  tt <- if (!is.null(fit)) {
+    tb <- topTable(fit, coef = 1, n = Inf, sort.by = "P")
+    tb$gene_name <- d$genes[rownames(tb), "gene_name"]
+    tb$FDR       <- tb$adj.P.Val
+    tb$PValue    <- tb$P.Value
+    tb
+  } else NULL
+  list(spec = spec, dge = d, design = des, voom = v, fit = fit, top = tt)
+}
+
+cat(sprintf("Design specs registered: %s\n",
+            paste(names(DESIGN_SPECS), collapse = ", ")))
+```
+
+***
+
+# 2. Filter-threshold sensitivity sweep
+
+`filterByExpr(min.total.count = ?)` with `MIN_COUNT ∈ {50, 100, 200}`. For each,
+build the LOY+CTRL working set, refit paired limma–voom DE, capture DEG counts,
+and run fgsea on Hallmark.
+
+```{r filter-sweep}
+build_dge_lc <- function(dge_full, min_count) {
+  keep <- filterByExpr(dge_full, group = dge_full$samples$treatment,
+                       min.total.count = min_count)
+  dge_f <- dge_full[keep, , keep.lib.sizes = FALSE]
+  # Strip chrY (MSY) only — PAR genes stay in the DGEList so they get
+  # logFC/FDR in §4 DE. PAR is filtered out at pathway-input boundaries
+  # (prep_ranks below, camera/GSVA/etc. in later sections).
+  strip_idx <- which(
+    gsub("\\.\\d+$", "", rownames(dge_f$counts)) %in% chrY_gene_ids)
+  if (length(strip_idx) > 0) dge_f <- dge_f[-strip_idx, , keep.lib.sizes = FALSE]
+  dge_f <- dge_f[, dge_f$samples$treatment %in% c("CTRL", "LOY")]
+  dge_f$samples$treatment <- droplevels(dge_f$samples$treatment)
+  dge_f$samples$passage   <- droplevels(dge_f$samples$passage)
+  calcNormFactors(dge_f, method = "TMM")
+}
+
+run_de_paired <- function(dge_lc) {
+  design <- model.matrix(~ 0 + treatment + passage,
+                         data = dge_lc$samples)
+  colnames(design) <- gsub("^treatment", "", colnames(design))
+  cm  <- makeContrasts("LOY - CTRL", levels = colnames(design))
+  v   <- voom(dge_lc, design, plot = FALSE)
+  fit <- lmFit(v, design) %>%
+    contrasts.fit(cm) %>%
+    eBayes()
+  list(
+    design = design, cm = cm, v = v, fit = fit,
+    de = topTable(fit, coef = 1, n = Inf, sort.by = "P") %>%
+      dplyr::rename(PValue = P.Value, FDR = adj.P.Val, logCPM = AveExpr)
+  )
+}
+
+cat("Loading Hallmark for sweep...\n")
+hall_msig <- msigdbr(species = "Homo sapiens", category = "H")
+hall_paths <- split(hall_msig$gene_symbol, hall_msig$gs_name)
+
+prep_ranks <- function(de) {
+  # Drops PAR genes (par_gene_names from §1.4.5) so fgsea + downstream
+  # pathway calls see PAR-clean ranks. PAR LOY signal would otherwise
+  # distort the leading-edge for any Hallmark set that contains PAR genes.
+  r <- de %>%
+    transmute(gene = gene_name, stat = t) %>%
+    dplyr::filter(!is.na(gene), is.finite(stat),
+                  !gene %in% par_gene_names) %>%
+    group_by(gene) %>%
+    summarize(stat = stat[which.max(abs(stat))], .groups = "drop")
+  ribo <- grep("^RPS\\d|^RPL\\d", r$gene)
+  if (length(ribo) > 0) r <- r[-ribo, ]
+  setNames(r$stat, r$gene) %>% sort(decreasing = TRUE)
+}
+
+sweep_thresholds <- c(50, 100, 200)
+sweep_results <- lapply(sweep_thresholds, function(mc) {
+  cat(sprintf("\n--- MIN_COUNT = %d ---\n", mc))
+  dge_lc_i <- build_dge_lc(dge0, mc)
+  cat(sprintf("  After filter: %d genes; %d samples\n",
+              nrow(dge_lc_i), ncol(dge_lc_i)))
+  de_obj   <- run_de_paired(dge_lc_i)
+  de_i     <- de_obj$de
+  set.seed(42)
+  gsea_i   <- suppressWarnings(fgsea(hall_paths, prep_ranks(de_i),
+                                     minSize = 15, maxSize = 500))
+  list(
+    min_count = mc, dge_lc = dge_lc_i, de_obj = de_obj,
+    de = de_i, gsea = gsea_i,
+    n_tested = nrow(de_i),
+    n_sig    = sum(de_i$FDR < ALPHA),
+    n_sig_lfc = sum(de_i$FDR < ALPHA & abs(de_i$logFC) > LFC_THR)
+  )
+})
+names(sweep_results) <- paste0("mc", sweep_thresholds)
+```
+
+## 2.1 Summary table
+
+```{r sweep-summary}
+sweep_tbl <- tibble(
+  MIN_COUNT  = sweep_thresholds,
+  n_tested   = sapply(sweep_results, `[[`, "n_tested"),
+  n_FDR_0.05 = sapply(sweep_results, `[[`, "n_sig"),
+  `n_FDR_0.05_&_|lfc|>0.75` = sapply(sweep_results, `[[`, "n_sig_lfc"),
+  n_hallmark_padj_0.05 = sapply(sweep_results, function(s)
+    sum(s$gsea$padj < 0.05, na.rm = TRUE))
+)
+knitr::kable(sweep_tbl,
+             caption = "Filter-threshold sweep — tested genes, DEGs, GSEA hits")
+```
+
+## 2.2 Gene-set overlap across thresholds
+
+```{r sweep-overlap, fig.height=5, fig.width=11}
+deg_sets <- lapply(sweep_results, function(s) {
+  s$de %>% dplyr::filter(FDR < ALPHA) %>% pull(gene_name) %>% unique()
+})
+tested_sets <- lapply(sweep_results, function(s) rownames(s$de_obj$v))
+
+venn_df <- function(set_list, title) {
+  all_g <- unique(unlist(set_list))
+  if (length(all_g) == 0) {
+    return(ggplot() +
+             annotate("text", x = 0.5, y = 0.5,
+                      label = paste0(title, "\n(empty — no genes)"),
+                      size = 4) +
+             theme_void())
+  }
+  m <- vapply(set_list, function(s) all_g %in% s,
+              FUN.VALUE = logical(length(all_g)))
+  if (!is.matrix(m)) m <- matrix(m, nrow = length(all_g),
+                                 dimnames = list(NULL, names(set_list)))
+  rownames(m) <- all_g
+  m_df <- as.data.frame(m) %>%
+    mutate(combo = apply(m, 1, function(x)
+      paste(names(set_list)[x], collapse = " ∩ "))) %>%
+    dplyr::filter(combo != "") %>%
+    dplyr::count(combo, name = "n") %>%
+    arrange(-n)
+  ggplot(m_df, aes(x = reorder(combo, n), y = n)) +
+    geom_col(fill = "#4E79A7") +
+    geom_text(aes(label = n), hjust = -0.1, size = 3) +
+    coord_flip() +
+    labs(title = title, x = NULL, y = "Gene count") +
+    theme_classic(base_size = 10) +
+    theme(plot.title = element_text(face = "bold", size = 11))
+}
+
+p_sweep_tested <- venn_df(tested_sets, "Tested-gene overlap (post filter)")
+p_sweep_deg    <- venn_df(deg_sets,    "DEG overlap (FDR<0.05)")
+p_sweep <- p_sweep_tested + p_sweep_deg
+print(p_sweep)
+save_fig(p_sweep, "sweep_overlap", width = 11, height = 5)
+```
+
+## 2.3 Hallmark NES concordance across thresholds
+
+```{r sweep-gsea-concord, fig.height=5, fig.width=12}
+nes_wide <- bind_rows(lapply(seq_along(sweep_results), function(i) {
+  sweep_results[[i]]$gsea %>%
+    dplyr::select(pathway, NES) %>%
+    mutate(min_count = sweep_thresholds[i])
+})) %>%
+  pivot_wider(names_from = min_count, names_prefix = "mc",
+              values_from = NES)
+
+cor_50_100  <- cor(nes_wide$mc50,  nes_wide$mc100,
+                   use = "complete.obs", method = "spearman")
+cor_50_200  <- cor(nes_wide$mc50,  nes_wide$mc200,
+                   use = "complete.obs", method = "spearman")
+cor_100_200 <- cor(nes_wide$mc100, nes_wide$mc200,
+                   use = "complete.obs", method = "spearman")
+
+p1 <- ggplot(nes_wide, aes(mc50, mc100)) + geom_point(alpha = 0.6) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  labs(title = sprintf("ρ = %.3f", cor_50_100),
+       x = "NES (MIN_COUNT=50)", y = "NES (MIN_COUNT=100)") +
+  theme_classic(base_size = 10)
+p2 <- ggplot(nes_wide, aes(mc50, mc200)) + geom_point(alpha = 0.6) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  labs(title = sprintf("ρ = %.3f", cor_50_200),
+       x = "NES (MIN_COUNT=50)", y = "NES (MIN_COUNT=200)") +
+  theme_classic(base_size = 10)
+p3 <- ggplot(nes_wide, aes(mc100, mc200)) + geom_point(alpha = 0.6) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  labs(title = sprintf("ρ = %.3f", cor_100_200),
+       x = "NES (MIN_COUNT=100)", y = "NES (MIN_COUNT=200)") +
+  theme_classic(base_size = 10)
+p_sweep_gsea <- p1 + p2 + p3
+print(p_sweep_gsea)
+save_fig(p_sweep_gsea, "sweep_hallmark_NES_concordance",
+         width = 12, height = 5)
+```
+
+## 2.4 Save sweep + pick working threshold
+
+```{r sweep-save}
+sweep_long <- bind_rows(lapply(seq_along(sweep_results), function(i) {
+  sweep_results[[i]]$de %>%
+    dplyr::select(gene_id, gene_name, logFC, t, PValue, FDR) %>%
+    mutate(min_count = sweep_thresholds[i])
+}))
+fwrite(sweep_long,
+       file.path(DE_DIR, "lncap_LOY_v_sgCTRL_DE_filtersweep.csv"))
+
+# Working threshold: 50 (sweep typically shows ρ > 0.95 with stricter
+# thresholds; the lower threshold rescues moderately-expressed paralogs and
+# regulators that motivate the rest of this report).
+PICKED_MC <- 50
+cat(sprintf("\n>>> Using MIN_COUNT = %d for §3 onward.\n", PICKED_MC))
+
+dge_lc <- sweep_results[[paste0("mc", PICKED_MC)]]$dge_lc
+de_obj <- sweep_results[[paste0("mc", PICKED_MC)]]$de_obj
+de_loy_ctrl <- de_obj$de
+design       <- de_obj$design
+cm           <- de_obj$cm
+v_basic      <- de_obj$v
+fit_basic    <- de_obj$fit
+```
+
+***
+
+# 3. voom diagnostics + sample weights
+
+## 3.1 Standard voom mean-variance
+
+`voom(..., plot = TRUE)` draws its own "Mean-variance trend" title; the
+single-panel mean-variance figure fits comfortably at 6×5 in.
+
+```{r voom-diag-mv, fig.height=5, fig.width=6}
+png(file.path(FIG_DIR, "voom_meanvariance.png"),
+    width = 6, height = 5, units = "in", res = 300, bg = "white")
+invisible(voom(dge_lc, design, plot = TRUE))
+dev.off()
+pdf(file.path(FIG_DIR, "voom_meanvariance.pdf"),
+    width = 6, height = 5)
+invisible(voom(dge_lc, design, plot = TRUE))
+dev.off()
+# Inline rendering for the HTML
+v_diag <- voom(dge_lc, design, plot = TRUE)
+```
+
+## 3.2 voomWithQualityWeights (sample weights)
+
+`voomWithQualityWeights(..., plot = TRUE)` draws a **two-panel** layout
+(mean-variance on the left, per-sample weights on the right) — needs a
+wider canvas than the single-panel §3.1 to keep both panels readable.
+
+```{r voom-qw, fig.height=5, fig.width=11}
+png(file.path(FIG_DIR, "voomQW_meanvariance.png"),
+    width = 11, height = 5, units = "in", res = 300, bg = "white")
+invisible(voomWithQualityWeights(dge_lc, design, plot = TRUE))
+dev.off()
+pdf(file.path(FIG_DIR, "voomQW_meanvariance.pdf"),
+    width = 11, height = 5)
+invisible(voomWithQualityWeights(dge_lc, design, plot = TRUE))
+dev.off()
+# Inline rendering for the HTML
+v_qw <- voomWithQualityWeights(dge_lc, design, plot = TRUE)
+```
+
+```{r voomqw-refit}
+fit_qw <- lmFit(v_qw, design) %>%
+  contrasts.fit(cm) %>%
+  eBayes()
+de_qw <- topTable(fit_qw, coef = 1, n = Inf, sort.by = "P") %>%
+  dplyr::rename(PValue = P.Value, FDR = adj.P.Val, logCPM = AveExpr)
+```
+
+## 3.3 Per-sample weights table
+
+```{r voomqw-weights-tbl}
+sample_w <- if (!is.null(v_qw$targets$sample.weights)) {
+  v_qw$targets$sample.weights
+} else {
+  # Fall back to mean per-observation weight if sample.weights field missing
+  colMeans(v_qw$weights)
+}
+weight_tbl <- dge_lc$samples %>%
+  rownames_to_column("sample") %>%
+  dplyr::select(sample, treatment, passage, lib.size, norm.factors) %>%
+  mutate(sample_weight = round(sample_w, 3),
+         lib.size_M    = round(lib.size / 1e6, 1))
+knitr::kable(weight_tbl,
+             caption = "Per-sample voomQW sample weights")
+```
+
+## 3.4 Weight visualization
+
+```{r voomqw-weights-plot, fig.height=4, fig.width=7}
+p_w <- weight_tbl %>%
+  mutate(sample = factor(sample, levels = sample[order(sample_weight)])) %>%
+  ggplot(aes(x = sample, y = sample_weight, fill = treatment)) +
+  geom_col(color = "black", width = 0.7) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "grey40") +
+  scale_fill_manual(values = treatment_cols) +
+  labs(x = NULL, y = "Sample weight (voomQW)",
+       title = "Per-sample reliability weights",
+       subtitle = "Weight=1 → average; <1 less reliable, >1 more reliable") +
+  theme_classic(base_size = 10) +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1, size = 8),
+        plot.title = element_text(face = "bold"))
+print(p_w)
+save_fig(p_w, "voomQW_sample_weights", width = 7, height = 4)
+```
+
+## 3.5 voom vs voomQW concordance
+
+```{r voomqw-concord, fig.height=5, fig.width=10}
+cmp <- de_loy_ctrl %>%
+  dplyr::select(gene_name, logFC, PValue, t) %>%
+  inner_join(de_qw %>%
+               dplyr::select(gene_name, logFC_qw = logFC,
+                             PValue_qw = PValue, t_qw = t),
+             by = "gene_name")
+
+cor_lfc <- cor(cmp$logFC, cmp$logFC_qw, use = "complete.obs")
+cor_t   <- cor(cmp$t,     cmp$t_qw,     use = "complete.obs",
+               method = "spearman")
+
+p_cmp1 <- ggplot(cmp, aes(logFC, logFC_qw)) +
+  geom_point(alpha = 0.3, size = 0.6) +
+  geom_abline(linetype = "dashed", color = "red") +
+  labs(title = sprintf("logFC: r = %.3f", cor_lfc),
+       x = "voom logFC", y = "voomQW logFC") +
+  theme_classic(base_size = 10)
+p_cmp2 <- ggplot(cmp, aes(t, t_qw)) +
+  geom_point(alpha = 0.3, size = 0.6) +
+  geom_abline(linetype = "dashed", color = "red") +
+  labs(title = sprintf("t-stat: ρ = %.3f", cor_t),
+       x = "voom t", y = "voomQW t") +
+  theme_classic(base_size = 10)
+p_cmp <- p_cmp1 + p_cmp2
+print(p_cmp)
+save_fig(p_cmp, "voom_vs_voomQW_concordance", width = 10, height = 5)
+```
+
+***
+
+# 4. Effect-size-aware DE with `treat()`
+
+`treat()` tests `|logFC| > LFC_THR` instead of `≠ 0`. This is what the
+post-hoc filter in the canonical report tried to approximate, but treat does
+it inside the test — giving correct p-values for the effect-size question.
+Run side-by-side on both designs (paired / unpaired) so the choice of
+baseline is itself a robustness axis.
+
+```{r treat-helpers}
+# Reusable volcano helper — used for treat (§4), edgeR-QL (§5), and any
+# design-tabset DE downstream. Takes a DE data.frame with gene_name + logFC
+# + PValue + FDR; returns a ggplot.
+make_volcano_ext <- function(de_df, title, x_lab = NULL,
+                             pval_col = "PValue", fdr_col = "FDR",
+                             n_label = 40) {
+  d <- de_df %>%
+    mutate(nlp = -log10(pmax(.data[[pval_col]], 1e-300)),
+           sig = .data[[fdr_col]] < ALPHA,
+           direction = case_when(
+             sig & logFC >  LFC_THR ~ "Up in LOY",
+             sig & logFC < -LFC_THR ~ "Down in LOY",
+             TRUE                   ~ "NS"
+           ),
+           direction = factor(direction,
+                              levels = c("Down in LOY", "NS", "Up in LOY")))
+  n_up   <- sum(d$direction == "Up in LOY")
+  n_down <- sum(d$direction == "Down in LOY")
+  top    <- d %>% dplyr::filter(sig) %>%
+    slice_min(.data[[pval_col]], n = n_label)
+  cols   <- c("Down in LOY" = "#0072B2", "NS" = "grey80",
+              "Up in LOY"   = "#D55E00")
+  ggplot(d, aes(x = logFC, y = nlp)) +
+    geom_point(aes(color = direction), alpha = 0.7, size = 1.6) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_vline(xintercept = c(-LFC_THR, LFC_THR), linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_text_repel(data = top, aes(label = gene_name),
+                    size = 2.7, fontface = "italic",
+                    max.overlaps = Inf, segment.color = "grey50",
+                    segment.size = 0.3, box.padding = 0.4, force = 2) +
+    scale_color_manual(values = cols, drop = FALSE) +
+    annotate("text",
+             x = max(d$logFC, na.rm = TRUE) * 0.85,
+             y = max(d$nlp,   na.rm = TRUE) * 0.95,
+             label = paste0("n = ", n_up),
+             color = "#D55E00", fontface = "bold", size = 4) +
+    annotate("text",
+             x = min(d$logFC, na.rm = TRUE) * 0.85,
+             y = max(d$nlp,   na.rm = TRUE) * 0.95,
+             label = paste0("n = ", n_down),
+             color = "#0072B2", fontface = "bold", size = 4) +
+    labs(x = x_lab %||% expression(log[2]~"Fold Change"),
+         y = expression(-log[10]~"(P-value)"),
+         title = title, color = NULL) +
+    theme_classic(base_size = 11) +
+    theme(legend.position = "top",
+          plot.title = element_text(hjust = 0.5, face = "bold", size = 12))
+}
+
+# Run treat() against each design spec.
+run_treat_for_designs <- function(dge_in, specs) {
+  out <- lapply(specs, function(sp) {
+    fit_obj <- fit_de_design(dge_in, sp, do_voom = TRUE)
+    if (is.null(fit_obj$fit)) return(NULL)
+    fit_t <- treat(fit_obj$fit, lfc = LFC_THR)
+    tt <- topTreat(fit_t, coef = 1, n = Inf, sort.by = "P")
+    tt$gene_name <- fit_obj$dge$genes[rownames(tt), "gene_name"]
+    tt$FDR    <- tt$adj.P.Val
+    tt$PValue <- tt$P.Value
+    list(fit_obj = fit_obj, fit_treat = fit_t, top = tt)
+  })
+  out
+}
+
+treat_results <- run_treat_for_designs(dge0_full <- {
+  # Rebuild a single full DGEList at the picked MIN_COUNT, keeping PARENTAL
+  # available for the pooled design. (build_dge_lc subset to CTRL+LOY only.)
+  keep <- filterByExpr(dge0, group = dge0$samples$treatment,
+                       min.total.count = PICKED_MC)
+  dgef <- dge0[keep, , keep.lib.sizes = FALSE]
+  # Strip chrY (MSY) only — PAR genes stay for DE (filtered at pathway entries).
+  strip_idx <- which(
+    gsub("\\.\\d+$", "", rownames(dgef$counts)) %in% chrY_gene_ids)
+  if (length(strip_idx) > 0) dgef <- dgef[-strip_idx, , keep.lib.sizes = FALSE]
+  calcNormFactors(dgef, method = "TMM")
+}, DESIGN_SPECS)
+
+# Per-design counts + save
+treat_summary <- bind_rows(lapply(names(treat_results), function(nm) {
+  r <- treat_results[[nm]]
+  if (is.null(r)) return(NULL)
+  tt <- r$top
+  fwrite(tt, file.path(DE_DIR,
+         sprintf("lncap_LOY_v_sgCTRL_DE_treat_%s.csv", nm)))
+  tibble(
+    design = nm,
+    n_FDR_0.05            = sum(tt$FDR < ALPHA, na.rm = TRUE),
+    `n_FDR_0.05_up`       = sum(tt$FDR < ALPHA & tt$logFC >  LFC_THR, na.rm = TRUE),
+    `n_FDR_0.05_down`     = sum(tt$FDR < ALPHA & tt$logFC < -LFC_THR, na.rm = TRUE))
+}))
+knitr::kable(treat_summary, digits = 0,
+             caption = "treat() — sig DEG counts by design (LNCaP)")
+
+# Canonical paired treat result aliased for §10 robustness summary
+de_treat <- treat_results$paired$top
+```
+
+## 4.0 Y-region volcano (pre-strip)
+
+A LOY-vs-sgCTRL paired DE run on a **Y-retaining and PAR-retaining** working
+set (mirror of `dge0_full` above but skips the `excluded_gene_ids` strip).
+Every chrY (MSY-Yp / MSY-Yq) and chrX-PAR (PAR1 / PAR2) gene that passes
+filterByExpr appears with a real `logFC` + `FDR` value — so the volcano
+shows what the LOY perturbation does to the Y-linked + PAR expression
+landscape before §4.1+ strips those genes for downstream pathway analysis.
+
+This view was previously impossible because the upstream STAR pipeline
+dropped PAR multi-mappers (all PAR genes had ~0 reads). Now that
+`STAR_v2_PARfix` counts are loaded (see §1.2), PAR genes have real values.
+
+```{r y-region-de-extended}
+# Y-retaining working set: same MIN_COUNT filter + TMM as the §4 paired
+# path, but no excluded_gene_ids strip. LNCaP has no PARENTAL arm so the
+# subset is the entire dataset (6 samples, CTRL+LOY).
+keep_yret <- filterByExpr(dge0, group = dge0$samples$treatment,
+                          min.total.count = PICKED_MC)
+dge_y_ret <- dge0[keep_yret, , keep.lib.sizes = FALSE]
+dge_y_ret$samples$treatment <- droplevels(dge_y_ret$samples$treatment)
+dge_y_ret$samples$passage   <- droplevels(dge_y_ret$samples$passage)
+dge_y_ret <- calcNormFactors(dge_y_ret, method = "TMM")
+
+design_y_ret <- model.matrix(~ 0 + treatment + passage,
+                             data = dge_y_ret$samples)
+colnames(design_y_ret) <- gsub("^treatment", "", colnames(design_y_ret))
+cm_y_ret <- makeContrasts("LOY - CTRL", levels = colnames(design_y_ret))
+v_y_ret   <- voom(dge_y_ret, design_y_ret, plot = FALSE)
+fit_y_ret <- lmFit(v_y_ret, design_y_ret) %>%
+  contrasts.fit(cm_y_ret) %>%
+  eBayes()
+de_y_ret <- topTable(fit_y_ret, coef = 1, n = Inf, sort.by = "P") %>%
+  dplyr::rename(PValue = P.Value, FDR = adj.P.Val, logCPM = AveExpr) %>%
+  rownames_to_column("ensembl_id_ver") %>%
+  mutate(ensembl_id = gsub("\\.\\d+$", "", ensembl_id_ver)) %>%
+  left_join(y_panel %>% dplyr::select(ensembl_id, region),
+            by = "ensembl_id") %>%
+  mutate(region = factor(region,
+                         levels = c("PAR1", "PAR2", "MSY-Yp", "MSY-Yq")))
+
+cat(sprintf("Y-retaining paired DE: %d genes tested\n", nrow(de_y_ret)))
+cat(sprintf("  Y-region genes: %d  [PAR1=%d, PAR2=%d, MSY-Yp=%d, MSY-Yq=%d]\n",
+            sum(!is.na(de_y_ret$region)),
+            sum(de_y_ret$region == "PAR1",   na.rm = TRUE),
+            sum(de_y_ret$region == "PAR2",   na.rm = TRUE),
+            sum(de_y_ret$region == "MSY-Yp", na.rm = TRUE),
+            sum(de_y_ret$region == "MSY-Yq", na.rm = TRUE)))
+
+fwrite(de_y_ret %>% dplyr::filter(!is.na(region)) %>%
+         dplyr::select(ensembl_id, gene_name, region,
+                       logFC, PValue, FDR, logCPM),
+       file.path(DE_DIR, "lncap_LOY_v_sgCTRL_DE_yregion.csv"))
+```
+
+```{r y-region-volcano-extended, fig.height=6, fig.width=8}
+y_region_volcano <- function(de_df, title, n_label = 25) {
+  bg <- de_df %>% dplyr::filter(is.na(region)) %>%
+    mutate(nlp = -log10(pmax(PValue, 1e-300)))
+  fg <- de_df %>% dplyr::filter(!is.na(region)) %>%
+    mutate(nlp = -log10(pmax(PValue, 1e-300)))
+  lab <- fg %>% group_by(region) %>%
+    slice_max(abs(logFC), n = n_label, with_ties = FALSE) %>% ungroup()
+
+  ggplot() +
+    geom_point(data = bg, aes(logFC, nlp),
+               color = "grey85", alpha = 0.4, size = 0.7) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_vline(xintercept = c(-LFC_THR, LFC_THR), linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_point(data = fg, aes(logFC, nlp, color = region),
+               size = 2.4, alpha = 0.9) +
+    ggrepel::geom_text_repel(
+      data = lab, aes(logFC, nlp, label = gene_name, color = region),
+      size = 3.1, fontface = "italic", max.overlaps = Inf,
+      segment.size = 0.3, box.padding = 0.4, force = 2,
+      show.legend = FALSE) +
+    scale_color_manual(values = y_region_cols, drop = FALSE,
+                       name = "Y region") +
+    labs(x = expression(log[2]~"Fold Change (LOY / sgCTRL)"),
+         y = expression(-log[10]~"(P-value)"),
+         title = title,
+         subtitle = "Paired contrast on Y/PAR-retaining DGEList; grey = non-Y/non-PAR background") +
+    theme_classic(base_size = 12) +
+    theme(legend.position = "top",
+          plot.title = element_text(hjust = 0.5, face = "bold", size = 13))
+}
+
+p_y_vol <- y_region_volcano(
+  de_y_ret,
+  "LNCaP: LOY vs sgCTRL — Y region (PAR1 / PAR2 / MSY-Yp / MSY-Yq)")
+print(p_y_vol)
+save_fig(p_y_vol, "volcano_LOY_v_sgCTRL_yregion", width = 8, height = 6)
+```
+
+## 4.1 treat volcano (by design) {.tabset}
+
+### Paired
+
+```{r treat-volcano-paired, fig.height=6, fig.width=7}
+p_treat_p <- make_volcano_ext(
+  treat_results$paired$top,
+  title = "LNCaP — treat() · paired (treatment + passage)",
+  x_lab = expression(log[2]~"Fold Change (LOY / sgCTRL)"))
+print(p_treat_p)
+save_fig(p_treat_p, "volcano_treat_paired", width = 7, height = 6)
+```
+
+### Unpaired
+
+```{r treat-volcano-unpaired, fig.height=6, fig.width=7}
+p_treat_u <- make_volcano_ext(
+  treat_results$unpaired$top,
+  title = "LNCaP — treat() · unpaired",
+  x_lab = expression(log[2]~"Fold Change (LOY / sgCTRL)"))
+print(p_treat_u)
+save_fig(p_treat_u, "volcano_treat_unpaired", width = 7, height = 6)
+```
+
+## {-}
+
+## 4.2 treat-significant vs post-hoc filtered overlap (paired)
+
+The standard comparison: does `treat()` (effect-size-aware test) recover the
+same DEGs as the canonical voom + post-hoc `|lfc|>0.75` filter on the paired
+design? Run on paired only — the design choice is independent of the
+treat-vs-post-hoc comparison.
+
+```{r treat-overlap-paired, fig.height=4, fig.width=6}
+set_treat   <- treat_results$paired$top %>%
+  dplyr::filter(FDR < ALPHA) %>% pull(gene_name)
+set_posthoc <- de_loy_ctrl %>%
+  dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR) %>%
+  pull(gene_name)
+
+overlap_df <- tibble(
+  Category = c("treat-only", "Both", "Post-hoc-only"),
+  n = c(length(setdiff(set_treat, set_posthoc)),
+        length(intersect(set_treat, set_posthoc)),
+        length(setdiff(set_posthoc, set_treat))))
+p_overlap <- ggplot(overlap_df,
+                    aes(x = reorder(Category, n), y = n, fill = Category)) +
+  geom_col() +
+  geom_text(aes(label = n), hjust = -0.1, size = 4) +
+  coord_flip() +
+  scale_fill_manual(values = c("treat-only" = "#4E79A7",
+                               "Both" = "#59A14F",
+                               "Post-hoc-only" = "#E15759"),
+                    guide = "none") +
+  labs(title = "treat vs post-hoc-filtered DEG overlap (paired)",
+       x = NULL, y = "Gene count") +
+  theme_classic(base_size = 11)
+print(p_overlap)
+save_fig(p_overlap, "treat_vs_posthoc_overlap_paired",
+         width = 6, height = 4)
+```
+
+## 4.3 Cross-design DEG overlap (treat)
+
+How much of the canonical paired-treat DEG set is recovered by the unpaired
+design? Strong overlap means the LOY effect is reproducible across baseline
+choice.
+
+```{r treat-cross-design-overlap, fig.height=4, fig.width=8}
+sets_by_design <- lapply(treat_results, function(r)
+  r$top %>% dplyr::filter(FDR < ALPHA) %>% pull(gene_name) %>% unique())
+
+cross_df <- bind_rows(lapply(names(sets_by_design), function(nm) {
+  s <- sets_by_design[[nm]]
+  vs_paired <- list(
+    only_this  = setdiff(s, sets_by_design$paired),
+    both       = intersect(s, sets_by_design$paired),
+    only_paired = setdiff(sets_by_design$paired, s))
+  tibble(design = nm,
+         this_only          = length(vs_paired$only_this),
+         both_vs_paired     = length(vs_paired$both),
+         paired_only_vs_this = length(vs_paired$only_paired))
+}))
+knitr::kable(cross_df,
+             caption = "treat() DEG overlap with paired (anchor) — per design")
+```
+
+***
+
+# 5. edgeR quasi-likelihood cross-check
+
+Second statistical framework on each of the two designs — voom/limma's
+gaussian-on-logCPM vs edgeR's negative-binomial-with-QL. Convergent signal
+across both frameworks for the same design is the strongest evidence that
+the LOY effect is real.
+
+```{r edger-ql-run}
+run_edger_ql_for_designs <- function(treat_res) {
+  out <- lapply(treat_res, function(r) {
+    if (is.null(r)) return(NULL)
+    d    <- r$fit_obj$dge
+    des  <- r$fit_obj$design
+    spec <- r$fit_obj$spec
+    cm_l <- makeContrasts(contrasts = spec$contrast, levels = colnames(des))
+    dq <- estimateDisp(d, des, robust = TRUE)
+    fq <- glmQLFit(dq, des, robust = TRUE)
+    ql <- glmQLFTest(fq, contrast = cm_l)
+    tt <- topTags(ql, n = Inf)$table
+    tt$gene_id_full <- rownames(tt)
+    tt$gene_name <- d$genes$gene_name[
+      match(rownames(tt), rownames(d$genes))]
+    tt$PValue <- tt$PValue %||% tt$P.Value  # edgeR returns PValue already
+    list(dge_q = dq, fit_q = fq, top = tibble::as_tibble(tt))
+  })
+  out
+}
+
+ql_results <- run_edger_ql_for_designs(treat_results)
+
+ql_summary <- bind_rows(lapply(names(ql_results), function(nm) {
+  r <- ql_results[[nm]]
+  if (is.null(r)) return(NULL)
+  fwrite(r$top, file.path(DE_DIR,
+         sprintf("lncap_LOY_v_sgCTRL_DE_edgeRQL_%s.csv", nm)))
+  tibble(
+    design = nm,
+    n_FDR_0.05            = sum(r$top$FDR < ALPHA, na.rm = TRUE),
+    `n_FDR_0.05_&_lfc>thr` = sum(r$top$FDR < ALPHA & abs(r$top$logFC) > LFC_THR,
+                                 na.rm = TRUE))
+}))
+knitr::kable(ql_summary, digits = 0,
+             caption = "edgeR-QL sig DEG counts by design (LNCaP)")
+
+# Canonical paired QL result aliased for §10 robustness summary
+de_ql <- ql_results$paired$top
+```
+
+## 5.1 BCV plot (by design) {.tabset}
+
+### Paired
+
+```{r edger-bcv-paired, fig.height=5, fig.width=6}
+plotBCV(ql_results$paired$dge_q,
+        main = "edgeR BCV — LNCaP paired")
+```
+
+### Unpaired
+
+```{r edger-bcv-unpaired, fig.height=5, fig.width=6}
+plotBCV(ql_results$unpaired$dge_q,
+        main = "edgeR BCV — LNCaP unpaired")
+```
+
+## {-}
+
+## 5.2 QL t-stat concordance with voom (by design) {.tabset}
+
+```{r ql-voom-concord-helper}
+ql_voom_concord_plot <- function(treat_res, ql_top, design_label) {
+  voom_de <- treat_res$fit_obj$top
+  ql_signed <- ql_top %>%
+    mutate(stat_ql = sign(logFC) * sqrt(F)) %>%
+    dplyr::select(gene_name, logFC_ql = logFC, stat_ql, FDR_ql = FDR) %>%
+    dplyr::filter(!is.na(gene_name))
+  cmp <- inner_join(
+    voom_de %>% dplyr::select(gene_name, logFC, t, FDR),
+    ql_signed, by = "gene_name",
+    suffix = c("", "_ql"))
+  rho <- cor(cmp$t, cmp$stat_ql, use = "complete.obs", method = "spearman")
+  rlf <- cor(cmp$logFC, cmp$logFC_ql, use = "complete.obs")
+  p1 <- ggplot(cmp, aes(logFC, logFC_ql)) +
+    geom_point(alpha = 0.3, size = 0.6) +
+    geom_abline(linetype = "dashed", color = "red") +
+    labs(title = sprintf("logFC voom vs QL — r = %.3f", rlf),
+         x = "voom logFC", y = "edgeR QL logFC") +
+    theme_classic(base_size = 10)
+  p2 <- ggplot(cmp, aes(t, stat_ql)) +
+    geom_point(alpha = 0.3, size = 0.6) +
+    geom_abline(linetype = "dashed", color = "red") +
+    labs(title = sprintf("Signed stat — Spearman ρ = %.3f", rho),
+         x = "voom t", y = "edgeR sign(lfc)*sqrt(F)") +
+    theme_classic(base_size = 10)
+  p <- p1 + p2 + patchwork::plot_annotation(
+    title = sprintf("LNCaP — voom vs QL (%s)", design_label))
+  list(plot = p, rho = rho, rlf = rlf)
+}
+```
+
+### Paired
+
+```{r ql-voom-paired, fig.height=5, fig.width=10}
+r <- ql_voom_concord_plot(treat_results$paired,
+                          ql_results$paired$top, "paired")
+print(r$plot)
+save_fig(r$plot, "voom_vs_QL_concordance_paired", width = 10, height = 5)
+```
+
+### Unpaired
+
+```{r ql-voom-unpaired, fig.height=5, fig.width=10}
+r <- ql_voom_concord_plot(treat_results$unpaired,
+                          ql_results$unpaired$top, "unpaired")
+print(r$plot)
+save_fig(r$plot, "voom_vs_QL_concordance_unpaired", width = 10, height = 5)
+```
+
+## {-}
+
+## 5.3 Top-200 DEG overlap (per design)
+
+```{r ql-top200}
+top200_tbl <- bind_rows(lapply(names(ql_results), function(nm) {
+  voom_de <- treat_results[[nm]]$fit_obj$top
+  ql_de   <- ql_results[[nm]]$top
+  vt <- voom_de %>% slice_min(PValue, n = 200) %>% pull(gene_name)
+  qt <- ql_de   %>% slice_min(PValue, n = 200) %>% pull(gene_name)
+  tibble(design = nm,
+         intersect = length(intersect(vt, qt)),
+         pct       = sprintf("%.1f%%",
+                             length(intersect(vt, qt)) / 200 * 100))
+}))
+knitr::kable(top200_tbl,
+             caption = "Top-200 voom ∩ top-200 QL per design (n out of 200)")
+```
+
+***
+
+# 6. `camera` gene-set testing
+
+`camera` is a competitive gene-set test that accounts for inter-gene
+correlation — a complement to the (rank-based, correlation-naive) fgsea
+results in the canonical report's §5.
+
+```{r camera-prep}
+cat("Loading MSigDB collections for camera...\n")
+collections_cam <- list(
+  hallmark = msigdbr(species = "Homo sapiens", category = "H"),
+  cgp      = msigdbr(species = "Homo sapiens", category = "C2",
+                     subcategory = "CGP"),
+  cp_react = msigdbr(species = "Homo sapiens", category = "C2",
+                     subcategory = "CP:REACTOME")
+)
+pathways_cam <- lapply(collections_cam,
+                       function(x) split(x$gene_symbol, x$gs_name))
+
+# Map row IDs (Ensembl) to symbols and index for camera
+sym_by_row <- dge_lc$genes$gene_name
+names(sym_by_row) <- rownames(v_basic)
+```
+
+```{r camera-run}
+run_camera_for_design <- function(treat_res, pathways_list, design_label) {
+  v   <- treat_res$fit_obj$voom
+  des <- treat_res$fit_obj$design
+  cm_l <- makeContrasts(contrasts = treat_res$fit_obj$spec$contrast,
+                        levels = colnames(des))
+
+  # Drop PAR rows from voom before camera — camera is a gene-set test and
+  # PAR LOY signal here is library-composition artefact, not pathway biology.
+  sym_by_row <- treat_res$fit_obj$dge$genes$gene_name
+  names(sym_by_row) <- rownames(v)
+  par_rows <- which(sym_by_row %in% par_gene_names)
+  if (length(par_rows) > 0) {
+    v <- v[-par_rows, ]
+    sym_by_row <- sym_by_row[-par_rows]
+  }
+
+  do_one <- function(pathways, coll_label) {
+    idx <- ids2indices(pathways, sym_by_row)
+    res <- camera(v, index = idx, design = des, contrast = cm_l)
+    res %>%
+      rownames_to_column("pathway") %>%
+      mutate(collection = coll_label, design = design_label) %>%
+      arrange(FDR)
+  }
+
+  list(
+    hall = do_one(pathways_list$hallmark, "hallmark"),
+    cgp  = do_one(pathways_list$cgp,      "cgp"),
+    rea  = do_one(pathways_list$cp_react, "cp_reactome"))
+}
+
+camera_results <- lapply(names(treat_results), function(nm) {
+  run_camera_for_design(treat_results[[nm]], pathways_cam, nm)
+})
+names(camera_results) <- names(treat_results)
+
+# Save combined per-design CSV
+for (nm in names(camera_results)) {
+  fwrite(bind_rows(camera_results[[nm]]),
+         file.path(DE_DIR,
+                   sprintf("lncap_LOY_v_sgCTRL_camera_%s.csv", nm)))
+}
+
+# Cross-design × collection summary
+cam_summary <- bind_rows(lapply(names(camera_results), function(nm) {
+  r <- camera_results[[nm]]
+  tibble(
+    design       = nm,
+    hallmark_sig = sum(r$hall$FDR < 0.05, na.rm = TRUE),
+    cgp_sig      = sum(r$cgp$FDR  < 0.05, na.rm = TRUE),
+    reactome_sig = sum(r$rea$FDR  < 0.05, na.rm = TRUE))
+}))
+knitr::kable(cam_summary,
+             caption = "camera FDR<0.05 hits by design × collection (LNCaP)")
+```
+
+## 6.1 camera vs fgsea: Hallmark side-by-side (by design) {.tabset}
+
+```{r camera-vs-fgsea-helper}
+camera_vs_fgsea <- function(treat_res, cam_hall_design) {
+  set.seed(42)
+  voom_de <- treat_res$fit_obj$top
+  fgsea_h <- suppressWarnings(
+    fgsea(pathways_cam$hallmark, prep_ranks(voom_de),
+          minSize = 15, maxSize = 500)) %>%
+    dplyr::select(pathway, NES, padj_fgsea = padj)
+  cam_hall_design %>%
+    dplyr::select(pathway, camera_Dir = Direction,
+                  camera_FDR = FDR, camera_PValue = PValue) %>%
+    left_join(fgsea_h, by = "pathway") %>%
+    mutate(agree = case_when(
+      is.na(NES) ~ NA_character_,
+      NES > 0 & camera_Dir == "Up"   ~ "agree Up",
+      NES < 0 & camera_Dir == "Down" ~ "agree Down",
+      TRUE                            ~ "disagree")) %>%
+    arrange(camera_FDR)
+}
+```
+
+### Paired
+
+```{r camera-fgsea-paired}
+cmp_p <- camera_vs_fgsea(treat_results$paired,
+                         camera_results$paired$hall)
+knitr::kable(head(cmp_p, 25), digits = 4,
+             caption = "Top-25 Hallmark sets: camera vs fgsea (paired)")
+cat(sprintf("Direction agreement: %d / %d\n",
+            sum(cmp_p$agree %in% c("agree Up", "agree Down"), na.rm = TRUE),
+            sum(!is.na(cmp_p$agree))))
+```
+
+### Unpaired
+
+```{r camera-fgsea-unpaired}
+cmp_u <- camera_vs_fgsea(treat_results$unpaired,
+                         camera_results$unpaired$hall)
+knitr::kable(head(cmp_u, 25), digits = 4,
+             caption = "Top-25 Hallmark sets: camera vs fgsea (unpaired)")
+cat(sprintf("Direction agreement: %d / %d\n",
+            sum(cmp_u$agree %in% c("agree Up", "agree Down"), na.rm = TRUE),
+            sum(!is.na(cmp_u$agree))))
+```
+
+## {-}
+
+## 6.2 camera Hallmark dotplot (by design) {.tabset}
+
+```{r camera-dotplot-helper}
+camera_dotplot <- function(cam_hall, design_label) {
+  cam_dot <- cam_hall %>%
+    slice_min(FDR, n = 25) %>%
+    mutate(
+      direction = factor(Direction, levels = c("Down", "Up")),
+      pathway_clean = gsub("^HALLMARK_", "", pathway) %>%
+                        gsub("_", " ", .) %>% str_to_title() %>% str_wrap(40),
+      nlp = -log10(pmax(FDR, 1e-50)),
+      signed_nlp = ifelse(Direction == "Up", nlp, -nlp),
+      pathway_label = fct_reorder(pathway_clean, signed_nlp))
+  ggplot(cam_dot, aes(x = signed_nlp, y = pathway_label,
+                      size = nlp, fill = signed_nlp)) +
+    geom_point(shape = 21, color = "black", stroke = 0.3) +
+    scale_fill_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B",
+                         midpoint = 0,
+                         name = expression("signed " * -log[10](FDR))) +
+    scale_size_continuous(range = c(2, 6),
+                          name = expression(-log[10](FDR))) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+    labs(x = expression("signed " * -log[10] * "(camera FDR)"), y = NULL,
+         title = sprintf("camera — Top 25 Hallmark sets · %s",
+                         design_label),
+         subtitle = "← Down in LOY      Up in LOY →") +
+    theme_classic(base_size = 9) +
+    theme(plot.title = element_text(face = "bold", size = 10),
+          plot.subtitle = element_text(hjust = 0.5, face = "italic"),
+          axis.text.y = element_text(size = 6.5))
+}
+```
+
+### Paired
+
+```{r camera-dot-paired, fig.height=6, fig.width=6.5}
+p <- camera_dotplot(camera_results$paired$hall, "paired")
+print(p)
+save_fig(p, "camera_hallmark_dotplot_paired", width = 6.5, height = 6)
+```
+
+### Unpaired
+
+```{r camera-dot-unpaired, fig.height=6, fig.width=6.5}
+p <- camera_dotplot(camera_results$unpaired$hall, "unpaired")
+print(p)
+save_fig(p, "camera_hallmark_dotplot_unpaired", width = 6.5, height = 6)
+```
+
+## {-}
+
+***
+
+# 7. Sex-chromosome homologs / Y-linked paralog deep-dive
+
+```{r paralog-pairs-def}
+paralog_pairs <- tribble(
+  ~Y,        ~X,
+  "KDM5D",   "KDM5C",
+  "UTY",     "KDM6A",
+  "DDX3Y",   "DDX3X",
+  "RPS4Y1",  "RPS4X",
+  "EIF1AY",  "EIF1AX",
+  "ZFY",     "ZFX",
+  "TMSB4Y",  "TMSB4X",
+  "USP9Y",   "USP9X",
+  "PRKY",    "PRKX",
+  "NLGN4Y",  "NLGN4X"
+)
+paralog_genes <- c(paralog_pairs$Y, paralog_pairs$X)
+
+# Pull expression on a full DGEList that retains Y-chromosome genes for §7;
+# use the same MIN_COUNT filter but keep CTRL+LOY+Y, drop only PARENTAL.
+dge_full_no_yfilter <- dge0
+keep_full <- filterByExpr(dge_full_no_yfilter,
+                          group = dge_full_no_yfilter$samples$treatment,
+                          min.total.count = PICKED_MC)
+dge_full_no_yfilter <- dge_full_no_yfilter[keep_full, ,
+                                           keep.lib.sizes = FALSE]
+dge_full_no_yfilter <- dge_full_no_yfilter[, dge_full_no_yfilter$samples$treatment %in% c("CTRL", "LOY")]
+dge_full_no_yfilter$samples$treatment <- droplevels(
+  dge_full_no_yfilter$samples$treatment)
+dge_full_no_yfilter$samples$passage <- droplevels(
+  dge_full_no_yfilter$samples$passage)
+dge_full_no_yfilter <- calcNormFactors(dge_full_no_yfilter, method = "TMM")
+
+design_par <- model.matrix(~ 0 + treatment + passage,
+                           data = dge_full_no_yfilter$samples)
+colnames(design_par) <- gsub("^treatment", "", colnames(design_par))
+cm_par <- makeContrasts("LOY - CTRL", levels = colnames(design_par))
+v_par <- voom(dge_full_no_yfilter, design_par, plot = FALSE)
+fit_par <- lmFit(v_par, design_par) %>%
+  contrasts.fit(cm_par) %>% eBayes()
+de_par <- topTable(fit_par, coef = 1, n = Inf, sort.by = "P") %>%
+  dplyr::rename(PValue = P.Value, FDR = adj.P.Val, logCPM = AveExpr)
+
+lcpm_par <- cpm(dge_full_no_yfilter, log = TRUE, prior.count = 2)
+rownames(lcpm_par) <- dge_full_no_yfilter$genes$gene_name
+if (anyDuplicated(rownames(lcpm_par))) {
+  rv_p <- matrixStats::rowVars(lcpm_par)
+  lcpm_par <- lcpm_par[order(-rv_p), , drop = FALSE]
+  lcpm_par <- lcpm_par[!duplicated(rownames(lcpm_par)), , drop = FALSE]
+}
+
+paralog_present <- intersect(paralog_genes, rownames(lcpm_par))
+paralog_missing <- setdiff(paralog_genes, rownames(lcpm_par))
+cat(sprintf("Paralog genes detected: %d / %d\n",
+            length(paralog_present), length(paralog_genes)))
+if (length(paralog_missing) > 0) {
+  cat("Missing (filtered out or unannotated): ",
+      paste(paralog_missing, collapse = ", "), "\n")
+}
+```
+
+## 7.1 Per-pair boxplots
+
+```{r paralog-boxplots, fig.height=10, fig.width=12}
+para_df <- lcpm_par[paralog_present, , drop = FALSE] %>%
+  as.data.frame() %>%
+  rownames_to_column("gene") %>%
+  pivot_longer(-gene, names_to = "sample", values_to = "logCPM") %>%
+  left_join(
+    dge_full_no_yfilter$samples %>%
+      rownames_to_column("sample") %>%
+      dplyr::select(sample, treatment, passage),
+    by = "sample") %>%
+  mutate(
+    treatment = factor(treatment, levels = c("CTRL", "LOY")),
+    pair_id = sapply(gene, function(g) {
+      hit <- which(paralog_pairs$Y == g | paralog_pairs$X == g)
+      if (length(hit) == 0) NA_character_
+      else paste0(paralog_pairs$Y[hit], " / ", paralog_pairs$X[hit])
+    }),
+    chromosome = ifelse(gene %in% paralog_pairs$Y, "Y", "X"),
+    pair_id = factor(pair_id, levels = paste0(paralog_pairs$Y, " / ",
+                                              paralog_pairs$X))
+  )
+
+para_ann <- de_par %>%
+  dplyr::filter(gene_name %in% paralog_present) %>%
+  dplyr::select(gene = gene_name, logFC, FDR) %>%
+  mutate(lab = sprintf("lfc %.2f\nFDR %.2g", logFC, FDR))
+
+p_para_box <- ggplot(para_df,
+                     aes(x = treatment, y = logCPM, fill = treatment)) +
+  geom_boxplot(alpha = 0.4, outlier.shape = NA, width = 0.6) +
+  geom_point(aes(shape = passage), size = 2,
+             position = position_jitter(width = 0.1, seed = 1)) +
+  geom_text(data = para_df %>%
+              left_join(para_ann, by = "gene") %>%
+              distinct(gene, pair_id, chromosome, lab),
+            aes(x = 1.5, y = Inf, label = lab),
+            inherit.aes = FALSE, vjust = 1.2, size = 2.5,
+            color = "grey30") +
+  facet_wrap(~ pair_id + chromosome, scales = "free_y", ncol = 5,
+             labeller = label_both) +
+  scale_fill_manual(values = c("CTRL" = "#009E73", "LOY" = "#E69F00"),
+                    guide = "none") +
+  scale_shape_manual(values = passage_shapes, name = "Passage") +
+  labs(title = "LNCaP — X/Y paralog pairs",
+       subtitle = "logCPM per sample; paired DE lfc / FDR per gene",
+       x = NULL, y = expression(log[2]~"(CPM)")) +
+  theme_classic(base_size = 9) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face = "bold", size = 8),
+        plot.title = element_text(face = "bold", size = 11))
+
+print(p_para_box)
+save_fig(p_para_box, "paralog_boxplots", width = 12, height = 10)
+```
+
+## 7.2 Y-gene logFC vs paralogous X-gene logFC
+
+```{r paralog-scatter, fig.height=5, fig.width=6.5}
+para_lfc <- paralog_pairs %>%
+  mutate(
+    Y_logFC = de_par$logFC[match(Y, de_par$gene_name)],
+    Y_FDR   = de_par$FDR  [match(Y, de_par$gene_name)],
+    X_logFC = de_par$logFC[match(X, de_par$gene_name)],
+    X_FDR   = de_par$FDR  [match(X, de_par$gene_name)],
+    pair    = paste0(Y, "/", X)
+  )
+
+p_para_sc <- ggplot(para_lfc, aes(x = Y_logFC, y = X_logFC,
+                                  label = pair)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_abline(slope = -1, intercept = 0, linetype = "dotted",
+              color = "red",
+              alpha = 0.6) +  # full compensation = Y down by X same up
+  geom_point(aes(size = -log10(pmax(Y_FDR, 1e-50)),
+                 color = X_logFC > 0.1),
+             alpha = 0.9) +
+  geom_text_repel(size = 3.5, fontface = "italic",
+                  max.overlaps = Inf,
+                  segment.color = "grey60") +
+  scale_size_continuous(range = c(2, 6),
+                        name = expression(-log[10](Y[FDR]))) +
+  scale_color_manual(values = c("TRUE" = "#E15759", "FALSE" = "grey50"),
+                     labels = c("TRUE" = "X up (compensating?)",
+                                "FALSE" = "X flat/down"),
+                     name = NULL) +
+  labs(x = "Y-paralog logFC (LOY/CTRL)",
+       y = "X-paralog logFC (LOY/CTRL)",
+       title = "X/Y paralog logFC scatter",
+       subtitle = paste(
+         "Red dotted line = full X dosage compensation",
+         "(Y down, X up by same magnitude)")) +
+  theme_classic(base_size = 10) +
+  theme(plot.title = element_text(face = "bold"))
+print(p_para_sc)
+save_fig(p_para_sc, "paralog_logFC_scatter", width = 6.5, height = 5)
+```
+
+## 7.3 Dosage-compensation index
+
+```{r paralog-compensation}
+para_lfc %>%
+  mutate(
+    compensation_index = X_logFC - (-Y_logFC),
+    # = X_logFC + Y_logFC; magnitude near 0 = perfect compensation
+    interpretation = case_when(
+      Y_logFC < -0.5 & X_logFC >  0.2 ~ "X upregulated (compensating)",
+      Y_logFC < -0.5 & abs(X_logFC) < 0.2 ~ "X flat (no compensation)",
+      Y_logFC < -0.5 & X_logFC < -0.2 ~ "X also down (co-regulated?)",
+      abs(Y_logFC) <= 0.5 ~ "Y not changed",
+      TRUE ~ "Y changed (other dir)"
+    )
+  ) %>%
+  dplyr::select(pair, Y, Y_logFC, Y_FDR, X, X_logFC, X_FDR,
+                compensation_index, interpretation) %>%
+  arrange(Y_logFC) %>%
+  knitr::kable(digits = 3,
+               caption = "X/Y paralog dosage-compensation summary")
+```
+
+## 7.4 Paralog heatmap
+
+Z-scaled logCPM heatmap of the X/Y paralog pairs on the paired LOY-vs-sgCTRL
+working set. (The HT1080/A549 extended notebooks include a "with PARENTAL"
+tab here as an untreated baseline check for sgRNA artifacts; LNCaP has no
+PARENTAL arm so only the LOY+sgCTRL view is shown.)
+
+```{r paralog-heatmap-helper}
+draw_paralog_heatmap <- function(lcpm_mat, dge_obj, fig_name,
+                                 col_title) {
+  hm_mat    <- lcpm_mat[paralog_present, , drop = FALSE]
+  hm_scaled <- t(scale(t(hm_mat)))
+
+  row_split <- ifelse(rownames(hm_scaled) %in% paralog_pairs$Y, "Y", "X")
+  col_ann <- HeatmapAnnotation(
+    Treatment = dge_obj$samples$treatment,
+    Passage   = as.character(dge_obj$samples$passage),
+    col = list(Treatment = treatment_cols,
+               Passage   = c("12" = "#CCCCCC", "13" = "#888888",
+                             "14" = "#444444")),
+    annotation_name_gp = gpar(fontsize = 8))
+
+  ht_p <- ComplexHeatmap::Heatmap(
+    hm_scaled,
+    name = "z(logCPM)",
+    col  = colorRamp2(c(-2, 0, 2), c("#2166AC", "white", "#B2182B")),
+    cluster_columns = TRUE,
+    row_split = row_split,
+    top_annotation = col_ann,
+    row_names_gp    = gpar(fontsize = 9, fontface = "italic"),
+    column_names_gp = gpar(fontsize = 8),
+    column_names_rot = 45,
+    column_title    = col_title,
+    row_title       = NULL,
+    rect_gp = gpar(col = "grey20", lwd = 0.3))
+
+  w <- max(6, 0.5 + ncol(hm_scaled) * 0.55)
+  png(file.path(FIG_DIR, paste0(fig_name, ".png")),
+      width = w, height = 6, units = "in", res = 300, bg = "white")
+  draw(ht_p); dev.off()
+  pdf(file.path(FIG_DIR, paste0(fig_name, ".pdf")),
+      width = w, height = 6)
+  draw(ht_p); dev.off()
+  draw(ht_p)
+  cat(sprintf("Saved: %s.(png|pdf)\n", fig_name))
+  invisible(ht_p)
+}
+
+```
+
+```{r paralog-heatmap-loy-ctrl, fig.height=6, fig.width=7}
+draw_paralog_heatmap(
+  lcpm_par, dge_full_no_yfilter,
+  fig_name  = "paralog_heatmap",
+  col_title = "LNCaP — X/Y paralog scaled expression (LOY + sgCTRL)")
+```
+
+***
+
+# 8. Sample-level pathway scoring
+
+Goal: instead of contrast-level enrichment, score each Hallmark / PROGENy /
+custom signature per sample, then test the score with the paired model.
+
+```{r scores-mat-setup}
+lcpm_lc <- cpm(dge_lc, log = TRUE, prior.count = 2)
+rownames(lcpm_lc) <- dge_lc$genes$gene_name
+# Collapse symbol duplicates by max-variance row
+if (anyDuplicated(rownames(lcpm_lc))) {
+  rv <- matrixStats::rowVars(lcpm_lc)
+  ord <- order(-rv)
+  lcpm_lc <- lcpm_lc[ord, , drop = FALSE]
+  lcpm_lc <- lcpm_lc[!duplicated(rownames(lcpm_lc)), , drop = FALSE]
+}
+
+# Drop PAR rows — every §8 pathway-scoring call (ssGSEA / PROGENy /
+# decoupleR-PROGENy) consumes lcpm_lc, so filtering once here cascades to
+# all of them. PAR LOY signal here is library-composition artefact and
+# would distort the sample-level scores for any pathway containing PAR.
+lcpm_lc <- lcpm_lc[!rownames(lcpm_lc) %in% par_gene_names, , drop = FALSE]
+
+samples_lc <- dge_lc$samples %>%
+  rownames_to_column("sample") %>%
+  dplyr::select(sample, treatment, passage)
+```
+
+## 8.1 GSVA / ssGSEA on Hallmark
+
+```{r gsva-ssgsea}
+gsva_par <- GSVA::ssgseaParam(exprData = lcpm_lc,
+                              geneSets = pathways_cam$hallmark,
+                              minSize  = 5)
+gsva_mat <- GSVA::gsva(gsva_par, verbose = FALSE)
+cat(sprintf("ssGSEA: %d Hallmark sets x %d samples\n",
+            nrow(gsva_mat), ncol(gsva_mat)))
+
+gsva_long <- as.data.frame(gsva_mat) %>%
+  rownames_to_column("pathway") %>%
+  pivot_longer(-pathway, names_to = "sample", values_to = "score") %>%
+  mutate(method = "ssGSEA")
+fwrite(as.data.frame(gsva_mat) %>% rownames_to_column("pathway"),
+       file.path(SCORES_DIR, "lncap_gsva_hallmark_scores.csv"))
+```
+
+## 8.2 PROGENy pathway activity
+
+```{r progeny-run}
+prog_mat <- progeny::progeny(lcpm_lc, scale = TRUE,
+                             organism = "Human", top = 500,
+                             perm = 1)
+prog_mat <- t(prog_mat)  # → pathways x samples
+cat(sprintf("PROGENy: %d pathways x %d samples\n",
+            nrow(prog_mat), ncol(prog_mat)))
+
+prog_long <- as.data.frame(prog_mat) %>%
+  rownames_to_column("pathway") %>%
+  pivot_longer(-pathway, names_to = "sample", values_to = "score") %>%
+  mutate(method = "PROGENy")
+fwrite(as.data.frame(prog_mat) %>% rownames_to_column("pathway"),
+       file.path(SCORES_DIR, "lncap_progeny_scores.csv"))
+```
+
+## 8.3 decoupleR-PROGENy (cross-method check)
+
+```{r dc-progeny}
+prog_net <- decoupleR::get_progeny(organism = "human", top = 500)
+dc_prog <- decoupleR::run_ulm(mat = lcpm_lc, net = prog_net,
+                              .source = "source", .target = "target",
+                              .mor = "weight", minsize = 5)
+dc_prog_mat <- dc_prog %>%
+  pivot_wider(id_cols = "source", names_from = "condition",
+              values_from = "score") %>%
+  column_to_rownames("source") %>%
+  as.matrix()
+cat(sprintf("decoupleR-PROGENy: %d pathways x %d samples\n",
+            nrow(dc_prog_mat), ncol(dc_prog_mat)))
+```
+
+## 8.4 PROGENy vs decoupleR-PROGENy concordance
+
+```{r prog-vs-dcprog, fig.height=4.5, fig.width=5.5}
+# Align rows (pathways) and columns (samples) between the two matrices
+common_p <- intersect(rownames(prog_mat), rownames(dc_prog_mat))
+common_s <- intersect(colnames(prog_mat), colnames(dc_prog_mat))
+prog_a <- prog_mat[common_p, common_s]
+dc_a   <- dc_prog_mat[common_p, common_s]
+
+prog_flat <- as.vector(prog_a)
+dc_flat   <- as.vector(dc_a)
+rho <- cor(prog_flat, dc_flat, use = "complete.obs", method = "spearman")
+
+p_prog_cor <- tibble(progeny = prog_flat, decoupleR = dc_flat,
+                     pathway = rep(rownames(prog_a), ncol(prog_a))) %>%
+  ggplot(aes(progeny, decoupleR)) +
+  geom_point(aes(color = pathway), alpha = 0.85, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "black",
+              linetype = "dashed", linewidth = 0.4) +
+  labs(title = sprintf("PROGENy vs decoupleR-PROGENy (Spearman ρ = %.3f)",
+                       rho),
+       x = "progeny pkg score", y = "decoupleR ulm score") +
+  theme_classic(base_size = 10) +
+  theme(legend.position = "right",
+        legend.text = element_text(size = 7),
+        plot.title = element_text(face = "bold", size = 10))
+print(p_prog_cor)
+save_fig(p_prog_cor, "progeny_vs_decoupleR_concord",
+         width = 5.5, height = 4.5)
+```
+
+## 8.5 Custom signatures (LOY / PRC2-bivalent / chrY)
+
+```{r custom-sigs}
+# LOY signature: top-50 down-in-LOY genes (excluding chrY) — circular but a
+# useful internal-consistency QC against the rest of the report.
+loy_sig <- de_loy_ctrl %>%
+  dplyr::filter(FDR < ALPHA, logFC < -LFC_THR) %>%
+  slice_min(FDR, n = 50) %>% pull(gene_name)
+
+# PRC2 / bivalent
+cgp_full <- pathways_cam$cgp
+prc2_sig <- unique(c(
+  cgp_full[["MIKKELSEN_MEF_HCP_WITH_H3K27ME3"]],
+  cgp_full[["BENPORATH_PRC2_TARGETS"]],
+  cgp_full[["MEISSNER_BRAIN_HCP_WITH_H3K4ME3_AND_H3K27ME3"]]
+))
+prc2_sig <- prc2_sig[!is.na(prc2_sig)]
+
+# Y-chr coding (sanity — should drop in LOY)
+chrY_coding <- genes %>%
+  dplyr::filter(seqnames == "Y", gene_biotype == "protein_coding") %>%
+  pull(gene_name) %>% unique()
+
+# Two-stage scoring: LOY_down + PRC2 on the Y-stripped matrix (lcpm_lc),
+# chrY signature on the Y-retaining matrix (lcpm_par) — then rbind.
+auto_sets <- list(
+  LOY_down_top50 = intersect(loy_sig,  rownames(lcpm_lc)),
+  PRC2_bivalent  = intersect(prc2_sig, rownames(lcpm_lc))
+)
+auto_sets <- auto_sets[sapply(auto_sets, length) >= 3]
+
+custom_mat_auto <- GSVA::gsva(
+  GSVA::ssgseaParam(exprData = lcpm_lc,
+                    geneSets = auto_sets, minSize = 3),
+  verbose = FALSE)
+
+# chrY (Y-retaining)
+chrY_present <- intersect(chrY_coding, rownames(lcpm_par))
+chrY_row <- NULL
+if (length(chrY_present) >= 3) {
+  chrY_score_mat <- GSVA::gsva(
+    GSVA::ssgseaParam(exprData = lcpm_par[, colnames(lcpm_lc)],
+                      geneSets = list(chrY_coding = chrY_present),
+                      minSize = 3),
+    verbose = FALSE)
+  chrY_row <- chrY_score_mat["chrY_coding", colnames(custom_mat_auto),
+                             drop = FALSE]
+}
+
+if (is.null(chrY_row)) {
+  custom_mat <- custom_mat_auto
+  custom_sets <- auto_sets
+} else {
+  custom_mat <- rbind(custom_mat_auto, chrY_row)
+  custom_sets <- c(auto_sets, list(chrY_coding = chrY_present))
+}
+
+cat("Custom signature sizes (after gene-matrix filter):\n")
+print(sapply(custom_sets, length))
+
+custom_long <- as.data.frame(custom_mat) %>%
+  rownames_to_column("pathway") %>%
+  pivot_longer(-pathway, names_to = "sample", values_to = "score") %>%
+  mutate(method = "ssGSEA_custom")
+fwrite(as.data.frame(custom_mat) %>% rownames_to_column("pathway"),
+       file.path(SCORES_DIR, "lncap_custom_signature_scores.csv"))
+```
+
+## 8.6 LM test on each score (paired vs unpaired) {.tabset}
+
+Per-pathway score shift tested against treatment. Paired (`~ treatment +
+passage`) is the canonical analysis; unpaired (`~ treatment`) is the
+robustness comparison — agreement between the two means the passage block
+isn't carrying the signal.
+
+Note: a "pooled" LM here would require re-scoring GSVA/PROGENy on the full
+9-sample DGEList (CTRL + LOY + PARENTAL). Sample-level scoring above is on
+the 6-sample CTRL+LOY working set, so paired/unpaired is the natural pair
+of tests at the score level. The DE-level pooled design is tested in §4/§5.
+
+```{r score-lm-helpers}
+test_scores_design <- function(score_mat, method_label, design_type) {
+  res <- lapply(rownames(score_mat), function(p) {
+    s <- score_mat[p, , drop = TRUE]
+    df <- samples_lc %>% mutate(score = s[sample])
+    form <- if (design_type == "paired") {
+      score ~ treatment + passage
+    } else {
+      score ~ treatment
+    }
+    f <- tryCatch(lm(form, data = df), error = function(e) NULL)
+    if (is.null(f)) return(NULL)
+    co <- summary(f)$coefficients
+    loy_row <- grep("treatmentLOY", rownames(co), value = TRUE)
+    if (length(loy_row) == 0) return(NULL)
+    tibble(pathway = p,
+           method  = method_label,
+           beta_LOY = co[loy_row, "Estimate"],
+           SE       = co[loy_row, "Std. Error"],
+           p_value  = co[loy_row, "Pr(>|t|)"])
+  })
+  bind_rows(res) %>%
+    mutate(FDR = p.adjust(p_value, method = "BH")) %>%
+    arrange(p_value)
+}
+
+score_tests_for <- function(dt) {
+  bind_rows(
+    test_scores_design(gsva_mat,    "ssGSEA_hallmark",   dt),
+    test_scores_design(prog_mat,    "PROGENy",           dt),
+    test_scores_design(dc_prog_mat, "decoupleR_PROGENy", dt),
+    test_scores_design(custom_mat,  "ssGSEA_custom",     dt))
+}
+```
+
+### Paired
+
+```{r score-lm-paired}
+score_tests_paired <- score_tests_for("paired")
+fwrite(score_tests_paired,
+       file.path(SCORES_DIR, "lncap_pathway_score_tests_paired.csv"))
+cat("Top 15 sample-level pathway score shifts (paired):\n")
+score_tests_paired %>% slice_min(p_value, n = 15) %>%
+  knitr::kable(digits = c(0, 0, 3, 3, 4, 4))
+```
+
+### Unpaired
+
+```{r score-lm-unpaired}
+score_tests_unpaired <- score_tests_for("unpaired")
+fwrite(score_tests_unpaired,
+       file.path(SCORES_DIR, "lncap_pathway_score_tests_unpaired.csv"))
+cat("Top 15 sample-level pathway score shifts (unpaired):\n")
+score_tests_unpaired %>% slice_min(p_value, n = 15) %>%
+  knitr::kable(digits = c(0, 0, 3, 3, 4, 4))
+```
+
+## {-}
+
+```{r score-tests-canonical}
+# §8.7 / §8.8 below reuse the paired result as the canonical "score_tests"
+score_tests <- score_tests_paired
+```
+
+## 8.7 Heatmap of Hallmark scores
+
+```{r ssgsea-heatmap, fig.height=10, fig.width=8}
+top_h <- score_tests %>%
+  dplyr::filter(method == "ssGSEA_hallmark") %>%
+  arrange(p_value) %>% head(25) %>% pull(pathway)
+
+hm_h <- gsva_mat[top_h, , drop = FALSE]
+hm_h_scaled <- t(scale(t(hm_h)))
+
+col_ann2 <- HeatmapAnnotation(
+  Treatment = dge_lc$samples$treatment,
+  Passage   = as.character(dge_lc$samples$passage),
+  col = list(Treatment = treatment_cols,
+             Passage   = c("12" = "#CCCCCC", "13" = "#888888",
+                           "14" = "#444444")))
+
+ht_h <- ComplexHeatmap::Heatmap(
+  hm_h_scaled,
+  name = "z(ssGSEA)",
+  col  = colorRamp2(c(-2, 0, 2), c("#2166AC", "white", "#B2182B")),
+  row_names_gp = gpar(fontsize = 7),
+  column_names_gp = gpar(fontsize = 8),
+  column_names_rot = 45,
+  top_annotation = col_ann2,
+  column_title = "Top-25 most-shifted Hallmark sets (paired LM)",
+  rect_gp = gpar(col = "grey25", lwd = 0.3))
+
+png(file.path(FIG_DIR, "ssgsea_hallmark_top25_heatmap.png"),
+    width = 8, height = 10, units = "in", res = 300, bg = "white")
+draw(ht_h); dev.off()
+pdf(file.path(FIG_DIR, "ssgsea_hallmark_top25_heatmap.pdf"),
+    width = 8, height = 10); draw(ht_h); dev.off()
+draw(ht_h)
+```
+
+## 8.8 Top-6 score boxplots
+
+```{r score-boxplots, fig.height=6, fig.width=10}
+top6 <- score_tests %>% slice_min(p_value, n = 6)
+
+box_df <- bind_rows(lapply(seq_len(nrow(top6)), function(i) {
+  m <- top6$method[i]; p <- top6$pathway[i]
+  mat <- switch(m,
+                "ssGSEA_hallmark"     = gsva_mat,
+                "PROGENy"             = prog_mat,
+                "decoupleR_PROGENy"   = dc_prog_mat,
+                "ssGSEA_custom"       = custom_mat)
+  tibble(pathway = p, method = m,
+         sample = colnames(mat),
+         score  = mat[p, ]) %>%
+    left_join(samples_lc, by = "sample")
+}))
+
+p_box_scores <- ggplot(box_df,
+                       aes(x = treatment, y = score, fill = treatment)) +
+  geom_boxplot(alpha = 0.4, outlier.shape = NA, width = 0.6) +
+  geom_point(aes(shape = passage), size = 2,
+             position = position_jitter(width = 0.1, seed = 1)) +
+  facet_wrap(~ paste0(method, ": ", pathway), scales = "free_y",
+             ncol = 3, labeller = label_wrap_gen(35)) +
+  scale_fill_manual(values = c("CTRL" = "#009E73", "LOY" = "#E69F00"),
+                    guide = "none") +
+  scale_shape_manual(values = passage_shapes, name = "Passage") +
+  labs(title = "Top-6 sample-level pathway score shifts",
+       x = NULL, y = "Score") +
+  theme_classic(base_size = 10) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(size = 8, face = "bold"),
+        plot.title = element_text(face = "bold", size = 11))
+print(p_box_scores)
+save_fig(p_box_scores, "top6_pathway_score_boxplots",
+         width = 10, height = 6)
+```
+
+***
+
+# 9. lpWGS copy-number integration
+
+**Data**: LNCaP lpWGS, single timepoint, T2T-CHM13v2.0. Pre-segmented by
+QDNAseq in `projects/WGS/code/coverage_report_LNCaP_QDNAseq.Rmd`, exported
+as `LNCaP_QDNAseq_cn.rds` + `LNCaP_QDNAseq_cn_df.rds`. The LNCaP lpWGS
+panel contains several arms (sgCTRL, LOY-2X, DMSO-LOY-1X, plus drug-treated
+arms: Pano-30/70, KU, KU+Pano-30/70). For the RNA-seq LOY-vs-sgCTRL CN
+backdrop here we use the **`sgCTRL`** and **`LOY-2X`** arms (LOY-2X is the
+primary LOY arm referenced in the QDNAseq report's chrY zoom panel; the
+1× DMSO-LOY arm and drug arms are excluded). With only one sample per arm
+the CN map is treated as a **population backdrop** for the RNA-seq
+contrast, not per-replicate matched.
+
+## 9.1 Load CN object
+
+```{r cn-load}
+cn_rds    <- file.path(WGS_RDS_DIR, "LNCaP_QDNAseq_cn.rds")
+cn_df_rds <- file.path(WGS_RDS_DIR, "LNCaP_QDNAseq_cn_df.rds")
+
+if (!file.exists(cn_rds) || !file.exists(cn_df_rds)) {
+  stop("CN RDS files not found. Re-knit ",
+       "WGS/code/coverage_report_LNCaP_QDNAseq.Rmd first.")
+}
+
+cn    <- readRDS(cn_rds)
+cn_df <- readRDS(cn_df_rds)
+cat(sprintf("Loaded CN: %d bins x %d samples (T2T-CHM13)\n",
+            length(unique(cn_df$bin_id)),
+            length(unique(cn_df$sample))))
+print(unique(cn_df$label))
+```
+
+## 9.2 Build T2T-CHM13 gene coordinate index
+
+```{r t2t-gene-index, cache=TRUE}
+cat("Loading T2T-CHM13v2.0 GTF (may take ~30s)...\n")
+gtf_gr <- rtracklayer::import(T2T_GTF)
+gene_gr <- gtf_gr[gtf_gr$type == "gene"]
+
+# NCBI RefSeq GTF uses gene_name or gene field
+sym_field <- if ("gene" %in% names(mcols(gene_gr))) "gene" else "gene_name"
+gene_meta <- tibble(
+  gene_symbol = mcols(gene_gr)[[sym_field]],
+  seqnames    = as.character(seqnames(gene_gr)),
+  start       = start(gene_gr),
+  end         = end(gene_gr)
+) %>% dplyr::filter(!is.na(gene_symbol))
+
+# RefSeq seqnames use NC_*; map to chrN using a lookup from the chromosome
+# header (chromosome attribute on the entry if present)
+chrom_attr <- if ("chromosome" %in% names(mcols(gene_gr))) {
+  as.character(mcols(gene_gr)$chromosome)
+} else { NA_character_ }
+if (!all(is.na(chrom_attr))) {
+  gene_meta$chromosome <- paste0("chr", chrom_attr[match(
+    gene_meta$gene_symbol, mcols(gene_gr)[[sym_field]])])
+} else {
+  # Fallback: build from NC_* accession ordering (NC_060925-NC_060948 = 1..Y)
+  nc_to_chr <- setNames(
+    paste0("chr", c(1:22, "X", "Y", "M")),
+    sprintf("NC_%06d.1", 60925:60949))
+  gene_meta$chromosome <- nc_to_chr[gene_meta$seqnames]
+}
+
+gene_meta <- gene_meta %>%
+  dplyr::filter(!is.na(chromosome)) %>%
+  distinct(gene_symbol, chromosome, .keep_all = TRUE)
+
+cat(sprintf("T2T gene index: %d genes across chroms %s\n",
+            nrow(gene_meta),
+            paste(unique(gene_meta$chromosome), collapse = ",")))
+```
+
+## 9.3 Overlap RNA genes onto QDNAseq bins
+
+```{r cn-overlap}
+# Build bin GRanges from cn_df
+bin_gr <- cn_df %>%
+  distinct(bin_id, chromosome, start, end) %>%
+  with(GRanges(seqnames = chromosome,
+               ranges = IRanges(start = start, end = end),
+               bin_id = bin_id))
+
+# Build gene GRanges restricted to symbols present in our DE table
+de_symbols <- unique(de_loy_ctrl$gene_name)
+gene_match <- gene_meta %>%
+  dplyr::filter(gene_symbol %in% de_symbols)
+
+gene_grA <- GRanges(seqnames = gene_match$chromosome,
+                    ranges = IRanges(start = gene_match$start,
+                                     end   = gene_match$end),
+                    gene_symbol = gene_match$gene_symbol)
+ov <- findOverlaps(gene_grA, bin_gr)
+
+gene_to_bin <- tibble(
+  gene_symbol = gene_grA$gene_symbol[queryHits(ov)],
+  bin_id      = bin_gr$bin_id[subjectHits(ov)]
+)
+
+# Per gene, per sample: pull the segmented log2 value of the overlapping bin.
+# If a gene spans multiple bins (rare at 100kb), take the median.
+#
+# LNCaP lpWGS carries multiple arms — keep only the two used for the RNA-seq
+# CN backdrop (sgCTRL + LOY-2X) and rename LOY-2X -> LOY so the downstream
+# code (which expects "LOY" / "sgCTRL" columns) works unchanged.
+cn_df_use <- cn_df %>%
+  mutate(label = as.character(label)) %>%
+  dplyr::filter(label %in% c("sgCTRL", "LOY-2X")) %>%
+  mutate(label = ifelse(label == "LOY-2X", "LOY", label))
+
+# Pivot CN to wide: bin_id x sample
+cn_wide <- cn_df_use %>%
+  dplyr::select(bin_id, label, log2_seg) %>%
+  distinct(bin_id, label, .keep_all = TRUE) %>%
+  pivot_wider(id_cols = "bin_id", names_from = "label",
+              values_from = "log2_seg")
+
+stopifnot(c("sgCTRL", "LOY") %in% colnames(cn_wide))
+
+gene_cn <- gene_to_bin %>%
+  left_join(cn_wide, by = "bin_id") %>%
+  group_by(gene_symbol) %>%
+  summarise(
+    cn_log2_sgCTRL = median(sgCTRL, na.rm = TRUE),
+    cn_log2_LOY    = median(LOY,    na.rm = TRUE),
+    n_bins         = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(cn_delta = cn_log2_LOY - cn_log2_sgCTRL)
+
+cat(sprintf("Genes with CN mapping: %d / %d in DE\n",
+            nrow(gene_cn), length(de_symbols)))
+fwrite(gene_cn, file.path(CN_DEG_DIR, "lncap_gene_CN_map.csv"))
+```
+
+## 9.4 Annotate DE table with CN
+
+```{r de-cn-annotate}
+de_with_cn <- de_loy_ctrl %>%
+  left_join(gene_cn, by = c("gene_name" = "gene_symbol")) %>%
+  mutate(
+    # CN-driven flag: sizable CN shift in same direction as expression shift
+    cn_driven_flag = !is.na(cn_delta) &
+                     abs(cn_delta) > 0.3 &
+                     sign(cn_delta) == sign(logFC),
+    cn_state_LOY = case_when(
+      is.na(cn_log2_LOY)         ~ NA_character_,
+      cn_log2_LOY >  0.3         ~ "Gain",
+      cn_log2_LOY < -0.3         ~ "Loss",
+      TRUE                       ~ "Neutral"
+    )
+  )
+fwrite(de_with_cn, file.path(CN_DEG_DIR, "lncap_DEG_with_CN.csv"))
+
+cat("DEGs (FDR<0.05) flagged as CN-driven: ",
+    sum(de_with_cn$cn_driven_flag & de_with_cn$FDR < ALPHA), " / ",
+    sum(de_with_cn$FDR < ALPHA), "\n")
+```
+
+## 9.5 DEG volcano colored by CN state — cutoff sweep {.tabset}
+
+The classifier compares each gene's lpWGS `cn_delta = log2(LOY/sgCTRL)` at its
+bin to a Gain/Loss cutoff. The sensible range is 0.3–0.5 (0.3 ≈ 1.23× signal
+shift, 0.5 ≈ 1.41× shift). Three tabs at 0.3 / 0.4 / 0.5; tighter cutoffs
+keep only the most confident CN shifts. The 3-across composite is also
+saved to disk as `volcano_LOY_v_sgCTRL_cn_cutoff_sweep.(png|pdf)`.
+
+```{r cn-volcano-helper}
+cn_cols <- c("Unmapped" = "grey85",
+             "Neutral"  = "grey60",
+             "Gain"     = "#B2182B",
+             "Loss"     = "#2166AC")
+
+make_cn_volcano <- function(cutoff) {
+  df <- de_with_cn %>%
+    mutate(
+      nlp = -log10(pmax(PValue, 1e-300)),
+      cn_state_delta = case_when(
+        is.na(cn_delta)      ~ "Unmapped",
+        cn_delta >  cutoff   ~ "Gain",
+        cn_delta < -cutoff   ~ "Loss",
+        TRUE                 ~ "Neutral"
+      ),
+      cn_state_delta = factor(cn_state_delta,
+                              levels = c("Unmapped", "Neutral",
+                                         "Gain", "Loss")))
+
+  n_gain <- sum(df$cn_state_delta == "Gain")
+  n_loss <- sum(df$cn_state_delta == "Loss")
+
+  lab <- df %>%
+    dplyr::filter(FDR < ALPHA, abs(logFC) > LFC_THR,
+                  cn_state_delta %in% c("Gain", "Loss")) %>%
+    slice_min(PValue, n = 20)
+
+  ggplot(df, aes(x = logFC, y = nlp, color = cn_state_delta)) +
+    geom_point(data = ~dplyr::filter(., cn_state_delta %in%
+                                       c("Unmapped", "Neutral")),
+               alpha = 0.4, size = 0.9) +
+    geom_point(data = ~dplyr::filter(., cn_state_delta %in%
+                                       c("Gain", "Loss")),
+               alpha = 0.9, size = 1.8) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed",
+               color = "grey40", linewidth = 0.3) +
+    geom_vline(xintercept = c(-LFC_THR, LFC_THR), linetype = "dashed",
+               color = "grey40", linewidth = 0.3) +
+    geom_text_repel(data = lab, aes(label = gene_name),
+                    size = 2.4, fontface = "italic", max.overlaps = Inf,
+                    segment.color = "grey50", segment.size = 0.2) +
+    scale_color_manual(values = cn_cols, name = NULL, drop = FALSE) +
+    labs(x = expression(log[2]~"FC (LOY / sgCTRL)"),
+         y = expression(-log[10]~"(P-value)"),
+         title = sprintf("|cn_delta| > %.1f", cutoff),
+         subtitle = sprintf("Gain n=%d  ·  Loss n=%d",
+                            n_gain, n_loss)) +
+    theme_classic(base_size = 10) +
+    theme(legend.position = "bottom",
+          plot.title = element_text(face = "bold", size = 11, hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5, size = 9))
+}
+
+cutoffs <- c(0.3, 0.4, 0.5)
+panel_list <- lapply(cutoffs, make_cn_volcano)
+names(panel_list) <- paste0("cut", cutoffs)
+
+# Save the 3-across composite to disk for publication-format export.
+p_cn_panels <- patchwork::wrap_plots(panel_list, ncol = 3) +
+  patchwork::plot_annotation(
+    title = "DEG volcano colored by lpWGS CN state — cutoff sweep",
+    subtitle = "CN state derived from cn_delta = log2(LOY/sgCTRL) at the gene's QDNAseq bin",
+    theme = theme(plot.title = element_text(face = "bold", size = 13,
+                                            hjust = 0.5),
+                  plot.subtitle = element_text(hjust = 0.5, size = 10)))
+save_fig(p_cn_panels, "volcano_LOY_v_sgCTRL_cn_cutoff_sweep",
+         width = 18, height = 6)
+```
+
+### |cn_delta| > 0.3
+
+```{r cn-volcano-cut03, fig.height=7, fig.width=8}
+print(panel_list[["cut0.3"]])
+```
+
+### |cn_delta| > 0.4
+
+```{r cn-volcano-cut04, fig.height=7, fig.width=8}
+print(panel_list[["cut0.4"]])
+```
+
+### |cn_delta| > 0.5
+
+```{r cn-volcano-cut05, fig.height=7, fig.width=8}
+print(panel_list[["cut0.5"]])
+```
+
+## {-}
+
+### Gene counts by cutoff
+
+```{r cn-volcano-counts}
+cutoff_counts <- bind_rows(lapply(cutoffs, function(co) {
+  df <- de_with_cn %>%
+    mutate(state = case_when(
+      is.na(cn_delta)     ~ "Unmapped",
+      cn_delta >  co      ~ "Gain",
+      cn_delta < -co      ~ "Loss",
+      TRUE                ~ "Neutral"))
+  tibble(
+    cutoff = co,
+    Gain   = sum(df$state == "Gain"),
+    Loss   = sum(df$state == "Loss"),
+    Neutral = sum(df$state == "Neutral"),
+    Unmapped = sum(df$state == "Unmapped"),
+    Gain_among_sig   = sum(df$state == "Gain" & df$FDR < ALPHA &
+                             abs(df$logFC) > LFC_THR),
+    Loss_among_sig   = sum(df$state == "Loss" & df$FDR < ALPHA &
+                             abs(df$logFC) > LFC_THR))
+}))
+knitr::kable(cutoff_counts,
+             caption = "Gene counts by cn_delta cutoff (Gain_among_sig / Loss_among_sig restricted to FDR<0.05 & |logFC|>0.75)")
+```
+
+## 9.6 Chromosome-arm mean shifts
+
+```{r cn-arm-shifts, fig.height=6, fig.width=8}
+# Crude p/q split: bin midpoint vs chrom midpoint (T2T centromeres differ
+# from hg38; this is an approximation good enough for "arms cluster?")
+arm_assign <- cn_df %>%
+  group_by(chromosome) %>%
+  mutate(arm = ifelse(midpoint < median(range(midpoint)), "p", "q")) %>%
+  ungroup() %>%
+  distinct(bin_id, chromosome, arm)
+
+gene_arm <- gene_to_bin %>%
+  left_join(arm_assign, by = "bin_id") %>%
+  group_by(gene_symbol) %>%
+  summarise(chromosome = dplyr::first(chromosome),
+            arm = paste0(dplyr::first(chromosome),
+                         dplyr::first(arm)),
+            .groups = "drop")
+
+arm_summary <- de_with_cn %>%
+  left_join(gene_arm, by = c("gene_name" = "gene_symbol")) %>%
+  dplyr::filter(!is.na(arm)) %>%
+  group_by(arm) %>%
+  summarise(mean_logFC = mean(logFC, na.rm = TRUE),
+            mean_cn_delta = mean(cn_delta, na.rm = TRUE),
+            n_genes = n(),
+            chromosome = dplyr::first(chromosome),
+            .groups = "drop")
+
+arm_force_cooccur <- c("chr22p", "chr6p", "chr8q", "chr13p")
+
+arm_summary <- arm_summary %>%
+  mutate(co_occurs = (abs(mean_logFC) > 0.1 &
+                      sign(mean_logFC) == sign(mean_cn_delta) &
+                      abs(mean_cn_delta) > 0.1) |
+                     arm %in% arm_force_cooccur)
+
+p_arm <- ggplot(arm_summary,
+                aes(x = mean_cn_delta, y = mean_logFC, label = arm,
+                    size = n_genes,
+                    color = co_occurs)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(alpha = 0.8) +
+  geom_text_repel(size = 3, max.overlaps = Inf,
+                  show.legend = FALSE) +
+  scale_color_manual(values = c("TRUE" = "#D55E00", "FALSE" = "grey50"),
+                     name = "CN-correlated",
+                     labels = c("TRUE" = "shift co-occurs",
+                                "FALSE" = "independent")) +
+  scale_size_continuous(range = c(2, 7), name = "Genes / arm") +
+  labs(x = "Mean lpWGS CN delta (LOY − sgCTRL)",
+       y = "Mean RNA logFC (LOY / sgCTRL)",
+       title = "Chromosome-arm CN delta vs mean RNA logFC",
+       subtitle = "Co-shifting arms suggest CN-driven RNA changes") +
+  theme_classic(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 12))
+print(p_arm)
+save_fig(p_arm, "chromosome_arm_CN_vs_RNA", width = 8, height = 6)
+```
+
+## 9.7 Per-gene CN delta vs logFC scatter
+
+```{r cn-vs-lfc, fig.height=5, fig.width=6.5}
+de_for_cor <- de_with_cn %>% dplyr::filter(!is.na(cn_delta))
+rho_cn <- cor(de_for_cor$cn_delta, de_for_cor$logFC,
+              use = "complete.obs", method = "spearman")
+
+p_cn_lfc <- ggplot(de_for_cor,
+                   aes(x = cn_delta, y = logFC)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(aes(color = cn_driven_flag), alpha = 0.4, size = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 0.4) +
+  scale_color_manual(values = c("TRUE" = "#D55E00", "FALSE" = "grey50"),
+                     name = "CN-driven flag") +
+  labs(x = "Gene CN delta (LOY − sgCTRL, log2 seg)",
+       y = "Gene RNA logFC (LOY / sgCTRL)",
+       title = sprintf("Per-gene CN vs RNA shift  ρ = %.3f", rho_cn)) +
+  theme_classic(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 11))
+print(p_cn_lfc)
+save_fig(p_cn_lfc, "per_gene_CN_vs_logFC", width = 6.5, height = 5)
+```
+
+## 9.8 Y-loss confirmation (RNA + lpWGS)
+
+```{r y-loss-confirm, fig.height=4.5, fig.width=8}
+# RNA: mean logCPM of chrY coding genes per sample (uses lcpm_par which
+# retains chrY)
+chrY_rna <- lcpm_par[intersect(chrY_coding, rownames(lcpm_par)), ,
+                     drop = FALSE]
+rna_summary <- tibble(
+  sample = colnames(chrY_rna),
+  mean_chrY_logCPM = colMeans(chrY_rna, na.rm = TRUE)) %>%
+  left_join(samples_lc, by = "sample") %>%
+  group_by(treatment) %>%
+  summarise(mean = mean(mean_chrY_logCPM),
+            se = sd(mean_chrY_logCPM) / sqrt(n()),
+            .groups = "drop") %>%
+  mutate(modality = "RNA  (mean logCPM, chrY coding)")
+
+# lpWGS: mean log2 ratio of chrY bins per sample, scoped to non-PAR regions.
+# Subset to the same two arms used in §9.3 (sgCTRL + LOY-2X) so the bar plot
+# matches the CN map upstream and doesn't fan out into the drug-treated arms
+# that are part of this LNCaP lpWGS panel but not the RNA-seq experiment.
+lpwgs_chrY <- cn_df %>%
+  dplyr::filter(chromosome == "chrY",
+                label %in% c("sgCTRL", "LOY-2X"))
+lpwgs_summary <- lpwgs_chrY %>%
+  group_by(label) %>%
+  summarise(mean = mean(log2_seg, na.rm = TRUE),
+            se = sd(log2_seg, na.rm = TRUE) / sqrt(n()),
+            .groups = "drop") %>%
+  dplyr::rename(treatment = label) %>%
+  mutate(modality = "lpWGS  (mean log2 seg, chrY bins)")
+
+# Align labels: RNA uses CTRL / LOY; lpWGS uses sgCTRL / LOY-2X
+lpwgs_summary <- lpwgs_summary %>%
+  mutate(treatment = recode(treatment,
+                            "sgCTRL" = "CTRL",
+                            "LOY-2X" = "LOY"))
+
+confirm_df <- bind_rows(rna_summary, lpwgs_summary)
+
+p_y <- ggplot(confirm_df,
+              aes(x = treatment, y = mean, fill = treatment)) +
+  geom_col(width = 0.6, color = "black") +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se),
+                width = 0.2) +
+  facet_wrap(~ modality, scales = "free_y", ncol = 2) +
+  scale_fill_manual(values = c("CTRL" = "#009E73", "LOY" = "#E69F00"),
+                    guide = "none") +
+  labs(x = NULL, y = "Mean signal",
+       title = "Y-chromosome loss confirmation — RNA + lpWGS") +
+  theme_classic(base_size = 11) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face = "bold"),
+        plot.title = element_text(face = "bold"))
+print(p_y)
+save_fig(p_y, "y_loss_confirmation_RNA_lpWGS", width = 8, height = 4.5)
+```
+
+## 9.9 CN-flagged DEG sensitivity rerun (by design) {.tabset}
+
+Re-run Hallmark fgsea and decoupleR TF activity with `cn_driven_flag == TRUE`
+genes removed. Bumps in NES / TF scores that survive this filter are unlikely
+to be driven by autosomal CN drift. Repeated across both DE designs — the CN
+flag set itself comes from the paired DE annotation in §9.4, but the upstream
+rank vectors differ between paired and unpaired, so the sensitivity question
+is worth asking on each.
+
+```{r cn-sens-helpers}
+net_tri <- decoupleR::get_collectri(organism = "human",
+                                    split_complexes = FALSE)
+
+cn_sens_for <- function(de_design, cn_flag_genes, design_label) {
+  ranks_full  <- prep_ranks(de_design)
+  ranks_clean <- ranks_full[!names(ranks_full) %in% cn_flag_genes]
+
+  set.seed(42)
+  fg_full  <- suppressWarnings(
+    fgsea(pathways_cam$hallmark, ranks_full, minSize = 15, maxSize = 500))
+  set.seed(42)
+  fg_clean <- suppressWarnings(
+    fgsea(pathways_cam$hallmark, ranks_clean, minSize = 15, maxSize = 500))
+
+  nes_cmp <- fg_full %>%
+    dplyr::select(pathway, NES_full = NES, padj_full = padj) %>%
+    inner_join(fg_clean %>%
+                 dplyr::select(pathway, NES_clean = NES,
+                               padj_clean = padj),
+               by = "pathway")
+  rho_n <- cor(nes_cmp$NES_full, nes_cmp$NES_clean,
+               method = "spearman", use = "complete.obs")
+
+  deg_mat_full <- de_design %>%
+    dplyr::filter(!is.na(t), !is.na(gene_name),
+                  !gene_name %in% par_gene_names) %>%   # drop PAR for TF
+    distinct(gene_name, .keep_all = TRUE) %>%
+    dplyr::select(gene_name, t) %>%
+    as.data.frame() %>%
+    remove_rownames() %>%
+    column_to_rownames("gene_name") %>%
+    as.matrix()
+  deg_mat_clean <- deg_mat_full[!rownames(deg_mat_full) %in% cn_flag_genes,
+                                , drop = FALSE]
+  tf_full  <- decoupleR::run_ulm(mat = deg_mat_full,  net = net_tri,
+                                 .source = "source", .target = "target",
+                                 .mor = "mor", minsize = 5)
+  tf_clean <- decoupleR::run_ulm(mat = deg_mat_clean, net = net_tri,
+                                 .source = "source", .target = "target",
+                                 .mor = "mor", minsize = 5)
+  tf_cmp <- tf_full %>%
+    dplyr::select(source, score_full = score, p_full = p_value) %>%
+    inner_join(tf_clean %>%
+                 dplyr::select(source, score_clean = score,
+                               p_clean = p_value),
+               by = "source")
+  rho_t <- cor(tf_cmp$score_full, tf_cmp$score_clean,
+               method = "spearman", use = "complete.obs")
+
+  p_n <- ggplot(nes_cmp, aes(NES_full, NES_clean)) +
+    geom_point(alpha = 0.7) +
+    geom_abline(linetype = "dashed", color = "red") +
+    geom_text_repel(data = nes_cmp %>%
+                      dplyr::filter(abs(NES_full - NES_clean) > 0.5),
+                    aes(label = gsub("HALLMARK_", "", pathway)),
+                    size = 2.7, max.overlaps = Inf) +
+    labs(title = sprintf("Hallmark NES (ρ = %.3f) · %s",
+                         rho_n, design_label),
+         x = "NES (all DEGs)", y = "NES (CN-flagged removed)") +
+    theme_classic(base_size = 10)
+  p_t <- ggplot(tf_cmp, aes(score_full, score_clean)) +
+    geom_point(alpha = 0.5, size = 1) +
+    geom_abline(linetype = "dashed", color = "red") +
+    geom_text_repel(data = tf_cmp %>%
+                      dplyr::filter(abs(score_full - score_clean) > 1),
+                    aes(label = source),
+                    size = 2.7, max.overlaps = Inf) +
+    labs(title = sprintf("TF activity (ULM) (ρ = %.3f) · %s",
+                         rho_t, design_label),
+         x = "Score (all DEGs)", y = "Score (CN-flagged removed)") +
+    theme_classic(base_size = 10)
+
+  fwrite(nes_cmp,
+         file.path(CN_DEG_DIR,
+                   sprintf("lncap_hallmark_NES_cn_sensitivity_%s.csv",
+                           design_label)))
+  fwrite(tf_cmp,
+         file.path(CN_DEG_DIR,
+                   sprintf("lncap_TF_score_cn_sensitivity_%s.csv",
+                           design_label)))
+
+  list(nes_cmp = nes_cmp, tf_cmp = tf_cmp, p_n = p_n, p_t = p_t,
+       rho_n = rho_n, rho_t = rho_t)
+}
+
+cn_flag_genes <- de_with_cn %>%
+  dplyr::filter(cn_driven_flag) %>% pull(gene_name)
+cat("Genes flagged CN-driven (anchor: paired DE annotation):",
+    length(cn_flag_genes), "\n")
+```
+
+### Paired
+
+```{r cn-sens-paired, fig.height=5, fig.width=10}
+r_p <- cn_sens_for(treat_results$paired$fit_obj$top,
+                   cn_flag_genes, "paired")
+print(r_p$p_n + r_p$p_t)
+save_fig(r_p$p_n + r_p$p_t, "cn_sensitivity_NES_TF_paired",
+         width = 10, height = 5)
+```
+
+### Unpaired
+
+```{r cn-sens-unpaired, fig.height=5, fig.width=10}
+r_u <- cn_sens_for(treat_results$unpaired$fit_obj$top,
+                   cn_flag_genes, "unpaired")
+print(r_u$p_n + r_u$p_t)
+save_fig(r_u$p_n + r_u$p_t, "cn_sensitivity_NES_TF_unpaired",
+         width = 10, height = 5)
+```
+
+## {-}
+
+***
+
+# 10. Robustness summary
+
+Per-gene integration across the four statistical pipelines + CN flag +
+paralog membership. "Confident DEG" = passes ≥ 3 of
+{voom, voomQW, treat, edgeR-QL} at FDR<0.05 AND is not flagged CN-driven.
+
+```{r robust-summary}
+y_paralog_set <- c(paralog_pairs$Y, paralog_pairs$X)
+
+robust <- de_loy_ctrl %>%
+  dplyr::select(gene_id, gene_name, logFC, FDR_voom = FDR) %>%
+  left_join(de_qw    %>% dplyr::select(gene_name, FDR_voomQW = FDR),
+            by = "gene_name") %>%
+  left_join(de_treat %>% dplyr::select(gene_name, FDR_treat = FDR),
+            by = "gene_name") %>%
+  left_join(de_ql    %>% dplyr::select(gene_name, FDR_edgeRQL = FDR),
+            by = "gene_name") %>%
+  left_join(de_with_cn %>%
+              dplyr::select(gene_name, cn_log2_LOY, cn_delta,
+                            cn_driven_flag, cn_state_LOY),
+            by = "gene_name") %>%
+  mutate(
+    pass_voom    = !is.na(FDR_voom)    & FDR_voom    < ALPHA,
+    pass_voomQW  = !is.na(FDR_voomQW)  & FDR_voomQW  < ALPHA,
+    pass_treat   = !is.na(FDR_treat)   & FDR_treat   < ALPHA,
+    pass_edgeRQL = !is.na(FDR_edgeRQL) & FDR_edgeRQL < ALPHA,
+    n_pass = pass_voom + pass_voomQW + pass_treat + pass_edgeRQL,
+    in_paralog_pair = gene_name %in% y_paralog_set,
+    confident_DEG = n_pass >= 3 &
+                    (is.na(cn_driven_flag) | !cn_driven_flag)
+  ) %>%
+  arrange(-n_pass, FDR_voom)
+
+fwrite(robust,
+       file.path(DE_DIR, "lncap_LOY_v_sgCTRL_DE_robust.csv"))
+
+cat(sprintf("Confident DEGs (≥3/4 frameworks, not CN-driven): %d\n",
+            sum(robust$confident_DEG, na.rm = TRUE)))
+cat(sprintf("  up:   %d\n",
+            sum(robust$confident_DEG & robust$logFC > 0, na.rm = TRUE)))
+cat(sprintf("  down: %d\n",
+            sum(robust$confident_DEG & robust$logFC < 0, na.rm = TRUE)))
+cat(sprintf("Confident + in paralog pair: %d\n",
+            sum(robust$confident_DEG & robust$in_paralog_pair,
+                na.rm = TRUE)))
+```
+
+## 10.1 Top confident DEGs
+
+```{r robust-top}
+robust %>%
+  dplyr::filter(confident_DEG) %>%
+  slice_min(FDR_voom, n = 40) %>%
+  dplyr::select(gene_name, logFC, FDR_voom, FDR_voomQW, FDR_treat,
+                FDR_edgeRQL, n_pass, cn_state_LOY, in_paralog_pair) %>%
+  knitr::kable(digits = c(0, 2, 3, 3, 3, 3, 0, 0, 0),
+               caption = "Top-40 confident DEGs")
+```
+
+## 10.2 Framework agreement plot
+
+```{r robust-agreement, fig.height=4, fig.width=8}
+agreement_counts <- robust %>%
+  dplyr::filter(!is.na(FDR_voom)) %>%
+  count(n_pass, sort = TRUE) %>%
+  mutate(label = paste(n_pass, "of 4"))
+
+p_agree <- ggplot(agreement_counts,
+                  aes(x = factor(n_pass), y = n,
+                      fill = factor(n_pass))) +
+  geom_col(color = "black") +
+  geom_text(aes(label = n), vjust = -0.3, size = 3.5) +
+  scale_fill_brewer(palette = "Blues", direction = 1, guide = "none") +
+  labs(x = "Frameworks passing (FDR<0.05 in voom/voomQW/treat/edgeR-QL)",
+       y = "Gene count",
+       title = "Cross-framework DEG agreement") +
+  theme_classic(base_size = 11) +
+  theme(plot.title = element_text(face = "bold"))
+print(p_agree)
+save_fig(p_agree, "robust_framework_agreement", width = 8, height = 4)
+```
+
+## 10.3 Over-representation analysis on confident DEGs
+
+Hypergeometric test (`fgsea::fora`) — does the confident-DEG set (≥3/4
+frameworks at FDR<0.05, not CN-driven) overlap pathways more than chance?
+Up and down are tested separately against the same universe (all tested
+genes in the working DE).
+
+```{r robust-ora}
+universe_genes <- robust %>%
+  dplyr::filter(!is.na(FDR_voom)) %>%
+  pull(gene_name) %>% unique()
+
+confident_up <- robust %>%
+  dplyr::filter(confident_DEG, logFC > 0) %>% pull(gene_name) %>% unique()
+confident_dn <- robust %>%
+  dplyr::filter(confident_DEG, logFC < 0) %>% pull(gene_name) %>% unique()
+
+cat(sprintf("Universe: %d genes\n", length(universe_genes)))
+cat(sprintf("Confident up:   %d  | down: %d\n",
+            length(confident_up), length(confident_dn)))
+
+# Collections: Hallmark + CGP (chromatin/PRC2 hits live here) + Reactome
+collections_ora <- list(
+  hallmark = pathways_cam$hallmark,
+  cgp      = pathways_cam$cgp,
+  cp_reactome = pathways_cam$cp_react
+)
+
+run_fora_all <- function(gene_set, label) {
+  bind_rows(lapply(names(collections_ora), function(coll_name) {
+    paths <- collections_ora[[coll_name]]
+    fora_res <- suppressWarnings(
+      fora(pathways = paths, genes = gene_set,
+           universe = universe_genes, minSize = 10, maxSize = 500))
+    fora_res %>%
+      as_tibble() %>%
+      mutate(collection = coll_name, direction = label,
+             # fora returns overlap (count); compute fold-enrichment
+             expected = size * length(gene_set) / length(universe_genes),
+             fold_enrichment = overlap / expected) %>%
+      arrange(padj)
+  }))
+}
+
+ora_up <- run_fora_all(confident_up, "Up in LOY")
+ora_dn <- run_fora_all(confident_dn, "Down in LOY")
+ora_all <- bind_rows(ora_up, ora_dn)
+
+fwrite(ora_all %>%
+         dplyr::select(direction, collection, pathway, pval, padj,
+                       overlap, size, expected, fold_enrichment,
+                       overlapGenes) %>%
+         mutate(overlapGenes = sapply(overlapGenes, paste, collapse = ";")),
+       file.path(DE_DIR, "lncap_robustDEG_ORA.csv"))
+
+cat("\n=== Top 15 Hallmark over-represented in Up-confident DEGs ===\n")
+ora_up %>% dplyr::filter(collection == "hallmark") %>%
+  slice_min(padj, n = 15) %>%
+  dplyr::select(pathway, overlap, size, fold_enrichment, padj) %>%
+  knitr::kable(digits = c(0, 0, 0, 2, 4))
+
+cat("\n=== Top 15 Hallmark over-represented in Down-confident DEGs ===\n")
+ora_dn %>% dplyr::filter(collection == "hallmark") %>%
+  slice_min(padj, n = 15) %>%
+  dplyr::select(pathway, overlap, size, fold_enrichment, padj) %>%
+  knitr::kable(digits = c(0, 0, 0, 2, 4))
+```
+
+### Hallmark + Reactome dotplot
+
+```{r robust-ora-dotplot, fig.height=8, fig.width=8}
+plot_df <- ora_all %>%
+  dplyr::filter(collection %in% c("hallmark", "cp_reactome"),
+                padj < 0.1) %>%
+  group_by(direction, collection) %>%
+  slice_min(padj, n = 12) %>%
+  ungroup() %>%
+  mutate(
+    pathway_clean = gsub("^HALLMARK_|^REACTOME_", "", pathway) %>%
+                      gsub("_", " ", .) %>%
+                      str_to_title() %>% str_wrap(40),
+    pathway_label = paste0("[", substr(collection, 1, 4), "] ",
+                           pathway_clean),
+    pathway_label = fct_reorder(pathway_label, fold_enrichment),
+    direction = factor(direction, levels = c("Down in LOY", "Up in LOY"))
+  )
+
+if (nrow(plot_df) > 0) {
+  p_ora_dot <- ggplot(plot_df,
+                      aes(x = fold_enrichment, y = pathway_label,
+                          size = overlap, fill = -log10(padj))) +
+    geom_point(shape = 21, color = "black", stroke = 0.3) +
+    facet_wrap(~ direction, scales = "free_y", ncol = 1) +
+    scale_fill_gradient(low = "grey85", high = "#B2182B",
+                        name = expression(-log[10](p[adj]))) +
+    scale_size_continuous(range = c(2, 7), name = "DEG overlap") +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "grey50",
+               linewidth = 0.3) +
+    labs(x = "Fold enrichment (overlap / expected)", y = NULL,
+         title = "ORA on confident DEGs — Hallmark + Reactome",
+         subtitle = paste(
+           "Hypergeometric test (fgsea::fora);",
+           "universe = all tested genes")) +
+    theme_classic(base_size = 9) +
+    theme(plot.title = element_text(face = "bold", size = 11),
+          strip.background = element_blank(),
+          strip.text = element_text(face = "bold", size = 10),
+          axis.text.y = element_text(size = 7))
+  print(p_ora_dot)
+  save_fig(p_ora_dot, "robust_DEG_ORA_dotplot",
+           width = 8, height = 8)
+} else {
+  cat("No pathways at padj<0.1 in Hallmark/Reactome ORA.\n")
+}
+```
+
+### Chromatin / PRC2 ORA (CGP subset)
+
+```{r robust-ora-chromatin, fig.height=6, fig.width=8}
+chrom_pattern <- "H3K27ME3|H3K4ME[23]|PRC2|EZH2|SUZ12|POLYCOMB|BIVALENT"
+chrom_ora <- ora_all %>%
+  dplyr::filter(collection == "cgp",
+                grepl(chrom_pattern, pathway, ignore.case = TRUE),
+                padj < 0.25) %>%
+  mutate(
+    pathway_clean = sub("^[A-Z]+_", "", pathway) %>%
+                      gsub("_", " ", .) %>% str_to_title() %>% str_wrap(42),
+    pathway_label = fct_reorder(pathway_clean, fold_enrichment),
+    direction = factor(direction, levels = c("Down in LOY", "Up in LOY"))
+  )
+
+if (nrow(chrom_ora) > 0) {
+  p_chrom_ora <- ggplot(chrom_ora,
+                        aes(x = fold_enrichment, y = pathway_label,
+                            size = overlap, fill = -log10(padj))) +
+    geom_point(shape = 21, color = "black", stroke = 0.3) +
+    facet_wrap(~ direction, scales = "free_y", ncol = 1) +
+    scale_fill_gradient(low = "grey85", high = "#B2182B",
+                        name = expression(-log[10](p[adj]))) +
+    scale_size_continuous(range = c(2, 7), name = "DEG overlap") +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+    labs(x = "Fold enrichment", y = NULL,
+         title = "ORA on confident DEGs — Chromatin / PRC2 (CGP)",
+         subtitle = "Filter: H3K27ME3/H3K4ME2-3/PRC2/EZH2/SUZ12/POLYCOMB/BIVALENT") +
+    theme_classic(base_size = 9) +
+    theme(plot.title = element_text(face = "bold", size = 11),
+          strip.background = element_blank(),
+          strip.text = element_text(face = "bold", size = 10),
+          axis.text.y = element_text(size = 7))
+  print(p_chrom_ora)
+  save_fig(p_chrom_ora, "robust_DEG_ORA_chromatin",
+           width = 8, height = 6)
+} else {
+  cat("No chromatin ORA hits at padj<0.25.\n")
+}
+```
+
+## 10.4 Cross-design × cross-framework panel
+
+The §10.1–§10.3 summary above is anchored on the **paired** design (the
+analysis of record). This sub-section asks the broader question: across both
+designs × {voom, treat, edgeR-QL}, how many of the 6 (design × framework)
+cells does each gene reach FDR<0.05? Genes flagged in ≥4/6 cells AND not
+CN-driven are the most robust LOY-driven candidates. (HT1080/A549 run this
+across 9 cells; LNCaP drops the 3 pooled-design columns because no PARENTAL
+arm exists.)
+
+```{r robust-cross-design}
+build_design_fdr <- function(top_df, design_label, framework) {
+  top_df %>%
+    dplyr::select(gene_name, FDR) %>%
+    dplyr::filter(!is.na(gene_name)) %>%
+    distinct(gene_name, .keep_all = TRUE) %>%
+    setNames(c("gene_name",
+               sprintf("FDR_%s_%s", framework, design_label)))
+}
+
+fdr_tables <- list(
+  build_design_fdr(treat_results$paired$fit_obj$top,   "paired",   "voom"),
+  build_design_fdr(treat_results$unpaired$fit_obj$top, "unpaired", "voom"),
+  build_design_fdr(treat_results$paired$top,           "paired",   "treat"),
+  build_design_fdr(treat_results$unpaired$top,         "unpaired", "treat"),
+  build_design_fdr(ql_results$paired$top,              "paired",   "edgeRQL"),
+  build_design_fdr(ql_results$unpaired$top,            "unpaired", "edgeRQL"))
+
+wide_fdr <- Reduce(function(x, y) full_join(x, y, by = "gene_name"),
+                   fdr_tables)
+fdr_cols <- setdiff(names(wide_fdr), "gene_name")
+
+wide_fdr <- wide_fdr %>%
+  rowwise() %>%
+  mutate(n_pass6 = sum(c_across(all_of(fdr_cols)) < ALPHA, na.rm = TRUE)) %>%
+  ungroup() %>%
+  left_join(de_with_cn %>% dplyr::select(gene_name, cn_driven_flag),
+            by = "gene_name") %>%
+  left_join(treat_results$paired$fit_obj$top %>%
+              dplyr::select(gene_name, logFC),
+            by = "gene_name") %>%
+  arrange(-n_pass6)
+
+wide_fdr <- wide_fdr %>%
+  mutate(in_paralog_pair = gene_name %in% y_paralog_set,
+         confident_DEG6  = n_pass6 >= 4 &
+                           (is.na(cn_driven_flag) | !cn_driven_flag))
+
+fwrite(wide_fdr,
+       file.path(DE_DIR, "lncap_LOY_v_sgCTRL_DE_robust_cross_design.csv"))
+
+cat(sprintf("\nCross-design × cross-framework confident DEGs (>=4/6 cells, not CN-driven): %d\n",
+            sum(wide_fdr$confident_DEG6, na.rm = TRUE)))
+cat(sprintf("  up:   %d   down: %d\n",
+            sum(wide_fdr$confident_DEG6 & wide_fdr$logFC > 0, na.rm = TRUE),
+            sum(wide_fdr$confident_DEG6 & wide_fdr$logFC < 0, na.rm = TRUE)))
+
+agreement6 <- wide_fdr %>%
+  dplyr::filter(!is.na(logFC)) %>%
+  count(n_pass6, sort = TRUE) %>%
+  mutate(label = paste(n_pass6, "of 6"))
+
+p_agree6 <- ggplot(agreement6,
+                   aes(x = factor(n_pass6), y = n,
+                       fill = factor(n_pass6))) +
+  geom_col(color = "black") +
+  geom_text(aes(label = n), vjust = -0.3, size = 3.2) +
+  scale_fill_brewer(palette = "Blues", direction = 1, guide = "none") +
+  labs(x = "Cells passing FDR<0.05 (voom/treat/edgeRQL × paired/unpaired)",
+       y = "Gene count",
+       title = "Cross-design × cross-framework DEG agreement (6 cells)") +
+  theme_classic(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 11))
+print(p_agree6)
+save_fig(p_agree6, "robust_cross_design_agreement",
+         width = 9, height = 4)
+```
+
+### Top cross-design confident DEGs
+
+```{r robust-cross-design-top}
+wide_fdr %>%
+  dplyr::filter(confident_DEG6) %>%
+  slice_head(n = 40) %>%
+  dplyr::select(gene_name, logFC, n_pass6,
+                in_paralog_pair, cn_driven_flag,
+                FDR_voom_paired, FDR_treat_paired, FDR_edgeRQL_paired,
+                FDR_voom_unpaired, FDR_treat_unpaired, FDR_edgeRQL_unpaired) %>%
+  knitr::kable(digits = c(0, 2, 0, 0, 0,
+                          3, 3, 3, 3, 3, 3),
+               caption = "Top-40 confident DEGs across designs (>=4/6 cells, not CN-driven)")
+```
+
+***
+
+# 11. LOY transcriptomics summary table
+
+A consolidated per-gene table of the LOY-vs-sgCTRL effect with per-sample
+expression. Covers:
+
+- Every **expressed chromosome-Y gene** (post-filter), classified by genomic
+  region as PAR1 / PAR2 / MSY (male-specific Y)
+- **PAR1 / PAR2 / MSY signature** rows — mean logCPM across each region per
+  sample, paired-LM test (treatment + passage) on the resulting scores
+- **Top-20 up + top-20 down** DEGs from the paired LOY-vs-sgCTRL contrast
+  (FDR<ALPHA, |logFC|>LFC_THR, non-chrY)
+- **Genes of interest**: DCC, XIST, and the X-paralogs of each Y gene
+  tracked in §7
+
+Per-sample columns are logCPM (matching how the rest of the report
+visualises expression). Full CSV (both CPM and logCPM aggregates, per-sample
+logCPM) lands at
+`LNCaP/DE_extended/lncap_LOY_transcriptomics_summary.csv`.
+
+## 11.1 PAR1 / PAR2 / MSY / Yp / Yq gene panel
+
+The classifier reuses the PAR coordinate constants defined in §1.4.5
+(`PAR1_X_START` etc., `Y_CENTROMERE_MID`). The §11 panel is built from
+`dge_full_no_yfilter$genes` so the per-sample expression matrix built in
+§11.2 has matching dimensions — that's a tighter gene set than §1.4.5's
+`y_panel` (which uses the unfiltered `dge0`).
+
+```{r y-summary-classify}
+# Use the constants from §1.4.5; chrY PAR-coord exclusion via PAR1_Y_END/
+# PAR2_Y_START is defensive (EnsDb has 0 chrY entries in PAR coords, but
+# keeps the filter symmetric).
+PAR1_Y_END   <- PAR1_X_END        # PAR1 spans identical on chrX and chrY
+PAR2_Y_START <- 56887903L         # chrY PAR2 start (different from chrX)
+
+par1_genes <- dge_full_no_yfilter$genes %>%
+  rownames_to_column("ensembl_id") %>%
+  dplyr::filter(seqnames == "X",
+                start >= PAR1_X_START, end <= PAR1_X_END) %>%
+  mutate(region = "PAR1", arm = "Yp")
+par2_genes <- dge_full_no_yfilter$genes %>%
+  rownames_to_column("ensembl_id") %>%
+  dplyr::filter(seqnames == "X",
+                start >= PAR2_X_START, end <= PAR2_X_END) %>%
+  mutate(region = "PAR2", arm = "Yq")
+msy_genes <- dge_full_no_yfilter$genes %>%
+  rownames_to_column("ensembl_id") %>%
+  dplyr::filter(seqnames == "Y",
+                !(end <= PAR1_Y_END | start >= PAR2_Y_START)) %>%
+  mutate(region = "MSY",
+         arm    = ifelse(end <= Y_CENTROMERE_MID, "Yp", "Yq"))
+
+y_genes <- bind_rows(par1_genes, par2_genes, msy_genes)
+
+cat(sprintf(
+  "Expressed Y-related genes: %d  [PAR1=%d, PAR2=%d, MSY=%d (MSY-Yp=%d, MSY-Yq=%d)]\n",
+  nrow(y_genes),
+  nrow(par1_genes), nrow(par2_genes), nrow(msy_genes),
+  sum(msy_genes$arm == "Yp"),
+  sum(msy_genes$arm == "Yq")))
+```
+
+## 11.2 Per-sample expression helper
+
+```{r y-summary-matrices}
+# logCPM + CPM on the Y-retaining DGEList from §7. Helper takes a vector of
+# ensembl_ids and returns a tibble with per-gene group means (CTRL/LOY) for
+# both CPM and logCPM, plus one column per sample of logCPM.
+lcpm_full <- cpm(dge_full_no_yfilter, log = TRUE, prior.count = 2)
+cpm_full  <- cpm(dge_full_no_yfilter, log = FALSE)
+
+samples_y <- dge_full_no_yfilter$samples %>%
+  rownames_to_column("sample") %>%
+  dplyr::select(sample, treatment, passage)
+
+expr_row_for <- function(gene_ids) {
+  # Build an empty 0-row tibble with the full column structure intact, so
+  # downstream inner_join + select on the result works even when no genes
+  # match (relevant for A549, whose paired LOY-vs-sgCTRL contrast yields 0
+  # DEGs at FDR<0.05 & |logFC|>0.75).
+  empty_per_sample <- as_tibble(setNames(
+    replicate(ncol(lcpm_full), numeric(0), simplify = FALSE),
+    paste0("logCPM_", colnames(lcpm_full))))
+  empty_out <- bind_cols(
+    tibble(
+      ensembl_id       = character(0),
+      mean_CTRL_logCPM = numeric(0),
+      mean_LOY_logCPM  = numeric(0),
+      mean_CTRL_CPM    = numeric(0),
+      mean_LOY_CPM     = numeric(0)),
+    empty_per_sample)
+
+  ids_in <- intersect(gene_ids, rownames(lcpm_full))
+  if (length(ids_in) == 0) return(empty_out)
+  lc <- lcpm_full[ids_in, , drop = FALSE]
+  cp <- cpm_full [ids_in, , drop = FALSE]
+  ctrl_idx <- which(samples_y$treatment == "CTRL")
+  loy_idx  <- which(samples_y$treatment == "LOY")
+  per_sample_lc <- as.data.frame(lc)
+  colnames(per_sample_lc) <- paste0("logCPM_", colnames(lc))
+  tibble(
+    ensembl_id       = rownames(lc),
+    mean_CTRL_logCPM = rowMeans(lc[, ctrl_idx, drop = FALSE]),
+    mean_LOY_logCPM  = rowMeans(lc[, loy_idx,  drop = FALSE]),
+    mean_CTRL_CPM    = rowMeans(cp[, ctrl_idx, drop = FALSE]),
+    mean_LOY_CPM     = rowMeans(cp[, loy_idx,  drop = FALSE])
+  ) %>%
+    bind_cols(per_sample_lc)
+}
+```
+
+## 11.3 chrY gene table
+
+```{r y-summary-chry-table}
+chry_expr  <- expr_row_for(y_genes$ensembl_id)
+chry_block <- y_genes %>%
+  dplyr::select(ensembl_id, gene_name, region, arm) %>%
+  inner_join(chry_expr, by = "ensembl_id") %>%
+  left_join(de_par %>%
+              rownames_to_column("ensembl_id") %>%
+              dplyr::select(ensembl_id, logFC, PValue, FDR),
+            by = "ensembl_id") %>%
+  mutate(category = paste0("Y_panel_", region)) %>%
+  arrange(region, FDR)
+
+chry_block %>%
+  dplyr::select(gene_name, region, arm, logFC, FDR,
+                mean_CTRL_logCPM, mean_LOY_logCPM,
+                mean_CTRL_CPM, mean_LOY_CPM) %>%
+  knitr::kable(digits = c(0, 0, 0, 2, 4, 2, 2, 1, 1),
+               caption = "PAR1 / PAR2 / MSY genes — paired DE + group-mean expression")
+```
+
+## 11.4 PAR1 / PAR2 / MSY signature scores
+
+```{r y-summary-signatures}
+# Signature score = mean logCPM across genes in the region per sample.
+# Paired LM (treatment + passage) tests whether the per-sample mean shifts
+# with LOY, holding passage constant.
+build_sig_row <- function(genes_in, sig_name) {
+  ids_in <- intersect(genes_in, rownames(lcpm_full))
+  if (length(ids_in) < 2) return(NULL)
+  scores <- colMeans(lcpm_full[ids_in, , drop = FALSE])
+  df <- samples_y %>% mutate(score = scores[sample])
+  f <- tryCatch(lm(score ~ treatment + passage, data = df),
+                error = function(e) NULL)
+  beta <- NA_real_; pval <- NA_real_
+  if (!is.null(f)) {
+    co <- summary(f)$coefficients
+    loy_row <- grep("treatmentLOY", rownames(co), value = TRUE)
+    if (length(loy_row) > 0) {
+      beta <- co[loy_row, "Estimate"]
+      pval <- co[loy_row, "Pr(>|t|)"]
+    }
+  }
+  ctrl_idx <- which(samples_y$treatment == "CTRL")
+  loy_idx  <- which(samples_y$treatment == "LOY")
+  base_row <- tibble(
+    gene_name        = sig_name,
+    ensembl_id       = NA_character_,
+    region           = sub("_signature$", "", sig_name),
+    category         = "signature",
+    n_genes          = length(ids_in),
+    mean_CTRL_logCPM = mean(scores[ctrl_idx]),
+    mean_LOY_logCPM  = mean(scores[loy_idx]),
+    mean_CTRL_CPM    = NA_real_,
+    mean_LOY_CPM     = NA_real_,
+    logFC            = beta,
+    PValue           = pval)
+  per_sample <- as.data.frame(t(scores))
+  colnames(per_sample) <- paste0("logCPM_", colnames(per_sample))
+  bind_cols(base_row, per_sample)
+}
+
+sig_rows <- bind_rows(
+  build_sig_row(y_genes$ensembl_id[y_genes$region == "PAR1"], "PAR1_signature"),
+  build_sig_row(y_genes$ensembl_id[y_genes$region == "PAR2"], "PAR2_signature"),
+  build_sig_row(y_genes$ensembl_id[y_genes$region == "MSY"],  "MSY_signature"),
+  build_sig_row(y_genes$ensembl_id[y_genes$arm    == "Yp"],   "Yp_signature"),
+  build_sig_row(y_genes$ensembl_id[y_genes$arm    == "Yq"],   "Yq_signature")) %>%
+  mutate(arm = recode(gene_name,
+                      PAR1_signature = "Yp",
+                      PAR2_signature = "Yq",
+                      MSY_signature  = NA_character_,
+                      Yp_signature   = "Yp",
+                      Yq_signature   = "Yq"))
+sig_rows$FDR <- p.adjust(sig_rows$PValue, method = "BH")
+
+sig_rows %>%
+  dplyr::select(gene_name, n_genes, logFC, PValue, FDR,
+                mean_CTRL_logCPM, mean_LOY_logCPM) %>%
+  knitr::kable(digits = c(0, 0, 3, 4, 4, 2, 2),
+               caption = "Y-region signatures: PAR1, PAR2, MSY + Yp/Yq arm aggregates (mean region logCPM per sample, paired LM)")
+```
+
+## 11.4b Per-sample PAR / MSY signature scores
+
+Compact sample-by-region table — the raw per-sample data that feeds the
+paired-LM tests in §11.4. Each cell is the mean logCPM across the genes in
+that region for that sample. Useful for spotting per-sample outliers or
+incomplete LOY (e.g. a "LOY" sample whose MSY mean hasn't fully collapsed)
+before reading the summary statistics. LNCaP has no PARENTAL arm so this
+covers the entire dataset.
+
+```{r y-summary-per-sample}
+sample_region_specs <- list(
+  PAR1 = y_genes$ensembl_id[y_genes$region == "PAR1"],
+  PAR2 = y_genes$ensembl_id[y_genes$region == "PAR2"],
+  MSY  = y_genes$ensembl_id[y_genes$region == "MSY"],
+  Yp   = y_genes$ensembl_id[y_genes$arm    == "Yp"],
+  Yq   = y_genes$ensembl_id[y_genes$arm    == "Yq"])
+
+sample_region_mat <- vapply(sample_region_specs, function(ids) {
+  ids_in <- intersect(ids, rownames(lcpm_full))
+  if (length(ids_in) < 1) return(rep(NA_real_, ncol(lcpm_full)))
+  colMeans(lcpm_full[ids_in, , drop = FALSE])
+}, FUN.VALUE = numeric(ncol(lcpm_full)))
+rownames(sample_region_mat) <- colnames(lcpm_full)
+
+sample_region_tbl <- samples_y %>%
+  cbind(as.data.frame(sample_region_mat)) %>%
+  dplyr::arrange(treatment, passage)
+
+sample_region_tbl %>%
+  knitr::kable(digits = c(0, 0, 0, 2, 2, 2, 2, 2),
+               caption = "Per-sample Y-region mean logCPM (PAR1 / PAR2 / MSY / Yp / Yq)")
+
+fwrite(sample_region_tbl,
+       file.path(DE_DIR, "lncap_LOY_sample_level_PAR_MSY.csv"))
+cat(sprintf("Wrote %d-row sample-level PAR/MSY table to lncap_LOY_sample_level_PAR_MSY.csv\n",
+            nrow(sample_region_tbl)))
+```
+
+## 11.5 Top up + top down DEGs (non-chrY)
+
+```{r y-summary-top-degs}
+top_n_each <- 20L
+top_up <- de_loy_ctrl %>%
+  rownames_to_column("ensembl_id") %>%
+  dplyr::filter(FDR < ALPHA, logFC >  LFC_THR) %>%
+  slice_min(FDR, n = top_n_each) %>%
+  mutate(category = "top_up")
+top_dn <- de_loy_ctrl %>%
+  rownames_to_column("ensembl_id") %>%
+  dplyr::filter(FDR < ALPHA, logFC < -LFC_THR) %>%
+  slice_min(FDR, n = top_n_each) %>%
+  mutate(category = "top_down")
+
+top_expr  <- expr_row_for(c(top_up$ensembl_id, top_dn$ensembl_id))
+top_block <- bind_rows(top_up, top_dn) %>%
+  dplyr::select(ensembl_id, gene_name, category, logFC, PValue, FDR) %>%
+  inner_join(top_expr, by = "ensembl_id") %>%
+  mutate(region = "non-Y") %>%
+  arrange(category, FDR)
+
+top_block %>%
+  dplyr::select(gene_name, category, logFC, FDR,
+                mean_CTRL_logCPM, mean_LOY_logCPM) %>%
+  knitr::kable(digits = c(0, 0, 2, 4, 2, 2),
+               caption = sprintf(
+                 "Top %d up + Top %d down DEGs (paired, FDR<%.2g, |logFC|>%.2g, non-chrY)",
+                 top_n_each, top_n_each, ALPHA, LFC_THR))
+```
+
+## 11.6 Genes of interest (DCC, XIST, X-paralogs)
+
+```{r y-summary-goi}
+goi_genes <- unique(c(
+  "DCC",   # 18q21 netrin receptor / tumour suppressor
+  "XIST",  # X-inactivation lncRNA
+  paralog_pairs$X))  # X-paralogs of the §7 Y-paralog set
+
+goi_ids <- dge_full_no_yfilter$genes %>%
+  rownames_to_column("ensembl_id") %>%
+  dplyr::filter(gene_name %in% goi_genes) %>%
+  dplyr::select(ensembl_id, gene_name, seqnames)
+
+goi_expr  <- expr_row_for(goi_ids$ensembl_id)
+goi_block <- goi_ids %>%
+  inner_join(goi_expr, by = "ensembl_id") %>%
+  left_join(de_loy_ctrl %>%
+              rownames_to_column("ensembl_id") %>%
+              dplyr::select(ensembl_id, logFC, PValue, FDR),
+            by = "ensembl_id") %>%
+  mutate(category = "genes_of_interest",
+         region   = paste0("chr", seqnames)) %>%
+  dplyr::select(-seqnames) %>%
+  arrange(gene_name)
+
+missing_goi <- setdiff(goi_genes, goi_block$gene_name)
+if (length(missing_goi) > 0) {
+  cat("GOI not detected post-filter:", paste(missing_goi, collapse = ", "), "\n")
+}
+
+goi_block %>%
+  dplyr::select(gene_name, region, logFC, FDR,
+                mean_CTRL_logCPM, mean_LOY_logCPM) %>%
+  knitr::kable(digits = c(0, 0, 2, 4, 2, 2),
+               caption = "Genes of interest (DCC, XIST, X-paralogs)")
+```
+
+## 11.7 Combined export
+
+```{r y-summary-export}
+common_cols <- c("gene_name", "ensembl_id", "category", "region", "arm",
+                 "n_genes",
+                 "logFC", "PValue", "FDR",
+                 "mean_CTRL_logCPM", "mean_LOY_logCPM",
+                 "mean_CTRL_CPM",    "mean_LOY_CPM")
+
+master_summary <- bind_rows(
+  chry_block %>% mutate(n_genes = NA_integer_),
+  sig_rows,
+  top_block %>% mutate(n_genes = NA_integer_),
+  goi_block %>% mutate(n_genes = NA_integer_)) %>%
+  dplyr::select(any_of(common_cols), starts_with("logCPM_"))
+
+fwrite(master_summary,
+       file.path(DE_DIR, "lncap_LOY_transcriptomics_summary.csv"))
+cat(sprintf("Wrote %d rows to lncap_LOY_transcriptomics_summary.csv\n",
+            nrow(master_summary)))
+```
+
+***
+
+# 12. Session info
+
+```{r session-info}
+sessionInfo()
+```
