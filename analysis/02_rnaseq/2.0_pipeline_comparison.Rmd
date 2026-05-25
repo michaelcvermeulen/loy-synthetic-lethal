@@ -429,8 +429,9 @@ make_concat_heatmap <- function(lcpm_old, lcpm_new, cell_label) {
     breaks = seq(0.85, 1.0, length.out = 100),
     main = sprintf("%s — Pearson r heatmap (OLD + NEW concatenated)",
                    cell_label),
-    fontsize = 7, fontsize_row = 6, fontsize_col = 6,
-    width = 9, height = 7)
+    fontsize = 12, fontsize_row = 11, fontsize_col = 11,
+    cellwidth = 18, cellheight = 18,
+    width = 16, height = 13)
 
   do.call(pheatmap, c(common_args,
     list(filename = file.path(FIG_DIR,
@@ -445,7 +446,7 @@ make_concat_heatmap(ht_n_old$lcpm, ht_n_new$lcpm, "HT1080")
 make_concat_heatmap(a_n_old$lcpm,  a_n_new$lcpm,  "A549")
 ```
 
-```{r concat-heatmap-display, out.width="48%", fig.show="hold", echo=FALSE}
+```{r concat-heatmap-display, out.width="100%", echo=FALSE}
 knitr::include_graphics(c(
   file.path(FIG_DIR, "sample_cor_heatmap_HT1080.png"),
   file.path(FIG_DIR, "sample_cor_heatmap_A549.png")
