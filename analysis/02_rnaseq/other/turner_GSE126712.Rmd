@@ -2196,7 +2196,7 @@ save_fig(p_overlap_bar, "overlap_DEG_counts", width = 6, height = 4)
 
 ## 13.4 Concordance scatter — Turner logFC vs LOY logFC
 
-```{r overlap-scatter, fig.height=5, fig.width=15}
+```{r overlap-scatter, fig.height=8, fig.width=24}
 plot_concordance <- function(wide_df, loy_cohort, color) {
   fc_col  <- paste0(loy_cohort, "_logFC")
   fdr_col <- paste0(loy_cohort, "_FDR")
@@ -2213,27 +2213,30 @@ plot_concordance <- function(wide_df, loy_cohort, color) {
 
   ggplot(d, aes(.data[[fc_col]], Turner_X0_vs_XY_logFC)) +
     geom_point(data = ~dplyr::filter(., !both_sig),
-               color = "grey80", alpha = 0.3, size = 0.6) +
+               color = "grey80", alpha = 0.35, size = 1.1) +
     geom_point(data = ~dplyr::filter(., both_sig),
-               color = color, alpha = 0.85, size = 1.6) +
+               color = color, alpha = 0.9, size = 3) +
     geom_hline(yintercept = 0, linetype = "dashed",
-               color = "grey50", linewidth = 0.3) +
+               color = "grey50", linewidth = 0.4) +
     geom_vline(xintercept = 0, linetype = "dashed",
-               color = "grey50", linewidth = 0.3) +
+               color = "grey50", linewidth = 0.4) +
     geom_abline(slope = 1, intercept = 0,
-                linetype = "dotted", color = "grey40", linewidth = 0.3) +
-    geom_text_repel(aes(label = label), size = 2.5,
-                    fontface = "italic", max.overlaps = 25,
-                    segment.color = "grey40", segment.size = 0.2,
-                    box.padding = 0.3, min.segment.length = 0.15) +
+                linetype = "dotted", color = "grey40", linewidth = 0.4) +
+    geom_text_repel(aes(label = label), size = 4,
+                    fontface = "italic", max.overlaps = 40,
+                    segment.color = "grey40", segment.size = 0.3,
+                    box.padding = 0.4, point.padding = 0.3,
+                    min.segment.length = 0.15) +
     labs(title = sprintf("%s LOY vs Turner X0", loy_cohort),
          subtitle = sprintf("Spearman ρ = %.2f   |   both-FDR<%.2f n = %d",
                             rho, ALPHA, n_both),
          x = expression(log[2]~"FC (LOY / sgCTRL)"),
          y = expression(log[2]~"FC (X0 / XY)")) +
-    theme_classic(base_size = 10) +
-    theme(plot.title = element_text(face = "bold", size = 11),
-          plot.subtitle = element_text(size = 8, color = "grey30"))
+    theme_classic(base_size = 14) +
+    theme(plot.title    = element_text(face = "bold", size = 16),
+          plot.subtitle = element_text(size = 11, color = "grey30"),
+          axis.title    = element_text(size = 13),
+          axis.text     = element_text(size = 11, color = "black"))
 }
 
 concord_a549   <- plot_concordance(all_wide, "A549",   "#0072B2")
@@ -2244,7 +2247,7 @@ concord_combined <- concord_a549 + concord_ht1080 + concord_lncap +
   plot_layout(ncol = 3)
 print(concord_combined)
 save_fig(concord_combined, "overlap_concordance_scatter",
-         width = 15, height = 5)
+         width = 24, height = 8)
 ```
 
 ## 13.5 Top shared DEGs across cohorts
