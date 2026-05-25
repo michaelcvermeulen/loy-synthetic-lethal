@@ -2032,190 +2032,305 @@ if (nrow(robust_tbl) > 0) {
 
 ***
 
-# 13. Label-permutation null
+# 13. Cross-cohort overlap with LOY isogenic lines
 
-How much of §5-§12 is real X0-vs-XY biology vs. method-level noise? This
-section shuffles the **karyotype labels** (X0 ↔ XY) across the X0+XY
-subset *N* times, re-runs the canonical pipeline on each shuffle
-(unpaired limma-voom DE → Hallmark fgsea → decoupleR ULM TF activity on
-CollecTRI), and reports the null distribution of DEG / pathway / TF
-counts vs. the observed assignment.
+The Turner X0-vs-XY signature describes whole-organism (lymphocyte) loss
+of one X chromosome from conception. The three LOY isogenic cell lines
+(A549, HT1080, LNCaP) describe targeted somatic loss of one Y
+chromosome in adult cell culture. Both share the structural feature
+"one fewer sex chromosome" but on a different axis (X vs Y; constitutive
+vs induced). Genes that respond concordantly across both contexts are
+candidates for a sex-chromosome-aneuploidy core signature; MYL9 in
+particular has come up repeatedly in the LOY analyses and is worth
+spotlighting here.
 
-## 13.1 Setup
+## 13.1 Load LOY cohort DE tables
 
-```{r perm-setup}
-N_PERM    <- 100
-PERM_SEED <- 42
-set.seed(PERM_SEED)
+```{r overlap-load}
+# Canonical LOY DE outputs live under each cell-line subdirectory at the
+# parent level. Each file is the paired LOY-vs-sgCTRL contrast (limma-voom
+# with passage as block); columns gene_name / logFC / FDR / t are the ones
+# we'll harmonize against the Turner table.
+#
+# Note: LNCaP base writes its paired DE under the (legacy) ht1080_-prefixed
+# filename — the contents are LNCaP results, not HT1080. Path is correct.
+loy_de_paths <- c(
+  A549   = "../A549/DE/a549_LOY_v_sgCTRL_DE_paired.csv",
+  HT1080 = "../HT1080/DE/ht1080_LOY_v_sgCTRL_DE_paired.csv",
+  LNCaP  = "../LNCaP/DE/ht1080_LOY_v_sgCTRL_DE_paired.csv"
+)
 
-# Subset to X0 + XY for the null (matching the §5.4 primary contrast)
-x0_xy_keep      <- as.character(dge$samples$karyotype) %in% c("XO", "XY")
-real_karyotype  <- as.character(dge$samples$karyotype)[x0_xy_keep]
-dge_x0_xy       <- dge[, x0_xy_keep, keep.lib.sizes = FALSE]
-
-cat(sprintf("N permutations: %d   |   class sizes preserved: %s\n",
-            N_PERM,
-            paste(names(table(real_karyotype)),
-                  table(real_karyotype), sep = "=", collapse = ", ")))
-```
-
-## 13.2 Helpers
-
-```{r perm-helpers}
-run_one_perm <- function(shuf_karyo, dge_sub, net_obj, hallmark_sets) {
-  s_karyo <- factor(shuf_karyo, levels = c("XO", "XY"))
-
-  s_dge <- calcNormFactors(dge_sub, method = "TMM")
-  des   <- model.matrix(~ 0 + s_karyo)
-  colnames(des) <- gsub("^s_karyo", "", colnames(des))
-  cm    <- makeContrasts(contrasts = "XO - XY", levels = colnames(des))
-  v     <- voom(s_dge, des, plot = FALSE)
-  fit   <- lmFit(v, des) %>% contrasts.fit(cm) %>% eBayes()
-  tt    <- topTable(fit, coef = 1, n = Inf, sort.by = "P")
-  tt$gene_symbol <- s_dge$genes[rownames(tt), "gene_symbol"]
-
-  n_deg <- sum(tt$adj.P.Val < ALPHA & abs(tt$logFC) > LFC_THR, na.rm = TRUE)
-
-  # Hallmark fgsea — same rank policy as §7 (RPS/RPL + PAR + chrY stripped)
-  rdf <- tt %>%
-    dplyr::filter(!is.na(gene_symbol), nzchar(gene_symbol), !is.na(t)) %>%
-    dplyr::filter(!grepl("^RPS\\d|^RPL\\d", gene_symbol)) %>%
-    dplyr::filter(!gene_symbol %in% excluded_gene_names) %>%
-    dplyr::group_by(gene_symbol) %>%
-    dplyr::summarize(stat = t[which.max(abs(t))], .groups = "drop")
-  r <- sort(setNames(rdf$stat, rdf$gene_symbol), decreasing = TRUE)
-
-  set.seed(42)
-  fres <- suppressWarnings(fgsea(pathways = hallmark_sets, stats = r,
-                                  minSize = 15, maxSize = 500))
-  n_gsea <- sum(fres$padj < 0.05, na.rm = TRUE)
-
-  # decoupleR ULM on same t-stat vector
-  deg_mat <- matrix(rdf$stat, ncol = 1,
-                    dimnames = list(rdf$gene_symbol, "stat"))
-  acts <- suppressMessages(run_ulm(
-    mat = deg_mat, net = net_obj,
-    .source = "source", .target = "target", .mor = "mor", minsize = 5))
-  n_tf <- sum(acts$p_value < 0.05, na.rm = TRUE)
-
-  list(n_deg = n_deg, n_gsea = n_gsea, n_tf = n_tf)
+load_loy_de <- function(path, cohort) {
+  if (!file.exists(path)) {
+    warning(sprintf("Missing LOY DE file for %s: %s", cohort, path))
+    return(NULL)
+  }
+  fread(path, data.table = FALSE) %>%
+    dplyr::transmute(
+      gene   = gene_name,
+      logFC  = logFC,
+      FDR    = FDR,
+      t      = t,
+      cohort = cohort
+    ) %>%
+    dplyr::filter(!is.na(gene), nzchar(gene)) %>%
+    dplyr::distinct(gene, .keep_all = TRUE)
 }
 
-# Observed value with the real karyotype labels — fair head-to-head
-# against the null (same unpaired DE / rank / fgsea / ULM settings).
-real_perm <- run_one_perm(real_karyotype, dge_x0_xy,
-                          net, pathways$hallmark)
-cat(sprintf("Observed (real X0/XY labels):\n"))
-cat(sprintf("  N_DEG (FDR<%g, |lfc|>%g): %d\n",
-            ALPHA, LFC_THR, real_perm$n_deg))
-cat(sprintf("  N_Hallmark (padj<0.05):   %d\n", real_perm$n_gsea))
-cat(sprintf("  N_TF (CollecTRI ULM p<0.05): %d\n", real_perm$n_tf))
+loy_de_list <- Map(load_loy_de, loy_de_paths, names(loy_de_paths))
+loy_de_long <- bind_rows(loy_de_list)
+
+cat(sprintf("Loaded LOY DE tables: %s\n",
+            paste(sprintf("%s = %d genes",
+                          names(loy_de_list),
+                          sapply(loy_de_list, NROW)),
+                  collapse = "  |  ")))
 ```
 
-## 13.3 Run permutations
+## 13.2 Build unified per-gene table (Turner + 3 LOY cohorts)
 
-```{r perm-run, cache=TRUE}
-perm_seeds <- seq_len(N_PERM)
-perm_out <- lapply(perm_seeds, function(s) {
-  set.seed(PERM_SEED + s)
-  shuf <- sample(real_karyotype)
-  run_one_perm(shuf, dge_x0_xy, net, pathways$hallmark)
-})
+```{r overlap-table}
+turner_long <- de_x0_xy %>%
+  dplyr::transmute(gene   = gene_symbol,
+                   logFC  = logFC,
+                   FDR    = adj.P.Val,
+                   t      = t,
+                   cohort = "Turner_X0_vs_XY") %>%
+  dplyr::filter(!is.na(gene), nzchar(gene)) %>%
+  dplyr::distinct(gene, .keep_all = TRUE)
 
-null_df <- tibble::tibble(
-  perm   = seq_len(N_PERM),
-  n_deg  = vapply(perm_out, `[[`, integer(1), "n_deg"),
-  n_gsea = vapply(perm_out, `[[`, integer(1), "n_gsea"),
-  n_tf   = vapply(perm_out, `[[`, integer(1), "n_tf"))
+all_long <- bind_rows(loy_de_long, turner_long) %>%
+  mutate(cohort = factor(cohort,
+                          levels = c("Turner_X0_vs_XY",
+                                     "A549", "HT1080", "LNCaP")))
 
-fwrite(null_df, file.path(TF_DIR, "permutation_null.csv"))
+# Wide table for overlap counting: one row per gene, logFC/FDR per cohort
+all_wide <- all_long %>%
+  dplyr::select(gene, cohort, logFC, FDR) %>%
+  pivot_wider(names_from = cohort,
+              values_from = c(logFC, FDR),
+              names_glue = "{cohort}_{.value}")
 
-cat("Permutation summary (median [10th-90th percentile]):\n")
-for (m in c("n_deg", "n_gsea", "n_tf")) {
-  q <- quantile(null_df[[m]], c(0.10, 0.50, 0.90), na.rm = TRUE)
-  cat(sprintf("  %-7s : %6.0f [%6.0f - %6.0f]\n", m, q[2], q[1], q[3]))
-}
+cat(sprintf("Unified table: %d unique genes across 4 cohorts\n",
+            nrow(all_wide)))
 ```
 
-## 13.4 Null vs observed histograms
+## 13.3 DEG overlap summary
 
-```{r perm-plot, fig.height=4, fig.width=12}
-metric_labels <- c(
-  n_deg  = sprintf("DEGs (FDR < %g, |lfc| > %g)", ALPHA, LFC_THR),
-  n_gsea = "Hallmark pathways (padj < 0.05)",
-  n_tf   = "TFs (decoupleR ULM CollecTRI, p < 0.05)")
+```{r overlap-summary}
+sig_flag <- function(fdr) !is.na(fdr) & fdr < ALPHA
 
-null_long <- null_df %>%
-  tidyr::pivot_longer(c(n_deg, n_gsea, n_tf),
-                      names_to = "metric", values_to = "value") %>%
-  mutate(metric = factor(metric_labels[metric], levels = metric_labels))
+overlap_summary <- all_wide %>%
+  mutate(
+    turner_sig = sig_flag(Turner_X0_vs_XY_FDR),
+    a549_sig   = sig_flag(A549_FDR),
+    ht1080_sig = sig_flag(HT1080_FDR),
+    lncap_sig  = sig_flag(LNCaP_FDR),
+    n_loy_sig  = a549_sig + ht1080_sig + lncap_sig
+  )
 
-real_long <- tibble::tibble(
-  metric = factor(metric_labels, levels = metric_labels),
-  value  = c(real_perm$n_deg, real_perm$n_gsea, real_perm$n_tf))
+cat("=== DEG counts (FDR < 0.05, any direction) ===\n")
+cat(sprintf("  Turner X0 vs XY            : %d\n",
+            sum(overlap_summary$turner_sig)))
+cat(sprintf("  A549   LOY vs sgCTRL        : %d\n",
+            sum(overlap_summary$a549_sig)))
+cat(sprintf("  HT1080 LOY vs sgCTRL        : %d\n",
+            sum(overlap_summary$ht1080_sig)))
+cat(sprintf("  LNCaP  LOY vs sgCTRL        : %d\n",
+            sum(overlap_summary$lncap_sig)))
+cat("\n=== Turner ∩ LOY overlap ===\n")
+cat(sprintf("  Turner ∩ A549              : %d\n",
+            sum(overlap_summary$turner_sig & overlap_summary$a549_sig)))
+cat(sprintf("  Turner ∩ HT1080            : %d\n",
+            sum(overlap_summary$turner_sig & overlap_summary$ht1080_sig)))
+cat(sprintf("  Turner ∩ LNCaP             : %d\n",
+            sum(overlap_summary$turner_sig & overlap_summary$lncap_sig)))
+cat(sprintf("  Turner ∩ (any LOY line)    : %d\n",
+            sum(overlap_summary$turner_sig & overlap_summary$n_loy_sig >= 1)))
+cat(sprintf("  Turner ∩ (>=2 LOY lines)   : %d\n",
+            sum(overlap_summary$turner_sig & overlap_summary$n_loy_sig >= 2)))
+cat(sprintf("  Turner ∩ all 3 LOY lines   : %d\n",
+            sum(overlap_summary$turner_sig & overlap_summary$n_loy_sig == 3)))
+```
 
-p_perm <- ggplot(null_long, aes(value)) +
-  geom_histogram(bins = 30, fill = "#0072B2",
-                 color = "white", linewidth = 0.2) +
-  geom_vline(data = real_long, aes(xintercept = value),
-             color = "#D55E00", linewidth = 1) +
-  geom_text(data = real_long,
-            aes(x = value, y = Inf,
-                label = sprintf("observed = %d", value)),
-            inherit.aes = FALSE,
-            hjust = -0.1, vjust = 1.5,
-            color = "#D55E00", size = 3.5) +
-  facet_wrap(~ metric, scales = "free", ncol = 3) +
-  labs(title = sprintf(
-        "Turner X0 vs XY — label-permutation null distribution (N = %d shuffles)",
-        N_PERM),
-       subtitle = "Karyotype labels (X0 / XY) shuffled across samples; unpaired DE for both null and observed",
-       x = "Count from one permutation",
-       y = "Number of permutations") +
+```{r overlap-bar, fig.height=4, fig.width=6}
+overlap_counts <- tibble::tibble(
+  category = c("Turner only",
+               "Turner ∩ A549",
+               "Turner ∩ HT1080",
+               "Turner ∩ LNCaP",
+               "Turner ∩ ≥2 LOY",
+               "Turner ∩ all 3 LOY"),
+  count = c(
+    sum(overlap_summary$turner_sig & overlap_summary$n_loy_sig == 0),
+    sum(overlap_summary$turner_sig & overlap_summary$a549_sig),
+    sum(overlap_summary$turner_sig & overlap_summary$ht1080_sig),
+    sum(overlap_summary$turner_sig & overlap_summary$lncap_sig),
+    sum(overlap_summary$turner_sig & overlap_summary$n_loy_sig >= 2),
+    sum(overlap_summary$turner_sig & overlap_summary$n_loy_sig == 3)
+  )
+) %>%
+  mutate(category = factor(category, levels = category))
+
+p_overlap_bar <- ggplot(overlap_counts, aes(category, count, fill = category)) +
+  geom_col(color = "black", linewidth = 0.3, width = 0.7) +
+  geom_text(aes(label = count), vjust = -0.4, size = 3.5,
+            fontface = "bold") +
+  scale_fill_manual(values = c(
+    "Turner only"          = "grey75",
+    "Turner ∩ A549"        = "#0072B2",
+    "Turner ∩ HT1080"      = "#009E73",
+    "Turner ∩ LNCaP"       = "#E69F00",
+    "Turner ∩ ≥2 LOY"      = "#CC79A7",
+    "Turner ∩ all 3 LOY"   = "#D55E00"
+  )) +
+  labs(title = "Turner DEG overlap with LOY isogenic lines",
+       subtitle = sprintf("FDR < %g in each respective contrast", ALPHA),
+       x = NULL, y = "DEG count") +
   theme_classic(base_size = 10) +
-  theme(strip.background = element_blank(),
-        strip.text = element_text(face = "bold", size = 9),
-        plot.title = element_text(face = "bold", size = 11))
-
-print(p_perm)
-save_fig(p_perm, "permutation_null_histograms",
-         width = 12, height = 4)
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 30, hjust = 1, size = 9))
+print(p_overlap_bar)
+save_fig(p_overlap_bar, "overlap_DEG_counts", width = 6, height = 4)
 ```
 
-## 13.5 Empirical p-values
+## 13.4 Concordance scatter — Turner logFC vs LOY logFC
 
-```{r perm-pvalues}
-emp_p <- function(real, null_vals) {
-  (sum(null_vals >= real, na.rm = TRUE) + 1) / (length(null_vals) + 1)
+```{r overlap-scatter, fig.height=5, fig.width=15}
+plot_concordance <- function(wide_df, loy_cohort, color) {
+  fc_col  <- paste0(loy_cohort, "_logFC")
+  fdr_col <- paste0(loy_cohort, "_FDR")
+  d <- wide_df %>%
+    dplyr::filter(!is.na(.data[[fc_col]]),
+                  !is.na(Turner_X0_vs_XY_logFC)) %>%
+    mutate(both_sig = sig_flag(Turner_X0_vs_XY_FDR) & sig_flag(.data[[fdr_col]]),
+           label = ifelse(both_sig & abs(.data[[fc_col]]) > 0.75 &
+                            abs(Turner_X0_vs_XY_logFC) > 0.5,
+                          gene, NA))
+  rho <- cor(d[[fc_col]], d$Turner_X0_vs_XY_logFC,
+             use = "pairwise.complete.obs", method = "spearman")
+  n_both <- sum(d$both_sig)
+
+  ggplot(d, aes(.data[[fc_col]], Turner_X0_vs_XY_logFC)) +
+    geom_point(data = ~dplyr::filter(., !both_sig),
+               color = "grey80", alpha = 0.3, size = 0.6) +
+    geom_point(data = ~dplyr::filter(., both_sig),
+               color = color, alpha = 0.85, size = 1.6) +
+    geom_hline(yintercept = 0, linetype = "dashed",
+               color = "grey50", linewidth = 0.3) +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               color = "grey50", linewidth = 0.3) +
+    geom_abline(slope = 1, intercept = 0,
+                linetype = "dotted", color = "grey40", linewidth = 0.3) +
+    geom_text_repel(aes(label = label), size = 2.5,
+                    fontface = "italic", max.overlaps = 25,
+                    segment.color = "grey40", segment.size = 0.2,
+                    box.padding = 0.3, min.segment.length = 0.15) +
+    labs(title = sprintf("%s LOY vs Turner X0", loy_cohort),
+         subtitle = sprintf("Spearman ρ = %.2f   |   both-FDR<%.2f n = %d",
+                            rho, ALPHA, n_both),
+         x = expression(log[2]~"FC (LOY / sgCTRL)"),
+         y = expression(log[2]~"FC (X0 / XY)")) +
+    theme_classic(base_size = 10) +
+    theme(plot.title = element_text(face = "bold", size = 11),
+          plot.subtitle = element_text(size = 8, color = "grey30"))
 }
 
-perm_summary <- tibble::tibble(
-  metric           = unname(metric_labels),
-  observed         = c(real_perm$n_deg, real_perm$n_gsea, real_perm$n_tf),
-  null_median      = c(median(null_df$n_deg),
-                       median(null_df$n_gsea),
-                       median(null_df$n_tf)),
-  null_p10         = c(quantile(null_df$n_deg, 0.10),
-                       quantile(null_df$n_gsea, 0.10),
-                       quantile(null_df$n_tf,   0.10)),
-  null_p90         = c(quantile(null_df$n_deg, 0.90),
-                       quantile(null_df$n_gsea, 0.90),
-                       quantile(null_df$n_tf,   0.90)),
-  empirical_p_right = c(emp_p(real_perm$n_deg,  null_df$n_deg),
-                        emp_p(real_perm$n_gsea, null_df$n_gsea),
-                        emp_p(real_perm$n_tf,   null_df$n_tf)))
+concord_a549   <- plot_concordance(all_wide, "A549",   "#0072B2")
+concord_ht1080 <- plot_concordance(all_wide, "HT1080", "#009E73")
+concord_lncap  <- plot_concordance(all_wide, "LNCaP",  "#E69F00")
 
-fwrite(perm_summary, file.path(TF_DIR, "permutation_summary.csv"))
-knitr::kable(perm_summary, digits = 3,
-             caption = sprintf("Permutation-null summary (N = %d shuffles)",
-                               N_PERM))
+concord_combined <- concord_a549 + concord_ht1080 + concord_lncap +
+  plot_layout(ncol = 3)
+print(concord_combined)
+save_fig(concord_combined, "overlap_concordance_scatter",
+         width = 15, height = 5)
 ```
 
-**How to read this:** the null shows how many DEGs / pathways / TFs you'd
-recover from random X0/XY relabeling at the same sample sizes. Empirical
-p near 0 ( = observed far above the null) means the real X0-vs-XY signal
-is well above random noise; empirical p near 1 would mean the signal is
-indistinguishable from random at this sample size.
+## 13.5 Top shared DEGs across cohorts
+
+```{r overlap-table-top}
+shared_dt <- overlap_summary %>%
+  dplyr::filter(turner_sig, n_loy_sig >= 1) %>%
+  mutate(
+    summed_abs_lfc = abs(Turner_X0_vs_XY_logFC) +
+                     ifelse(is.na(A549_logFC),   0, abs(A549_logFC)) +
+                     ifelse(is.na(HT1080_logFC), 0, abs(HT1080_logFC)) +
+                     ifelse(is.na(LNCaP_logFC),  0, abs(LNCaP_logFC))
+  ) %>%
+  arrange(desc(n_loy_sig), desc(summed_abs_lfc))
+
+fwrite(shared_dt %>%
+         dplyr::select(gene,
+                       Turner_X0_vs_XY_logFC, Turner_X0_vs_XY_FDR,
+                       A549_logFC, A549_FDR,
+                       HT1080_logFC, HT1080_FDR,
+                       LNCaP_logFC, LNCaP_FDR,
+                       n_loy_sig, summed_abs_lfc),
+       file.path(DE_DIR, "turner_vs_LOY_shared_DEGs.csv"))
+
+shared_dt %>%
+  dplyr::select(gene,
+                Turner_lfc = Turner_X0_vs_XY_logFC,
+                A549_lfc   = A549_logFC,
+                HT1080_lfc = HT1080_logFC,
+                LNCaP_lfc  = LNCaP_logFC,
+                n_loy_sig) %>%
+  head(30) %>%
+  knitr::kable(digits = 2,
+               caption = "Top 30 Turner DEGs also called in ≥1 LOY line (ranked by # lines + summed |logFC|)")
+```
+
+## 13.6 MYL9 spotlight
+
+MYL9 (Myosin Light Chain 9, chr20q11.23) keeps surfacing in the LOY
+analyses. It's a smooth-muscle/myofibroblast contractile gene also
+expressed in non-muscle tissue as part of a stress-fibre /
+mechanotransduction module. Pulling its row across all four cohorts and
+visualising X0 expression directly:
+
+```{r myl9-table}
+myl9_row <- all_long %>% dplyr::filter(gene == "MYL9")
+if (nrow(myl9_row) == 0) {
+  cat("MYL9 not present in any DE table.\n")
+} else {
+  myl9_row %>%
+    dplyr::select(cohort, logFC, FDR, t) %>%
+    knitr::kable(digits = c(0, 3, 4, 3),
+                 caption = "MYL9 — DE statistics across cohorts (LOY = LOY-vs-sgCTRL; Turner = X0-vs-XY)")
+}
+```
+
+```{r myl9-boxplot, fig.height=4, fig.width=6}
+myl9_idx <- which(dge$genes$gene_symbol == "MYL9")
+if (length(myl9_idx) > 0) {
+  myl9_expr <- tibble::tibble(
+    sample    = colnames(lcpm),
+    expression = lcpm[myl9_idx[1], ],
+    karyotype = dge$samples$karyotype
+  )
+
+  p_myl9 <- ggplot(myl9_expr,
+                    aes(karyotype, expression, fill = karyotype)) +
+    geom_boxplot(outlier.shape = NA, alpha = 0.7, width = 0.6) +
+    geom_jitter(width = 0.15, size = 1.8, alpha = 0.7,
+                color = "grey20") +
+    scale_fill_manual(values = karyotype_cols) +
+    labs(title = "MYL9 expression by karyotype (Turner GSE126712)",
+         subtitle = "Same gene also called DE in HT1080 LOY (FDR ≈ 2e-4); see §13.6 table",
+         x = NULL, y = expression(log[2]~"(CPM)"),
+         fill = "Karyotype") +
+    theme_classic(base_size = 11) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", size = 11),
+          plot.subtitle = element_text(size = 8, color = "grey30"))
+  print(p_myl9)
+  save_fig(p_myl9, "MYL9_expression_by_karyotype",
+           width = 6, height = 4)
+} else {
+  cat("MYL9 not in Turner DGEList (filtered out at low-expression step).\n")
+}
+```
 
 ***
 
