@@ -1,5 +1,5 @@
 ---
-title: "2.0 RNA-seq pipeline comparison — OLD vs NEW counts (A549 + HT1080)"
+title: "2.0 RNA-seq pipeline comparison — HISAT2 (OLD) vs STAR-v2 PAR-aware (NEW) counts (A549 + HT1080)"
 author: "Mike Vermeulen"
 date: "`r Sys.Date()`"
 output: rmdformats::readthedown
@@ -23,20 +23,33 @@ different points in the project. Per-cell-line analyses (2.1.1 A549,
 notebook asks: **how comparable are the two count tables, and would the
 biological conclusions change if we'd kept the OLD counts?**
 
+The "NEW" pipeline here is the current canonical one used by every
+downstream analysis (2.1.1 A549, 2.2.1 HT1080, 2.3.1 LNCaP): the
+**PAR-aware STAR v2 realignment** (`STAR_v2_PARfix/`). The interim
+non-PAR-aware STAR run (`STAR_v1/`) that briefly served as "NEW" between
+HISAT2 and the PAR-aware run is no longer in use; PAR1/PAR2 genes
+(SHOX, CSF2RA, SLC25A6, AKAP17A, …) were silently dropped at multi-mapper
+filtering in that interim run and are now recovered. Only HISAT2 (OLD)
+vs PAR-aware STAR (NEW) are compared here.
+
 ## Pipeline difference summary
 
 | Field | OLD pipeline | NEW pipeline |
 |---|---|---|
-| Counts dir | `data/RNAseq/AUG_13_2025_LOY_A549_HT1080/counts/` | `projects/RNAseq/counts/AUG_2025_<cell>_LOY/` |
-| Aligner | HISAT2 | STAR two-pass |
+| Counts dir | `data/RNAseq/AUG_13_2025_LOY_A549_HT1080/counts/` | `projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_<cell>_LOY/` |
+| Aligner | HISAT2 (default) | STAR two-pass, PAR-Y-masked reference |
+| chrY handling | standard | Y chromosome PAR regions hard-masked so chrX-PAR reads are no longer split between two equivalent positions |
 | Reference annotation | GENCODE v47 (`chr_patch_hapl_scaff`) | GENCODE v49 (primary assembly) |
 | featureCounts | v2.0.1 | v2.1.1 |
 | Sample composition | identical (9 HT1080 + 11 A549) | identical |
 
-Same biological samples; same FASTQs; different aligner + reference + quantifier
-version. Differences between the two count tables are therefore **technical** —
-they tell us how much downstream interpretation is sensitive to the upstream
-pipeline choice.
+Same biological samples; same FASTQs; different aligner + reference +
+quantifier + chrY handling. Differences between the two count tables are
+therefore **technical** — they tell us how much downstream interpretation
+is sensitive to the upstream pipeline choice, with particular emphasis on
+PAR1/PAR2 gene recovery (those genes are expected to drop to ~0 in the
+OLD pipeline and to be expressed at biologically plausible levels in the
+NEW one).
 
 # 1. Setup
 
@@ -53,13 +66,20 @@ suppressPackageStartupMessages({
   library(patchwork)
   library(pheatmap)
   library(RColorBrewer)
+  library(fgsea)
+  library(msigdbr)
+  library(decoupleR)
 })
 ```
 
 ```{r paths}
 DATA_ROOT      <- "A:/Dropbox/LOY_paralogs"
 OLD_COUNTS_DIR <- file.path(DATA_ROOT, "data/RNAseq/AUG_13_2025_LOY_A549_HT1080/counts")
-NEW_COUNTS_DIR <- file.path(DATA_ROOT, "projects/RNAseq/counts")
+# NEW = canonical PAR-aware STAR v2 realignment. The earlier non-PAR-aware
+# STAR v1 run is intentionally not compared here (PAR1/PAR2 reads were
+# silently dropped at multi-mapper filtering and the run has been
+# superseded).
+NEW_COUNTS_DIR <- file.path(DATA_ROOT, "projects/RNAseq/counts/STAR_v2_PARfix")
 
 BASE_DIR <- getwd()
 OUT_DIR  <- file.path(BASE_DIR, "pipeline_comparison")
@@ -658,7 +678,339 @@ print(p_pooled)
 save_fig(p_pooled, "lfc_concordance_pooled",     width = 14, height = 6)
 ```
 
-# 9. Verdict
+# 9. GSEA — Hallmark NES concordance
+
+If the upstream pipeline only shifts gene-level estimates within their noise
+envelope, the **pathway-level NES** should barely move. fgsea against the
+MSigDB Hallmark collection (50 sets) is run on a `-sign(logFC) * -log10(P)`
+rank for each of the 12 DE tables; OLD vs NEW NES are then scattered per
+contrast.
+
+```{r gsea-helpers}
+hallmark_sets <- {
+  hm <- msigdbr(species = "Homo sapiens", collection = "H")
+  split(hm$gene_symbol, hm$gs_name)
+}
+
+# Build a signed −log10(P) rank vector keyed by HGNC symbol, collapsing
+# duplicates (multiple Ensembl IDs per symbol) by the most extreme value.
+de_to_rank <- function(de_df) {
+  d <- de_df %>%
+    dplyr::filter(!is.na(symbol), nzchar(symbol),
+                  !is.na(PValue), is.finite(logFC)) %>%
+    mutate(score = -sign(logFC) * log10(pmax(PValue, 1e-300))) %>%
+    group_by(symbol) %>%
+    slice_max(abs(score), n = 1, with_ties = FALSE) %>%
+    ungroup()
+  setNames(d$score, d$symbol)
+}
+
+run_hallmark <- function(de_df) {
+  set.seed(42)
+  r <- de_to_rank(de_df)
+  res <- fgseaMultilevel(pathways = hallmark_sets, stats = r,
+                         minSize = 5, maxSize = 500)
+  as.data.frame(res) %>%
+    dplyr::select(pathway, NES, padj, size) %>%
+    arrange(pathway)
+}
+```
+
+```{r gsea-run-all, cache=TRUE}
+gsea_all <- lapply(all_de, run_hallmark)
+for (nm in names(gsea_all)) {
+  fwrite(gsea_all[[nm]],
+         file.path(TAB_DIR, sprintf("GSEA_hallmark_%s.csv", nm)))
+}
+```
+
+```{r gsea-compare-helpers}
+compare_gsea <- function(old_df, new_df, cell_label, contrast_label) {
+  shared <- inner_join(
+    old_df %>% dplyr::select(pathway, NES_old = NES, padj_old = padj),
+    new_df %>% dplyr::select(pathway, NES_new = NES, padj_new = padj),
+    by = "pathway") %>%
+    dplyr::filter(!is.na(NES_old), !is.na(NES_new))
+  sig_old <- shared %>% dplyr::filter(padj_old < 0.05) %>% pull(pathway)
+  sig_new <- shared %>% dplyr::filter(padj_new < 0.05) %>% pull(pathway)
+  list(cell           = cell_label,
+       contrast       = contrast_label,
+       n_pathways     = nrow(shared),
+       n_sig_old      = length(sig_old),
+       n_sig_new      = length(sig_new),
+       intersect_sig  = length(intersect(sig_old, sig_new)),
+       jaccard_sig    = length(intersect(sig_old, sig_new)) /
+                        max(length(union(sig_old, sig_new)), 1),
+       nes_pearson_r  = cor(shared$NES_old, shared$NES_new,
+                            use = "complete.obs"),
+       sign_agreement = mean(sign(shared$NES_old) == sign(shared$NES_new),
+                             na.rm = TRUE),
+       shared_df      = shared)
+}
+
+plot_nes_concord <- function(cmp, cell_label, contrast_label,
+                              n_label = 10, what = "Hallmark") {
+  d <- cmp$shared_df %>%
+    mutate(both_sig = padj_old < 0.05 & padj_new < 0.05,
+           rank_score = abs(NES_old) + abs(NES_new),
+           label_pretty = sub("^HALLMARK_", "", pathway) %>%
+             gsub("_", " ", .) %>% str_to_title())
+  top_lab <- d %>%
+    dplyr::filter(both_sig) %>%
+    slice_max(rank_score, n = n_label)
+  if (nrow(top_lab) < n_label) {
+    extra <- d %>% dplyr::filter(!pathway %in% top_lab$pathway) %>%
+      slice_max(rank_score, n = n_label - nrow(top_lab))
+    top_lab <- bind_rows(top_lab, extra)
+  }
+  ax_lim <- max(abs(c(d$NES_old, d$NES_new)), na.rm = TRUE) * 1.05
+  ggplot(d, aes(x = NES_old, y = NES_new)) +
+    geom_point(alpha = 0.35, size = 1.0, color = "grey60") +
+    geom_point(data = d %>% dplyr::filter(both_sig),
+               alpha = 0.9, size = 1.6, color = "#D55E00") +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+                color = "grey40", linewidth = 0.4) +
+    geom_hline(yintercept = 0, linetype = "dotted", color = "grey60") +
+    geom_vline(xintercept = 0, linetype = "dotted", color = "grey60") +
+    geom_text_repel(
+      data = top_lab, aes(label = label_pretty),
+      size = 2.4, color = "grey15", max.overlaps = Inf,
+      segment.color = "grey50", segment.size = 0.25,
+      box.padding = 0.4, min.segment.length = 0.1, force = 2) +
+    coord_cartesian(xlim = c(-ax_lim, ax_lim), ylim = c(-ax_lim, ax_lim)) +
+    labs(title = sprintf("%s — %s, %s NES",
+                         cell_label, contrast_label, what),
+         subtitle = sprintf("Pearson r = %.3f · sign agreement = %.0f%% · orange = padj<0.05 in BOTH",
+                            cmp$nes_pearson_r,
+                            100 * cmp$sign_agreement),
+         x = "NES (OLD pipeline)",
+         y = "NES (NEW pipeline)") +
+    theme_classic(base_size = 10) +
+    theme(plot.title    = element_text(face = "bold", size = 11),
+          plot.subtitle = element_text(size = 9, color = "grey30"))
+}
+```
+
+```{r gsea-compare-all}
+gsea_cmp <- list(
+  HT1080_paired   = compare_gsea(gsea_all$HT1080_OLD_paired,
+                                 gsea_all$HT1080_NEW_paired,
+                                 "HT1080", "LOY vs sgCTRL (paired)"),
+  HT1080_unpaired = compare_gsea(gsea_all$HT1080_OLD_unpaired,
+                                 gsea_all$HT1080_NEW_unpaired,
+                                 "HT1080", "LOY vs sgCTRL (unpaired)"),
+  HT1080_pooled   = compare_gsea(gsea_all$HT1080_OLD_pooled,
+                                 gsea_all$HT1080_NEW_pooled,
+                                 "HT1080", "LOY vs pooled Y+"),
+  A549_paired     = compare_gsea(gsea_all$A549_OLD_paired,
+                                 gsea_all$A549_NEW_paired,
+                                 "A549",   "LOY vs sgCTRL (paired)"),
+  A549_unpaired   = compare_gsea(gsea_all$A549_OLD_unpaired,
+                                 gsea_all$A549_NEW_unpaired,
+                                 "A549",   "LOY vs sgCTRL (unpaired)"),
+  A549_pooled     = compare_gsea(gsea_all$A549_OLD_pooled,
+                                 gsea_all$A549_NEW_pooled,
+                                 "A549",   "LOY vs pooled Y+"))
+
+gsea_summary <- bind_rows(lapply(gsea_cmp, function(x) {
+  data.frame(cell = x$cell, contrast = x$contrast,
+             n_pathways  = x$n_pathways,
+             sig_OLD     = x$n_sig_old,
+             sig_NEW     = x$n_sig_new,
+             intersect   = x$intersect_sig,
+             jaccard_sig = x$jaccard_sig,
+             nes_r       = x$nes_pearson_r,
+             sign_agree  = x$sign_agreement) }))
+
+fwrite(gsea_summary, file.path(TAB_DIR, "GSEA_hallmark_OLD_vs_NEW_summary.csv"))
+knitr::kable(gsea_summary, digits = 3,
+             caption = "Hallmark NES concordance: OLD vs NEW pipeline (50 pathways)")
+```
+
+## 9.1 Paired LOY vs sgCTRL — Hallmark NES
+
+```{r gsea-concord-paired, fig.height=6, fig.width=14}
+p_g_paired <- plot_nes_concord(gsea_cmp$HT1080_paired, "HT1080",
+                               "LOY vs sgCTRL (paired)") |
+              plot_nes_concord(gsea_cmp$A549_paired,   "A549",
+                               "LOY vs sgCTRL (paired)")
+print(p_g_paired)
+save_fig(p_g_paired, "gsea_concordance_paired",   width = 14, height = 6)
+```
+
+## 9.2 Unpaired LOY vs sgCTRL — Hallmark NES
+
+```{r gsea-concord-unpaired, fig.height=6, fig.width=14}
+p_g_unp <- plot_nes_concord(gsea_cmp$HT1080_unpaired, "HT1080",
+                            "LOY vs sgCTRL (unpaired)") |
+           plot_nes_concord(gsea_cmp$A549_unpaired,   "A549",
+                            "LOY vs sgCTRL (unpaired)")
+print(p_g_unp)
+save_fig(p_g_unp, "gsea_concordance_unpaired",    width = 14, height = 6)
+```
+
+## 9.3 Pooled LOY vs Y+ — Hallmark NES
+
+```{r gsea-concord-pooled, fig.height=6, fig.width=14}
+p_g_pool <- plot_nes_concord(gsea_cmp$HT1080_pooled, "HT1080",
+                             "LOY vs pooled Y+") |
+            plot_nes_concord(gsea_cmp$A549_pooled,   "A549",
+                             "LOY vs pooled Y+")
+print(p_g_pool)
+save_fig(p_g_pool, "gsea_concordance_pooled",     width = 14, height = 6)
+```
+
+# 10. TF regulons — CollecTRI activity concordance
+
+Same idea, one layer up: feed the limma t-statistic (HGNC-keyed) for each of
+the 12 DE tables into `decoupleR::run_ulm()` against the CollecTRI regulon
+network. The result is a transcription-factor activity score per TF per
+contrast per pipeline; OLD vs NEW scores are scattered per contrast.
+
+```{r tf-helpers, cache=TRUE}
+# CollecTRI as a decoupleR-shaped data.frame (source, target, mor)
+collectri_net <- decoupleR::get_collectri(organism = "human",
+                                          split_complexes = FALSE) %>%
+  dplyr::select(source, target, mor)
+
+# Build a 1-column matrix of t-statistics keyed by HGNC symbol; collapse
+# duplicate symbols by the most extreme |t|.
+de_to_tstat_mat <- function(de_df) {
+  d <- de_df %>%
+    dplyr::filter(!is.na(symbol), nzchar(symbol), !is.na(t)) %>%
+    group_by(symbol) %>%
+    slice_max(abs(t), n = 1, with_ties = FALSE) %>%
+    ungroup()
+  m <- matrix(d$t, ncol = 1, dimnames = list(d$symbol, "stat"))
+  m
+}
+
+run_tf <- function(de_df) {
+  m <- de_to_tstat_mat(de_df)
+  res <- decoupleR::run_ulm(mat = m, net = collectri_net,
+                            .source = "source", .target = "target",
+                            .mor = "mor", minsize = 5)
+  res %>%
+    dplyr::filter(statistic == "ulm") %>%
+    transmute(source, score, p_value) %>%
+    arrange(source)
+}
+```
+
+```{r tf-run-all, cache=TRUE}
+tf_all <- lapply(all_de, run_tf)
+for (nm in names(tf_all)) {
+  fwrite(tf_all[[nm]],
+         file.path(TAB_DIR, sprintf("TF_collectri_%s.csv", nm)))
+}
+```
+
+```{r tf-compare-helpers}
+compare_tf <- function(old_df, new_df, cell_label, contrast_label) {
+  shared <- inner_join(
+    old_df %>% dplyr::select(source, score_old = score, p_old = p_value),
+    new_df %>% dplyr::select(source, score_new = score, p_new = p_value),
+    by = "source") %>%
+    dplyr::filter(!is.na(score_old), !is.na(score_new))
+  sig_old <- shared %>% dplyr::filter(p_old < 0.05) %>% pull(source)
+  sig_new <- shared %>% dplyr::filter(p_new < 0.05) %>% pull(source)
+  list(cell           = cell_label,
+       contrast       = contrast_label,
+       n_tfs          = nrow(shared),
+       n_sig_old      = length(sig_old),
+       n_sig_new      = length(sig_new),
+       intersect_sig  = length(intersect(sig_old, sig_new)),
+       jaccard_sig    = length(intersect(sig_old, sig_new)) /
+                        max(length(union(sig_old, sig_new)), 1),
+       nes_pearson_r  = cor(shared$score_old, shared$score_new,
+                            use = "complete.obs"),
+       sign_agreement = mean(sign(shared$score_old) == sign(shared$score_new),
+                             na.rm = TRUE),
+       shared_df      = shared %>%
+                        dplyr::rename(pathway  = source,
+                                      NES_old  = score_old,
+                                      NES_new  = score_new,
+                                      padj_old = p_old,
+                                      padj_new = p_new))
+}
+```
+
+```{r tf-compare-all}
+tf_cmp <- list(
+  HT1080_paired   = compare_tf(tf_all$HT1080_OLD_paired,
+                               tf_all$HT1080_NEW_paired,
+                               "HT1080", "LOY vs sgCTRL (paired)"),
+  HT1080_unpaired = compare_tf(tf_all$HT1080_OLD_unpaired,
+                               tf_all$HT1080_NEW_unpaired,
+                               "HT1080", "LOY vs sgCTRL (unpaired)"),
+  HT1080_pooled   = compare_tf(tf_all$HT1080_OLD_pooled,
+                               tf_all$HT1080_NEW_pooled,
+                               "HT1080", "LOY vs pooled Y+"),
+  A549_paired     = compare_tf(tf_all$A549_OLD_paired,
+                               tf_all$A549_NEW_paired,
+                               "A549",   "LOY vs sgCTRL (paired)"),
+  A549_unpaired   = compare_tf(tf_all$A549_OLD_unpaired,
+                               tf_all$A549_NEW_unpaired,
+                               "A549",   "LOY vs sgCTRL (unpaired)"),
+  A549_pooled     = compare_tf(tf_all$A549_OLD_pooled,
+                               tf_all$A549_NEW_pooled,
+                               "A549",   "LOY vs pooled Y+"))
+
+tf_summary <- bind_rows(lapply(tf_cmp, function(x) {
+  data.frame(cell = x$cell, contrast = x$contrast,
+             n_tfs       = x$n_tfs,
+             sig_OLD     = x$n_sig_old,
+             sig_NEW     = x$n_sig_new,
+             intersect   = x$intersect_sig,
+             jaccard_sig = x$jaccard_sig,
+             score_r     = x$nes_pearson_r,
+             sign_agree  = x$sign_agreement) }))
+
+fwrite(tf_summary, file.path(TAB_DIR, "TF_collectri_OLD_vs_NEW_summary.csv"))
+knitr::kable(tf_summary, digits = 3,
+             caption = "CollecTRI TF activity concordance: OLD vs NEW pipeline")
+```
+
+## 10.1 Paired LOY vs sgCTRL — TF activity
+
+```{r tf-concord-paired, fig.height=6, fig.width=14}
+p_tf_paired <- plot_nes_concord(tf_cmp$HT1080_paired, "HT1080",
+                                "LOY vs sgCTRL (paired)",
+                                what = "CollecTRI TF") |
+               plot_nes_concord(tf_cmp$A549_paired,   "A549",
+                                "LOY vs sgCTRL (paired)",
+                                what = "CollecTRI TF")
+print(p_tf_paired)
+save_fig(p_tf_paired, "tf_concordance_paired",   width = 14, height = 6)
+```
+
+## 10.2 Unpaired LOY vs sgCTRL — TF activity
+
+```{r tf-concord-unpaired, fig.height=6, fig.width=14}
+p_tf_unp <- plot_nes_concord(tf_cmp$HT1080_unpaired, "HT1080",
+                             "LOY vs sgCTRL (unpaired)",
+                             what = "CollecTRI TF") |
+            plot_nes_concord(tf_cmp$A549_unpaired,   "A549",
+                             "LOY vs sgCTRL (unpaired)",
+                             what = "CollecTRI TF")
+print(p_tf_unp)
+save_fig(p_tf_unp, "tf_concordance_unpaired",    width = 14, height = 6)
+```
+
+## 10.3 Pooled LOY vs Y+ — TF activity
+
+```{r tf-concord-pooled, fig.height=6, fig.width=14}
+p_tf_pool <- plot_nes_concord(tf_cmp$HT1080_pooled, "HT1080",
+                              "LOY vs pooled Y+",
+                              what = "CollecTRI TF") |
+             plot_nes_concord(tf_cmp$A549_pooled,   "A549",
+                              "LOY vs pooled Y+",
+                              what = "CollecTRI TF")
+print(p_tf_pool)
+save_fig(p_tf_pool, "tf_concordance_pooled",     width = 14, height = 6)
+```
+
+# 11. Verdict
 
 ```{r verdict}
 verdict_line <- function(cmp) {
@@ -672,16 +1024,24 @@ verdict_line <- function(cmp) {
 }
 
 for (nm in names(cmp_list)) {
-  x <- cmp_list[[nm]]
+  x  <- cmp_list[[nm]]
+  g  <- gsea_cmp[[nm]]
+  tf <- tf_cmp[[nm]]
   cat(sprintf("%-32s %s\n", paste0(x$cell, " · ", x$contrast),
               verdict_line(x)))
-  cat(sprintf("  OLD DEGs %d | NEW DEGs %d | intersect %d (Jaccard %.2f) | logFC r = %.3f\n\n",
+  cat(sprintf("  Gene    OLD %d | NEW %d | intersect %d (J %.2f) | logFC r = %.3f\n",
               x$n_old, x$n_new, x$intersect, x$jaccard,
               x$lfc_pearson_r))
+  cat(sprintf("  GSEA    OLD %d | NEW %d | intersect %d (J %.2f) | NES   r = %.3f  | sign %.0f%%\n",
+              g$n_sig_old, g$n_sig_new, g$intersect_sig, g$jaccard_sig,
+              g$nes_pearson_r, 100 * g$sign_agreement))
+  cat(sprintf("  TF      OLD %d | NEW %d | intersect %d (J %.2f) | score r = %.3f  | sign %.0f%%\n\n",
+              tf$n_sig_old, tf$n_sig_new, tf$intersect_sig, tf$jaccard_sig,
+              tf$nes_pearson_r, 100 * tf$sign_agreement))
 }
 ```
 
-# 10. Session Info
+# 12. Session Info
 
 ```{r session-info}
 sessionInfo()
