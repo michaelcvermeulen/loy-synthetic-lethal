@@ -1,0 +1,73 @@
+ModelID,StrippedCellLineName,OncotreeLineage,OncotreePrimaryDisease,profile,spearman,rank
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P12",0.856762968001103,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P12",0.746817772833836,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P12",0.740326160982255,3
+"ACH-000647","TE1","Esophagus/Stomach","Esophageal Squamous Cell Carcinoma","LNCaP-LOY-P12",0.735252231828021,4
+"ACH-000587","NCIH1975","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P12",0.734964661894441,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P12",0.698108260617028,69
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P12",0.610837949242132,819
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P12",0.592034312878498,988
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P12",0.589124831008416,1010
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P13",0.853790442712793,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P13",0.746883061770932,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P13",0.739978343874366,3
+"ACH-000841","NCIH2087","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P13",0.735201481600543,4
+"ACH-000587","NCIH1975","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P13",0.734892791198516,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P13",0.694450381706407,84
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P13",0.613018976261169,805
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P13",0.594652969829102,964
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P13",0.58815385818454,1018
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P14",0.861367786029322,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P14",0.761547836733492,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P14",0.751540148543446,3
+"ACH-000587","NCIH1975","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P14",0.743798715623462,4
+"ACH-000012","HCC827","Lung","Non-Small Cell Lung Cancer","LNCaP-LOY-P14",0.742700699712384,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P14",0.706526233867495,61
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P14",0.614095874627198,851
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P14",0.601978306899328,963
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LNCaP-LOY-P14",0.596724912411955,998
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P12",0.856339661392346,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P12",0.746050124023076,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P12",0.740766027914017,3
+"ACH-000841","NCIH2087","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P12",0.736991455982745,4
+"ACH-000875","NCIH2347","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P12",0.734421761366863,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P12",0.698402027699282,68
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P12",0.61357865021847,796
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P12",0.593957602699718,962
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P12",0.590112136445893,992
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P13",0.848920011907284,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P13",0.739545384800584,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P13",0.735593351463813,3
+"ACH-000841","NCIH2087","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P13",0.73391849260662,4
+"ACH-000875","NCIH2347","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P13",0.730328152982517,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P13",0.68871616170743,88
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P13",0.609375443323151,783
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P13",0.589095021094502,955
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P13",0.581953881010856,1015
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P14",0.857270036792608,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P14",0.755963734253524,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P14",0.749330770419239,3
+"ACH-000647","TE1","Esophagus/Stomach","Esophageal Squamous Cell Carcinoma","LNCaP-sgCTRL-P14",0.741873269067041,4
+"ACH-000875","NCIH2347","Lung","Non-Small Cell Lung Cancer","LNCaP-sgCTRL-P14",0.741541790063874,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P14",0.705359847234587,56
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P14",0.612051044363269,821
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P14",0.598113439294479,937
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LNCaP-sgCTRL-P14",0.59323098864718,972
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","LOY_mean",0.859833046129391,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","LOY_mean",0.753457374059924,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","LOY_mean",0.746108782932873,3
+"ACH-000587","NCIH1975","Lung","Non-Small Cell Lung Cancer","LOY_mean",0.740331077721943,4
+"ACH-000841","NCIH2087","Lung","Non-Small Cell Lung Cancer","LOY_mean",0.738470787993801,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","LOY_mean",0.701434012721848,70
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","LOY_mean",0.613954784606883,830
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","LOY_mean",0.59758729083174,971
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","LOY_mean",0.592298999602625,1012
+"ACH-000979","DU145","Prostate","Prostate Adenocarcinoma","sgCTRL_mean",0.857850875068736,1
+"ACH-000575","HCC364","Lung","Non-Small Cell Lung Cancer","sgCTRL_mean",0.749909287475143,2
+"ACH-000733","NCIH1838","Lung","Non-Small Cell Lung Cancer","sgCTRL_mean",0.74512213808436,3
+"ACH-000841","NCIH2087","Lung","Non-Small Cell Lung Cancer","sgCTRL_mean",0.740422604448903,4
+"ACH-000875","NCIH2347","Lung","Non-Small Cell Lung Cancer","sgCTRL_mean",0.738628737783774,5
+"ACH-000090","PC3","Prostate","Prostate Adenocarcinoma","sgCTRL_mean",0.70031581928572,70
+"ACH-000977","LNCAPCLONEFGC","Prostate","Prostate Adenocarcinoma","sgCTRL_mean",0.613690598177148,801
+"ACH-000115","VCAP","Prostate","Prostate Adenocarcinoma","sgCTRL_mean",0.59593869830707,951
+"ACH-000956","22RV1","Prostate","Prostate Adenocarcinoma","sgCTRL_mean",0.590271117656012,987

@@ -1,0 +1,15 @@
+contrast	block	type	n_case	n_ctrl	n_genes	n_cis	median_lfc_cis	median_lfc_trans	n_padj05	case_unit_description	control_unit_description	case_libraries	control_libraries
+A2058_1q	GSE222379_main	arm_loss	2	4	21635	924	-0.426	0.035	6619	Loss clones; repeat libraries summed within clone	Separate control libraries retained	4.0	4.0
+A2780_1q_vsWT	GSE222379_A2780	arm_loss	3	2	20982	838	-0.454	0.042	1883	Loss clones; repeat libraries summed within clone	Separate control libraries retained	6.0	2.0
+A2780_1q_vsTK	GSE222379_A2780	arm_loss	3	2	20994	835	-0.413	0.033	1179	Loss clones; repeat libraries summed within clone	Separate control libraries retained	6.0	2.0
+AGS_1q_vsTK	GSE222379_main	arm_loss	5	2	20729	906	-0.508	0.048	1185	Loss clones; repeat libraries summed within clone	Two TK control clones	5.0	2.0
+MCF10A_1q	GSE222379_main	arm_loss	4	2	20850	928	-0.482	0.024	676	Loss clones; repeat libraries summed within clone	Separate control libraries retained	8.0	2.0
+MCF10Ahr_1q	GSE222379_main	arm_loss	4	2	20931	921	-0.347	0.063	130	Loss clones; repeat libraries summed within clone	Separate control libraries retained	8.0	2.0
+RPTEC_3p_early	GSE336576	arm_loss	3	3	23834	566	-0.822	0.095	3257	Three clones; repeat libraries summed within clone/time	Three libraries from unedited control	9.0	3.0
+RPTEC_3p_late	GSE336576	arm_loss	3	3	23340	559	-0.835	0.076	2799	Three clones; repeat libraries summed within clone/time	Three libraries from unedited control	9.0	3.0
+A2058_7p	GSE222379_main	arm_loss	3	4	21735	340	-0.538	0.02	341	Loss clones; repeat libraries summed within clone	Separate control libraries retained	6.0	4.0
+A2058_8q	GSE222379_main	arm_loss	2	4	21106	480	-0.53	0.014	545	Loss clones; repeat libraries summed within clone	Separate control libraries retained	4.0	4.0
+HCT116_8q	GSE222379_main	arm_loss	2	2	19152	399	-0.548	0.066	66	Loss clones; repeat libraries summed within clone	Separate control libraries retained	4.0	2.0
+RPE1_mono1018	GSE150686	arm_loss	3	3	21259	1096	-0.503	0.037	7888	Three samples from one established monosomic line	Three samples from matched p53-deficient parental line	3.0	3.0
+RPE1_mono13	GSE150686	arm_loss	3	3	20441	350	-0.669	0.017	6497	Three samples from one established monosomic line	Three samples from matched p53-deficient parental line	3.0	3.0
+RPE1_mono19p	GSE150686	arm_loss	3	3	20191	567	-0.713	-0.007	8306	Three samples from one established monosomic line	Three samples from matched p53-deficient parental line	3.0	3.0

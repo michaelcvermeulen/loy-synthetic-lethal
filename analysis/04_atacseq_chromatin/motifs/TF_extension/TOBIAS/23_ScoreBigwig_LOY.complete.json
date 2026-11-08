@@ -1,0 +1,15 @@
+{
+  "elapsed_seconds": 1991.3499524593353,
+  "command": [
+    "/tmp/atacseq-sept08-2026-tf-tools/tobias_venv/bin/TOBIAS",
+    "ScoreBigwig",
+    "--signal",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/LOY/LOY_corrected.bw",
+    "--regions",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/tested_consensus.bed",
+    "--output",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/LOY/LOY_footprints.bw",
+    "--cores",
+    "12"
+  ]
+}

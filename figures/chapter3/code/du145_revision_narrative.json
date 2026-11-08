@@ -1,0 +1,130 @@
+[
+  [
+    "text",
+    "### 3.4.7.3 Transcriptional characterisation of DU145"
+  ],
+  [
+    "text",
+    "##### RNA-seq sampling design and global expression structure"
+  ],
+  [
+    "text",
+    "We next examined expression differences associated with partial Y-chromosome loss in the prostate cancer cell line DU145 ([Figure CH3-S3.4.6.2-S01, panel b](figures/chapter3/selected/CH3_S3_4_6_2_S01_a549_du145_profiles/CH3_S3_4_6_2_S01_a549_du145_profiles.pdf)). RNA-seq profiled the CP + Q53 + P47 population after two successive nucleofections and its sgCTRL comparator, sampled at matched passages P12, P13 and P14 (Section 3.4.6.3). These six samples represented repeated sampling of one population per condition rather than independent editing experiments. The primary analysis included 18,767 expressed autosomal and non-PAR X-linked genes."
+  ],
+  [
+    "text",
+    "PCA showed a shared shift in both P14 samples along PC1, which explained 42.3% of the variance and was strongly associated with passage (R² = 0.93). Within each passage, Y-depleted samples had lower PC2 scores than sgCTRL; PC2 explained 18.4% of the variance ([Figure CH3-S3.4.7.3-F01, panels a and b, top](figures/chapter3/selected/CH3_S3_4_7_3_F01_DU145_RNA_global/CH3_S3_4_7_3_F01_DU145_RNA_global.pdf)). Sample correlations likewise grouped the two P14 libraries separately from the earlier passages ([Figure CH3-S3.4.7.3-F01, panel c](figures/chapter3/selected/CH3_S3_4_7_3_F01_DU145_RNA_global/CH3_S3_4_7_3_F01_DU145_RNA_global.pdf)). We therefore assessed differential expression using a passage-blocked model, retaining an unpaired comparison as a sensitivity analysis."
+  ],
+  [
+    "fig",
+    "F01"
+  ],
+  [
+    "text",
+    "##### Y-linked expression tracks the retained and deleted segments of chromosome Y"
+  ],
+  [
+    "text",
+    "Y-linked expression reflected the regional DNA depletion detected by lpWGS. The male-specific Y-linked fraction of assigned reads was 28% of sgCTRL ([Figure CH3-S3.4.7.3-F01, panel b, bottom](figures/chapter3/selected/CH3_S3_4_7_3_F01_DU145_RNA_global/CH3_S3_4_7_3_F01_DU145_RNA_global.pdf)). Sixteen expressed non-PAR Y features were assessed separately from the primary autosomal and non-PAR X-linked gene set. Within retained distal Yp, *RPS4Y1* and *ZFY* expression remained at 46.1% and 53.5% of sgCTRL, respectively, with reductions across all three passage pairs. In contrast, *KDM5D*, *EIF1AY*, *DDX3Y*, *TXLNGY*, *UTY* and *USP9Y* in the depleted interval retained only 4.5–7.6% of control expression. This regional contrast agreed qualitatively with the lpWGS profile, although RNA and DNA were collected from separate samples ([Figure CH3-S3.4.7.3-F02, panels a–c](figures/chapter3/selected/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes.pdf))."
+  ],
+  [
+    "text",
+    "Pseudoautosomal expression was also reduced. Summed PAR1 expression remained at 76.9% of sgCTRL, whereas summed PAR2 expression was not reduced ([Figure CH3-S3.4.7.3-F02, panel b](figures/chapter3/selected/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes.pdf)). *P2RY8* showed a particularly large decrease, retaining 28.9% of control expression (71.1% lower; nuclear-gene FDR = 0.0011). *SLC25A6* expression was 27.5% lower and also passed nuclear-gene correction (FDR = 0.016). Mean expression of *PPP2R3B*, *GTPBP6*, *ZBED1*, *AKAP17A* and *CD99* was 16–26% lower; these genes passed the focused correction across 41 tested Y/PAR features (adjusted P = 0.0015–0.017), but not correction across all 18,808 expressed nuclear genes ([Figure CH3-S3.4.7.3-F02, panel d](figures/chapter3/selected/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes.pdf); [Y/PAR statistics](tables/chapter3/du145_section_review/Y_PAR_gene_table.csv)). PAR counts combine X- and Y-derived transcripts."
+  ],
+  [
+    "text",
+    "Expression differences in the X-linked paralogs of depleted Y genes were small, with none reaching significance (FDR = 0.33–0.99; [Figure CH3-S3.4.7.3-F02, panel e](figures/chapter3/selected/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes.pdf)). Their magnitude was similar to the chromosome-wide expression increase accompanying the lpWGS-detected X gain, providing no clear evidence of paralog-specific compensation. Summed X- and Y-linked CPM remained at 84–107% of sgCTRL across individual paralog pairs ([Figure CH3-S3.4.7.3-F02, panel f](figures/chapter3/selected/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes/CH3_S3_4_7_3_F02_DU145_RNA_sex_chromosomes.pdf))."
+  ],
+  [
+    "fig",
+    "F02"
+  ],
+  [
+    "text",
+    "##### Autosomal and X-linked expression differences and their copy-number context"
+  ],
+  [
+    "text",
+    "The passage-blocked model identified 147 differentially expressed genes (FDR <0.05): 107 lower and 40 higher in Y-depleted cells. Of these, 114 also had |log₂ fold change| ≥0.5 and changed in the same direction across all three passage pairs, comprising 83 lower and 31 higher genes ([Figure CH3-S3.4.7.3-F03, panels a and b](figures/chapter3/selected/CH3_S3_4_7_3_F03_DU145_RNA_expression/CH3_S3_4_7_3_F03_DU145_RNA_expression.pdf)). Their expression profiles are shown in [Figure CH3-S3.4.7.3-S01, panel a](figures/chapter3/selected/CH3_S3_4_7_3_S01_DU145_RNA_gene_detail/CH3_S3_4_7_3_S01_DU145_RNA_gene_detail.pdf). The unpaired analysis identified no significant genes, indicating that detection depended on accounting for passage-associated variation ([Figure CH3-S3.4.7.3-S02, panel e](figures/chapter3/selected/CH3_S3_4_7_3_S02_DU145_RNA_copy_number/CH3_S3_4_7_3_S02_DU145_RNA_copy_number.pdf))."
+  ],
+  [
+    "fig",
+    "S01"
+  ],
+  [
+    "text",
+    "We next assessed the contribution of the regional copy-number differences described in Section 3.4.6.3. DNA and RNA differences were positively correlated across chromosome arms (Pearson r = 0.89; [Figure CH3-S3.4.7.3-F03, panel c](figures/chapter3/selected/CH3_S3_4_7_3_F03_DU145_RNA_expression/CH3_S3_4_7_3_F03_DU145_RNA_expression.pdf)). The 20p deletion coincided with lower regional expression and encompassed 32 of the 147 differentially expressed genes; the arm-level correlation remained positive after excluding 20p (r = 0.56; [Figure CH3-S3.4.7.3-S02, panel c](figures/chapter3/selected/CH3_S3_4_7_3_S02_DU145_RNA_copy_number/CH3_S3_4_7_3_S02_DU145_RNA_copy_number.pdf)). Gains of chromosome X and 15q were also accompanied by higher expression. A second Y-depleted population shared the 20p deletion but lacked the X and 15q gains ([Figure CH3-S3.4.7.3-S02, panel d](figures/chapter3/selected/CH3_S3_4_7_3_S02_DU145_RNA_copy_number/CH3_S3_4_7_3_S02_DU145_RNA_copy_number.pdf))."
+  ],
+  [
+    "fig",
+    "S02"
+  ],
+  [
+    "text",
+    "Although regional dosage differences contributed to the expression profile, 88 of the 114 genes with larger, passage-consistent changes (77%) lay outside intervals with detected copy-number differences. Twenty-five had concordant copy-number changes and one had a discordant change ([Figure CH3-S3.4.7.3-F03, panel d](figures/chapter3/selected/CH3_S3_4_7_3_F03_DU145_RNA_expression/CH3_S3_4_7_3_F03_DU145_RNA_expression.pdf)). Restricting the differential-expression analysis to genes without a detected copy-number difference retained the epithelial- and immune-associated changes described below ([supplementary DE table](tables/chapter3/ch03_supp_du145_copy_number_stable_DE.csv))."
+  ],
+  [
+    "text",
+    "Reduced transcripts included the epithelial-associated genes *TACSTD2*, *AP1M2*, *CLDN7* and *MAL2*. *TACSTD2* expression was approximately halved (log₂ fold change −0.98; FDR = 1.2 × 10⁻⁵). *GRHL2* showed a larger reduction across all three passage pairs (log₂ fold change −3.95; FDR = 7.3 × 10⁻⁴), although its mean abundance was low, falling from 2.9 CPM in sgCTRL to 0.18 CPM in Y-depleted cells ([Figure CH3-S3.4.7.3-F03, panel e](figures/chapter3/selected/CH3_S3_4_7_3_F03_DU145_RNA_expression/CH3_S3_4_7_3_F03_DU145_RNA_expression.pdf)). Interferon- and inflammation-associated transcripts, including *CXCL1*, *LTB* and *BST2*, were also reduced; passage-specific changes for these and the epithelial-associated genes are shown in [Figure CH3-S3.4.7.3-F04, panel d](figures/chapter3/selected/CH3_S3_4_7_3_F04_DU145_RNA_programmes/CH3_S3_4_7_3_F04_DU145_RNA_programmes.pdf)."
+  ],
+  [
+    "text",
+    "Higher-expression genes included *TAF9* (log₂ fold change +1.32; FDR = 3.9 × 10⁻⁴), *F13A1* (+0.90; FDR = 6.9 × 10⁻⁴) and *COL4A2* (+0.81; FDR = 7.3 × 10⁻⁴). All three changed in the same direction across passage pairs and lay outside intervals with detected copy-number differences ([Figure CH3-S3.4.7.3-F03, panels a and b](figures/chapter3/selected/CH3_S3_4_7_3_F03_DU145_RNA_expression/CH3_S3_4_7_3_F03_DU145_RNA_expression.pdf))."
+  ],
+  [
+    "fig",
+    "F03"
+  ],
+  [
+    "text",
+    "##### Coordinated transcriptional programmes"
+  ],
+  [
+    "text",
+    "To examine coordinated expression differences, we used preranked GSEA on mean log2CPM differences and assessed complementary support with default CAMERA (inter-gene correlation 0.01). We first examined Hallmark, Reactome and Gene Ontology Biological Process sets, then additional MSigDB signatures. Multiple-testing correction covered the full collection family within each analysis. GSEA was repeated after excluding genes in intervals with detected copy-number changes; the complete enrichment and sensitivity results are summarised in [Figure CH3-S3.4.7.3-F04, panel b](figures/chapter3/selected/CH3_S3_4_7_3_F04_DU145_RNA_programmes/CH3_S3_4_7_3_F04_DU145_RNA_programmes.pdf) and [Figure CH3-S3.4.7.3-S03](figures/chapter3/selected/CH3_S3_4_7_3_S03_DU145_RNA_gene_sets/CH3_S3_4_7_3_S03_DU145_RNA_gene_sets.pdf)."
+  ],
+  [
+    "text",
+    "Interferon and inflammatory responses were negatively enriched. Three Hallmark sets reached GSEA significance and retained significance after copy-number exclusion: interferon-gamma response (normalised enrichment score [NES] −1.79; FDR = 0.005), interferon-alpha response (NES −1.86; FDR = 0.028) and inflammatory response (NES −1.68; FDR = 0.032; [Figure CH3-S3.4.7.3-F04, panel a](figures/chapter3/selected/CH3_S3_4_7_3_F04_DU145_RNA_programmes/CH3_S3_4_7_3_F04_DU145_RNA_programmes.pdf)). Default CAMERA supported all three reductions (FDR = 7.60 × 10⁻⁷, 1.13 × 10⁻⁷ and 0.0024, respectively). Leading-edge genes included *BST2*, *CXCL10*, *CXCL11*, *IDO1* and *B2M*, indicating coordinated reductions in immune-associated expression ([pathway statistics](tables/chapter3/du145_section_review/README.md))."
+  ],
+  [
+    "text",
+    "Epithelial-associated signatures were also negatively enriched, consistent with the individual-gene results. The KOHN_EMT_EPITHELIAL signature had an NES of −2.10 (GSEA FDR = 0.007; CAMERA FDR = 4.51 × 10⁻¹¹), with leading-edge genes including *CLDN7*, *ST14*, *OVOL1*, *S100A14*, *EPN3* and *GRHL2* ([Figure CH3-S3.4.7.3-F04, panel c](figures/chapter3/selected/CH3_S3_4_7_3_F04_DU145_RNA_programmes/CH3_S3_4_7_3_F04_DU145_RNA_programmes.pdf)). Genes co-expressed with *GRHL2* across 1,719 DepMap cell lines were over-represented among reduced transcripts (16 of the top 200 genes; odds ratio 14.6; P = 5.0 × 10⁻¹³). This overlap supports an epithelial-associated expression pattern, although pan-cancer co-expression may reflect lineage or epithelial state rather than regulation by GRHL2."
+  ],
+  [
+    "fig",
+    "F04"
+  ],
+  [
+    "text",
+    "Reduced epithelial-associated expression was not accompanied by clear evidence of a mesenchymal programme. *VIM*, *ZEB1*, *ZEB2* and *SNAI2* did not differ significantly, and *CDH2* was not detected. Other epithelial markers, including *CDH1*, *EPCAM*, *ESRP1* and *CLDN4*, showed smaller reductions of 14–18% (FDR = 0.21–0.50). The findings therefore support a partial reduction in epithelial-associated expression without establishing an epithelial-to-mesenchymal transition."
+  ],
+  [
+    "text",
+    "Target-expression analysis yielded a lower inferred GRHL2 score and a higher ZEB1 score. Both were substantially attenuated when the *GRHL2* transcript was removed from the respective target sets, indicating limited evidence beyond the expression decrease in *GRHL2* itself ([Figure CH3-S3.4.7.3-S04](figures/chapter3/selected/CH3_S3_4_7_3_S04_DU145_RNA_TF_sensitivity/CH3_S3_4_7_3_S04_DU145_RNA_TF_sensitivity.pdf))."
+  ],
+  [
+    "fig",
+    "S04"
+  ],
+  [
+    "text",
+    "Replication-dependent histone genes showed broadly increased expression ([Figure CH3-S3.4.7.3-S05, panels e and f](figures/chapter3/selected/CH3_S3_4_7_3_S05_DU145_chr6_DNA_RNA/CH3_S3_4_7_3_S05_DU145_chr6_DNA_RNA.pdf)) without a corresponding copy-number gain in the available lpWGS profile ([Figure CH3-S3.4.7.3-S05, panels a–d](figures/chapter3/selected/CH3_S3_4_7_3_S05_DU145_chr6_DNA_RNA/CH3_S3_4_7_3_S05_DU145_chr6_DNA_RNA.pdf)). These genes contributed to multiple overlapping enriched sets, indicating a shared histone-associated expression pattern."
+  ],
+  [
+    "fig",
+    "S05"
+  ],
+  [
+    "text",
+    "A more selective increase was observed in G2/M-associated signatures. Ten sets remained significant after copy-number exclusion (NES +1.48 to +1.91; FDR = 0.001–0.046), with leading-edge genes including *CENPF*, *CENPE*, *PLK1* and *KIF14*. Individual-gene changes were modest, and the Hallmark G2/M checkpoint and mitotic spindle sets did not reach significance (FDR = 0.61 and 0.47; [Figure CH3-S3.4.7.3-F04, panel a](figures/chapter3/selected/CH3_S3_4_7_3_F04_DU145_RNA_programmes/CH3_S3_4_7_3_F04_DU145_RNA_programmes.pdf); [Figure CH3-S3.4.7.3-S03, panel b](figures/chapter3/selected/CH3_S3_4_7_3_S03_DU145_RNA_gene_sets/CH3_S3_4_7_3_S03_DU145_RNA_gene_sets.pdf)). This pattern suggests increased expression of selected G2/M-associated transcripts but does not establish faster proliferation. Ribosomal and translation-associated sets were negatively enriched, largely driven by *RPS* and *RPL* genes ([Figure CH3-S3.4.7.3-S03, panels a and b](figures/chapter3/selected/CH3_S3_4_7_3_S03_DU145_RNA_gene_sets/CH3_S3_4_7_3_S03_DU145_RNA_gene_sets.pdf))."
+  ],
+  [
+    "fig",
+    "S03"
+  ],
+  [
+    "text",
+    "DU145 Y-depleted cells retained substantial distal Yp expression but showed marked depletion of transcripts from the remaining male-specific region. Beyond chromosome Y, reduced epithelial- and interferon-associated expression persisted across passage pairs, with most highlighted gene-level differences occurring outside regions with detected copy-number changes. Histone- and G2/M-associated expression increases provided additional, more selective features of the edited population. These findings define the transcriptional differences between the established populations, although their attribution specifically to Y depletion remains unresolved."
+  ]
+]

@@ -1,0 +1,252 @@
+{
+  "source_manifests": [
+    {
+      "path": "A:/Dropbox/LOY_paralogs/projects/RNAseq/analysis/HT1080/SEPT_11_2026_REANALYZE/outputs/tables/sample_manifest.csv",
+      "sha256": "f3a2f2eb08e96b89e2bc5c45f431693ff59f18ac273c1a61299e165e19f2916f"
+    },
+    {
+      "path": "A:/Dropbox/LOY_paralogs/projects/RNAseq/analysis/A549/SEPT_18_2026_REANALYZE/config/sample_manifest.csv",
+      "sha256": "bd2b90dd7df8815d10e5050d1685e8d0b2decc9caa700331eea18fe0d4faa89f"
+    },
+    {
+      "path": "A:/Dropbox/LOY_paralogs/projects/RNAseq/analysis/LNCAP/SEPT_23_2026_REANALYZE/config/sample_manifest.csv",
+      "sha256": "fd57dd6b7a920c888a59808a432cc7536aaaaf30018039891ffcd14bbc45046b"
+    },
+    {
+      "path": "A:/Dropbox/LOY_paralogs/projects/RNAseq/analysis/HT1080_ADDBACK/THESIS_ADDBACK_2026/outputs/sample_manifest.csv",
+      "sha256": "ef4d9e2589d636ed9cf6350d204ae519a6da7ae08fc5574606bc395b09277376"
+    }
+  ],
+  "unique_rna_libraries": 44,
+  "baseline_and_parental_libraries": 32,
+  "addback_analysis_libraries": 18,
+  "reused_baseline_libraries_in_addback": 6,
+  "count_headers": [
+    {
+      "library_key": "A549-LOY-1",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-LOY-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-LOY-1.bam\""
+    },
+    {
+      "library_key": "A549-LOY-2",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-LOY-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-LOY-2.bam\""
+    },
+    {
+      "library_key": "A549-LOY-3",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-LOY-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-LOY-3.bam\""
+    },
+    {
+      "library_key": "A549-LOY-4",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-4.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-LOY-4.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-LOY-4.bam\""
+    },
+    {
+      "library_key": "A549-PARENTAL-1",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-PARENTAL-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-PARENTAL-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-PARENTAL-1.bam\""
+    },
+    {
+      "library_key": "A549-PARENTAL-2",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-PARENTAL-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-PARENTAL-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-PARENTAL-2.bam\""
+    },
+    {
+      "library_key": "A549-PARENTAL-3",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-PARENTAL-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-PARENTAL-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-PARENTAL-3.bam\""
+    },
+    {
+      "library_key": "A549-CTRL-1",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-CTRL-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-CTRL-1.bam\""
+    },
+    {
+      "library_key": "A549-CTRL-2",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-CTRL-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-CTRL-2.bam\""
+    },
+    {
+      "library_key": "A549-CTRL-3",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-CTRL-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-CTRL-3.bam\""
+    },
+    {
+      "library_key": "A549-CTRL-4",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-4.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/A549-CTRL-4.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/A549-CTRL-4.bam\""
+    },
+    {
+      "library_key": "LNCaP-LOY-P12",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_LNCAP_LOY/LNCaP-LOY-P12.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/counts/LNCaP-LOY-P12.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/bam/LNCaP-LOY-P12.bam\""
+    },
+    {
+      "library_key": "LNCaP-LOY-P13",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_LNCAP_LOY/LNCaP-LOY-P13.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/counts/LNCaP-LOY-P13.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/bam/LNCaP-LOY-P13.bam\""
+    },
+    {
+      "library_key": "LNCaP-LOY-P14",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_LNCAP_LOY/LNCaP-LOY-P14.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/counts/LNCaP-LOY-P14.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/bam/LNCaP-LOY-P14.bam\""
+    },
+    {
+      "library_key": "LNCaP-sgCTRL-P12",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_LNCAP_LOY/LNCaP-sgCTRL-P12.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/counts/LNCaP-sgCTRL-P12.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/bam/LNCaP-sgCTRL-P12.bam\""
+    },
+    {
+      "library_key": "LNCaP-sgCTRL-P13",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_LNCAP_LOY/LNCaP-sgCTRL-P13.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/counts/LNCaP-sgCTRL-P13.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/bam/LNCaP-sgCTRL-P13.bam\""
+    },
+    {
+      "library_key": "LNCaP-sgCTRL-P14",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_LNCAP_LOY/LNCaP-sgCTRL-P14.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/counts/LNCaP-sgCTRL-P14.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_LNCAP_LOY/bam/LNCaP-sgCTRL-P14.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-1__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-LOY-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-LOY-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-LOY-1.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-2__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-LOY-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-LOY-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-LOY-2.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-3__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-LOY-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-LOY-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-LOY-3.bam\""
+    },
+    {
+      "library_key": "HT1080-PARENTAL-1__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-PARENTAL-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-PARENTAL-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-PARENTAL-1.bam\""
+    },
+    {
+      "library_key": "HT1080-PARENTAL-2__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-PARENTAL-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-PARENTAL-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-PARENTAL-2.bam\""
+    },
+    {
+      "library_key": "HT1080-PARENTAL-3__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-PARENTAL-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-PARENTAL-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-PARENTAL-3.bam\""
+    },
+    {
+      "library_key": "HT1080-CTRL-1__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-CTRL-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-CTRL-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-CTRL-1.bam\""
+    },
+    {
+      "library_key": "HT1080-CTRL-2__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-CTRL-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-CTRL-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-CTRL-2.bam\""
+    },
+    {
+      "library_key": "HT1080-CTRL-3__AUG_2025",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_HT1080_LOY/HT1080-CTRL-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/counts/HT1080-CTRL-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/AUG_2025_HT1080_A549_LOY/bam/HT1080-CTRL-3.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-KDM5D-AB-1__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-KDM5D-AB-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-UTY-AB-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-UTY-AB-1.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-KDM5D-AB-2__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-KDM5D-AB-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-UTY-AB-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-UTY-AB-2.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-KDM5D-AB-3__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-KDM5D-AB-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-UTY-AB-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-UTY-AB-3.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-UTY-AB-1__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-UTY-AB-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-LXHA-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-LXHA-1.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-UTY-AB-2__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-UTY-AB-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-LXHA-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-LXHA-2.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-UTY-AB-3__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-UTY-AB-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-LXHA-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-LXHA-3.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-KDM5D-UTY-AB-1__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-KDM5D-UTY-AB-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-KDM5D-AB-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-KDM5D-AB-1.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-KDM5D-UTY-AB-2__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-KDM5D-UTY-AB-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-KDM5D-AB-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-KDM5D-AB-2.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-KDM5D-UTY-AB-3__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-KDM5D-UTY-AB-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-KDM5D-AB-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-KDM5D-AB-3.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-1__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-1.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-2__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-2.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-3__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-3.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-LXHA-1__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-LXHA-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-KDM5D-UTY-AB-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-KDM5D-UTY-AB-1.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-LXHA-2__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-LXHA-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-KDM5D-UTY-AB-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-KDM5D-UTY-AB-2.bam\""
+    },
+    {
+      "library_key": "HT1080-LOY-LXHA-3__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-LOY-LXHA-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-LOY-KDM5D-UTY-AB-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-LOY-KDM5D-UTY-AB-3.bam\""
+    },
+    {
+      "library_key": "HT1080-sgCTRL-1__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-sgCTRL-1.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-sgCTRL-1.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-sgCTRL-1.bam\""
+    },
+    {
+      "library_key": "HT1080-sgCTRL-2__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-sgCTRL-2.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-sgCTRL-2.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-sgCTRL-2.bam\""
+    },
+    {
+      "library_key": "HT1080-sgCTRL-3__MAY_2026",
+      "source_count_file": "A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/MAY_2026_HT1080_ADDBACK/HT1080-sgCTRL-3.txt",
+      "header": "# Program:featureCounts v2.1.1; Command:\"featureCounts\" \"-a\" \"/global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf\" \"-T\" \"16\" \"-p\" \"-t\" \"exon\" \"-o\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/counts/HT1080-sgCTRL-3.txt\" \"/global/home/hpc5173/projects/LOY/RNA/updated/MAY_2026_HT1080_SGCTRL/bam/HT1080-sgCTRL-3.bam\""
+    }
+  ],
+  "qualifications": [
+    "Corrected May sample identities follow the final add-back manifest; original condition labels are preserved separately.",
+    "Collection indices in the HT1080 manifest are relative positions, not validated absolute passage numbers.",
+    "The combined add-back ancestry follows the author correction of 8 October; source manifests may predate that correction.",
+    "Count headers record upstream counting commands, but do not alone establish any later PAR re-quantification or merging operation."
+  ]
+}

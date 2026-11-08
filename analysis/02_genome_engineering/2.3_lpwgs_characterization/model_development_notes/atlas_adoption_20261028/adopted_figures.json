@@ -1,0 +1,177 @@
+{
+  "HT1080": {
+    "selected": "CH3_S3_4_5_1_F04_ht1080_regional_y",
+    "stem": "ch03_main_ht1080_lpwgs_chrY_atlas",
+    "draft_number": "3.4",
+    "historical_master_number": "3.10",
+    "preview": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\ht1080_du145_ypar_20261027\\ht1080",
+    "frozen_sources": {
+      "autosomal_normalization.csv": "3731db08f17eb27abdc3b9debe3c93efa562d49ca8ca797a38b3d4c63de2a3ca",
+      "binned_coverage.csv": "765e3ac6210feb9cd0c0d82fce308f331bb330f66fb8aba89f92f13bd9cc87d6",
+      "bin_annotation.csv": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+      "ddpcr_target_loci.csv": "ba5b1d3281ed1c4f3553fb6ca0f3733cd34cc1bc6bd3da7313be28d509379b83",
+      "gene_mapping_plotted.csv": "cea54877c5d2ac2f6ef77280de07a8c907d403ca9af367d0eaaa13f6a7b285f4",
+      "qdnaseq_bins.csv": "7f93c1c1e2002f992011a34e9cb0b1dae222f071d1a2d50d33d59a7b842f5c6b",
+      "relative_expression_group_means.csv": "10bbb61001fab49d6ebdfd12b19fedb8e4bdf0636d10660ab11d23dec4018ea5",
+      "relative_expression_per_sample.csv": "fb69688665df301211ce55431071d635d6c330445cf4acfc7c1f27085cdd9f5b",
+      "sample_map.json": "0bc3d30c1dc21536f5e2e21b8cc703941933f0f7cfbd7166927eb3a90271c750",
+      "sample_metadata.csv": "e12cee18b4d01d35f93ba916cd2c036cae6bab55bb083fe78147a13543b4fb34",
+      "T2T_chrY_cytobands.csv": "b9075283fbab97c9b11c0630eff45953e94a011a782ed1d3d98e9f3ce6daf007"
+    },
+    "inline_png": "CH3_S3_4_5_1_F04_ht1080_regional_y_ypar_b6a92968228f.png",
+    "exports": {
+      "pdf": "816fead70d894737d489f184b4e0983733f37f7f58d4915d2a8f38c7644f4152",
+      "svg": "c80096361a9111d51f1d63b781c110d0351f8cabc208397773ae077e854e226a",
+      "png": "b6a92968228f4ee328f81fa57f976911d4e9d83804ebee6e3e64be259e830460"
+    },
+    "Y_regions": [
+      {
+        "region": "MSY Yp",
+        "n_bins": 67,
+        "median_percent_of_sgCTRL": 42.645817867,
+        "n_depleted_bins_at_floor": 0,
+        "min_control_relative_CN": 0.3663550557
+      },
+      {
+        "region": "euchromatic Yq",
+        "n_bins": 101,
+        "median_percent_of_sgCTRL": 0.0,
+        "n_depleted_bins_at_floor": 60,
+        "min_control_relative_CN": 0.2848030476
+      }
+    ],
+    "PAR_regions": [
+      {
+        "track": "PAR1_X",
+        "n_bins": 24,
+        "median_percent_of_sgCTRL": 67.2344202548,
+        "minimum_control_reads": 134
+      },
+      {
+        "track": "PAR2_X",
+        "n_bins": 4,
+        "median_percent_of_sgCTRL": 53.1968374509,
+        "minimum_control_reads": 64
+      }
+    ]
+  },
+  "A549": {
+    "selected": "CH3_S3_4_5_2_F02_a549_regional_y",
+    "stem": "ch03_main_a549_lpwgs_chrY_atlas",
+    "draft_number": "3.5",
+    "historical_master_number": "3.12",
+    "preview": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\a549_dense_bins_20261027\\100kb",
+    "frozen_sources": {
+      "autosomal_normalization.csv": "596e74e11f588c5f0ea9e70fe92bea885d7c7e9ce017be6fd2bfa05c953cc67b",
+      "binned_coverage.csv": "abbe9dcbffe23d4fcdf8c00ae3ac515f36e81ab588390eb502c54fbd06937074",
+      "bin_annotation.csv": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+      "ddpcr_target_loci.csv": "ba5b1d3281ed1c4f3553fb6ca0f3733cd34cc1bc6bd3da7313be28d509379b83",
+      "gene_mapping_plotted.csv": "cea54877c5d2ac2f6ef77280de07a8c907d403ca9af367d0eaaa13f6a7b285f4",
+      "qdnaseq_bins.csv": "81adf8ac38015cc42bdf945a408de3cac8b36d1e3aef9d23f2664211c78d7204",
+      "relative_expression_group_means.csv": "97917d419dcf389c92b3d1153e8ce45e9bac7c2e214f0f63f8e7d82c07124863",
+      "relative_expression_per_sample.csv": "ee4e7ba9bf22ea9a6a59c08f9461def05000fd23eebc1b1423ec1594030c0c50",
+      "sample_map.json": "2a02133aeb73ac6d5ac842e625f9d567b0363acfd303f561f520e193059c2c8b",
+      "sample_metadata.csv": "c10169ac973d73a8f628b1661d1bcf650fa9fb620c48d3e0f2cc1342f34c9aaa",
+      "T2T_chrY_cytobands.csv": "b9075283fbab97c9b11c0630eff45953e94a011a782ed1d3d98e9f3ce6daf007"
+    },
+    "inline_png": "CH3_S3_4_5_2_F02_a549_regional_y_ypar_f15baced9ff2.png",
+    "exports": {
+      "pdf": "73717d92405d454c8f0cadbb968f96c9c058df970bf06d9ad95e9d43dba770ea",
+      "svg": "4e51e00e0dd7e19565527bc73458140e40c6329995941ca9c6a9eb9663e57a27",
+      "png": "f15baced9ff297e5fc03d32e10b8eb9c92c0a3f4d392c5cc3d55c263b054cd67"
+    },
+    "Y_regions": [
+      {
+        "region": "MSY Yp",
+        "n_bins": 67,
+        "median_percent_of_sgCTRL": 2.0978433069,
+        "n_depleted_bins_at_floor": 12,
+        "min_control_relative_CN": 0.198386932
+      },
+      {
+        "region": "euchromatic Yq",
+        "n_bins": 100,
+        "median_percent_of_sgCTRL": 2.6905159469,
+        "n_depleted_bins_at_floor": 19,
+        "min_control_relative_CN": 0.1669306157
+      }
+    ],
+    "PAR_regions": [
+      {
+        "track": "PAR1_X",
+        "n_bins": 24,
+        "median_percent_of_sgCTRL": 66.8272041003,
+        "minimum_control_reads": 187
+      },
+      {
+        "track": "PAR2_X",
+        "n_bins": 4,
+        "median_percent_of_sgCTRL": 63.6500538478,
+        "minimum_control_reads": 39
+      }
+    ]
+  },
+  "DU145": {
+    "selected": "CH3_S3_4_5_3_F02_du145_regional_y",
+    "stem": "ch03_main_du145_lpwgs_chrY_atlas",
+    "draft_number": "3.6",
+    "historical_master_number": "3.14",
+    "preview": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\ht1080_du145_ypar_20261027\\du145",
+    "frozen_sources": {
+      "autosomal_normalization.csv": "bc60061e5be37bbc74e3b0cb532a9052426adc67fcb2e978167ec06b226cd9bf",
+      "binned_coverage.csv": "16c33acb2bbf1913c082530d46b9ce9490a5e032f6ee74b0933e8fa9ecaba855",
+      "bin_annotation.csv": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+      "ddpcr_target_loci.csv": "ba5b1d3281ed1c4f3553fb6ca0f3733cd34cc1bc6bd3da7313be28d509379b83",
+      "gene_mapping_plotted.csv": "cea54877c5d2ac2f6ef77280de07a8c907d403ca9af367d0eaaa13f6a7b285f4",
+      "qdnaseq_bins.csv": "b53e3d4649f1fa46da14b40bea5e8a50490269f4a37f3fafa7d312b4e4b844b5",
+      "relative_expression_group_means.csv": "1c7748b98d8ef834b9a4c0cf4f45e6fca7c0ea2e96f8fdc18fde89dd3a8abd1f",
+      "relative_expression_per_sample.csv": "83c756ea2b5c9bc6fb8a87919ee7b222beb9ef813a62a69b8b96e0acddcd1eef",
+      "sample_map.json": "417dd5b0151d73f22f62e273dc56a5286202da3d61763c1daa9478c36c8ead56",
+      "sample_metadata.csv": "07277a409a6c384f2faa7163780ea374caa0d34c289daa69179e70e3a803e631",
+      "T2T_chrY_cytobands.csv": "b9075283fbab97c9b11c0630eff45953e94a011a782ed1d3d98e9f3ce6daf007"
+    },
+    "inline_png": "CH3_S3_4_5_3_F02_du145_regional_y_ypar_73d25106b689.png",
+    "exports": {
+      "pdf": "65795449bd9724942fe9cd5a4bbfb65e630693ba32aa0f04d112901096b87dbe",
+      "svg": "b0b5e081e30be5732e2f0a1c69e77935b878230e7c0e4428e958d7d2b45794fb",
+      "png": "73d25106b6893a32f43d056e7e96d52bed68375806c5f3580d1e0ae3dc0f03bd"
+    },
+    "Y_regions": [
+      {
+        "region": "distal MSY Yp",
+        "n_bins": 23,
+        "median_percent_of_sgCTRL": 54.3771695018,
+        "n_depleted_bins_at_floor": 0,
+        "min_control_relative_CN": 0.5498009942
+      },
+      {
+        "region": "proximal MSY Yp",
+        "n_bins": 44,
+        "median_percent_of_sgCTRL": 6.1116030109,
+        "n_depleted_bins_at_floor": 7,
+        "min_control_relative_CN": 0.1788444359
+      },
+      {
+        "region": "euchromatic Yq",
+        "n_bins": 101,
+        "median_percent_of_sgCTRL": 2.1985478062,
+        "n_depleted_bins_at_floor": 23,
+        "min_control_relative_CN": 0.1626663202
+      }
+    ],
+    "PAR_regions": [
+      {
+        "track": "PAR1_X",
+        "n_bins": 24,
+        "median_percent_of_sgCTRL": 72.1748850334,
+        "minimum_control_reads": 244
+      },
+      {
+        "track": "PAR2_X",
+        "n_bins": 4,
+        "median_percent_of_sgCTRL": 71.9528761925,
+        "minimum_control_reads": 102
+      }
+    ]
+  }
+}

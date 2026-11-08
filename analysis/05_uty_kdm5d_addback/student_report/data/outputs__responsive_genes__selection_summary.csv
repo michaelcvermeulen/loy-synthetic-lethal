@@ -1,0 +1,5 @@
+baseline_filter,response_test,eligible,UTY,DUAL,either,both,both_same_direction,KDM5D,August_overlap
+small_nonsignificant,descriptive,11011,363,552,657,258,258,0,5
+small_nonsignificant,TREAT,11011,60,48,68,40,40,0,1
+CI_within_margin,descriptive,1383,53,76,91,38,38,0,0
+CI_within_margin,TREAT,1383,2,2,4,0,0,0,0

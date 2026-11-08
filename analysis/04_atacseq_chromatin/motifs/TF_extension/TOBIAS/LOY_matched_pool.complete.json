@@ -1,0 +1,10 @@
+{
+  "condition": "LOY",
+  "reads": 81569618,
+  "fragments": 40784809,
+  "samples": [
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/LOY_11_matched.bam",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/LOY_12_matched.bam",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/LOY_21_matched.bam"
+  ]
+}

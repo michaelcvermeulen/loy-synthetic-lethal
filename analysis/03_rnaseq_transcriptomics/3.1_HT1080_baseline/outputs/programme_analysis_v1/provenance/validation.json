@@ -1,0 +1,18 @@
+{
+  "validated_utc": "2026-09-18T17:16:04.620038+00:00",
+  "checks": [
+    "Independent BH recalculation for every DE/GSEA contrast",
+    "Unique gene identifiers and finite test statistics",
+    "Exact interaction coefficient arithmetic",
+    "Gene and pathway directional-selection rules",
+    "Leading-edge membership in tested ranking universe",
+    "Original scientific input hashes unchanged",
+    "ATAC source hashes unchanged"
+  ],
+  "genes_consistent": 662,
+  "pathways_consistent": 220,
+  "pathways_both_periods": 55,
+  "TFs_consistent": 60,
+  "GSEA_floor_pvalues": 7,
+  "GSEA_missing_error_estimates": 7
+}

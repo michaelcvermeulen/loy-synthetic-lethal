@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "selection_contrast": "combined",
+  "global_BH_threshold": 0.05,
+  "collections": "all eligible H and C1-C9; frozen MSigDB 2026.1.Hs",
+  "primary_gene_basis": "combined fgsea leading edge",
+  "jaccard_threshold": 0.25,
+  "minimum_shared_genes": 3,
+  "louvain_resolution": 1.0,
+  "sensitivity_jaccard_thresholds": [0.2, 0.25, 0.35, 0.5],
+  "period_support": "period global BH < 0.05 and NES direction agrees with combined",
+  "direction_split": "within-direction edges only; no cross-direction edges inferred",
+  "inference": "exploratory preranked enrichment; repeated established populations; no new tests",
+  "method_reference": "https://enrichmentmap.readthedocs.io/en/latest/Parameters.html"
+}

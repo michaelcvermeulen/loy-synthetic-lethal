@@ -1,0 +1,3 @@
+PASS: all four HOMER runs ingest the expected target counts and test 879 unique JASPAR motifs
+PASS: finite valid P-values; BH across both directions within each design arm
+PASS: motif identities match chromVAR and reference mapping

@@ -1,0 +1,4 @@
+TF,RNA_status,RNA_chromosome,RNA_log2FC,RNA_FDR,motif_ids,motif_labels,motif_label_status
+ZFY,present,Y,-1.89361360796251,8.42565189322898e-15,"","",no_matching_motif_label
+ZFX,present,X,-0.0298040793098341,0.969678628632502,MA0146.3,Zfx,label_match_including_case_insensitive_candidates
+SRY,absent_from_selected_table,,,,MA0084.2,SRY,label_match_including_case_insensitive_candidates

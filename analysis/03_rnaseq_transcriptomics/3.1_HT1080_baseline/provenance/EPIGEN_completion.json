@@ -1,0 +1,18 @@
+{
+  "completed_at": "2026-09-14T16:00:09.207781+00:00",
+  "scientific_assertions": 185,
+  "scientific_groups": 29,
+  "new_scientific_assertions": 43,
+  "new_scientific_groups": 6,
+  "new_figures": 2,
+  "new_panels": 8,
+  "total_figures": 17,
+  "total_panels": 62,
+  "table_exports": 20,
+  "prior_figure_exports_unchanged": 45,
+  "original_global_enrichment_reused": true,
+  "new_enrichment_tests": 0,
+  "original_count_tables_unchanged": true,
+  "local_provenance_hashes_verified": 187,
+  "output_hashes": 50
+}

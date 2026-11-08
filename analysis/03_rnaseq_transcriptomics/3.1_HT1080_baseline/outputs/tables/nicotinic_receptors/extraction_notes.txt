@@ -1,0 +1,4 @@
+Original 01_ingest.rds and 02_expression.rds reused.
+26 genes; 12 core libraries; counts are assigned reads, not paired fragments.
+TMM CPM and logCPM (prior count 2) copied from the original saved normalization.
+No new gene-level P values, normalization or enrichment tests.

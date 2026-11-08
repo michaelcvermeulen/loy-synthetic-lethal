@@ -1,0 +1,14 @@
+dataset,group,description,focus_tested,focus_same_sign,focus_sig,focus_sig_same_sign,focus_sig_opposite
+A549_clones_LOYvROY,A_LOY,"A549 4 LOY vs 4 ROY clones (DESeq2, unpaired; LOY-ROY)",19,16,1,1,0
+A549_multiome_pb_LOYvROY,A_LOY,A549 multiome pseudobulk LOY vs ROY cells (DESeq2; LOY-ROY),17,10,3,2,1
+MB49_cellline_YnegvYpos,A_LOY,"GSE229233 mouse MB49 bladder cancer cell line Y- vs Y+ (5v5, DESeq2)",18,11,2,2,0
+MB49_tumor_YnegvYpos,A_LOY,"GSE229233 MB49 subcutaneous tumour Y- vs Y+ (5v5, DESeq2; includes host stroma/immune)",25,14,6,1,5
+GSE126712_lymph_XOvXY,B_XOvXY,"GSE126712 primary lymphocytes 45,X vs 46,XY (limma-voom)",19,7,1,1,0
+GSE207112_troph_XOvXY,B_XOvXY,GSE207112 isogenic iPSC-trophoblast XO vs XY (blocked by round),26,21,7,6,1
+GSE264742_NCC_XOvXY,B_XOvXY,GSE264742 isogenic iPSC-neural crest XO vs XY (panel+round blocked),25,19,6,4,2
+ERP156313_fetal_XOvXY,B_XOvXY,"ERP156313 fetal tissues 45,X vs 46,XY, tissue-adjusted consensus (limma-voom)",29,9,1,0,1
+PageLab_Fib_X0vXY,B_XOvXY,"Page lab SCA fibroblasts 45,X vs 46,XY (DESeq2)",11,4,0,0,0
+PageLab_LCL_X0vXY,B_XOvXY,"Page lab SCA LCLs 45,X vs 46,XY (DESeq2)",10,4,0,0,0
+GSE301297_undiff_UTYKOvWT,C_other,"GSE301297 male hESC (SEES3) UTY-KO vs WT, undifferentiated (single Y gene KO, not LOY)",18,8,0,0,0
+GSE301297_undiff_DKOvWT,C_other,"GSE301297 male hESC UTX/UTY double KO vs WT, undifferentiated (not LOY)",18,14,13,11,2
+XYY_integrated_flipped,C_other,"Integrated iPSC+NSC XYY vs XY consensus, SIGN FLIPPED (+ = lower with fewer Y); Y gain, not LOY",16,7,12,5,7

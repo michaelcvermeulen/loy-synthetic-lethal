@@ -1,0 +1,42 @@
+{
+  "created_utc": "2026-09-14T19:23:30.603290+00:00",
+  "genes": 26,
+  "family_genes": 17,
+  "samples": 12,
+  "source_inputs_unchanged": {
+    "outputs/models/01_ingest.rds": "687798ca8dc2101ec30072b0b634c3fb8fc102387ba84e22bbedb9b748451543",
+    "outputs/models/02_expression.rds": "3c667ccb90d806b6d1f527f90233008c675a6cf4935c84cd70d7502d76eaec38",
+    "outputs/tables/HT1080_LOY_vs_sgCTRL_all_gene_effects.csv": "4aaa3ccc09db5b3a536e943c612a1cf6cd9212d625b6f958231c168d23c00986",
+    "outputs/tables/fgsea_all_collections.csv": "6221bf915e852efcf2847459d5600f1f0d80a2dbb04f98589990a86378f3f530",
+    "outputs/tables/camera_all_collections.csv": "05a74c5fe98e86a54c4e31bbeb81fbe6379cb46e41f8f06af415e917772bee2e",
+    "outputs/tables/camera_estimated_correlation_sensitivity.csv": "c4a47f8a8c55a979a8e3b68e98faceb7cdb1c274ada1a6d4c887fe7b19a1020c",
+    "outputs/tables/network_modules/UP_association_edges.csv": "5dac8fa2f921b3e89d2357f074c29fdf3aa3a3fb3a9c445694426444893d4cbd",
+    "outputs/tables/pathway_resource_coverage.csv": "6dc0cc32fd09ef2388d00c1f8a245928cc35425f9530207da76316b9da798ac2",
+    "outputs/tables/nicotinic_receptors/sample_expression.csv": "07fc91004d44b38b2c68c6f7b060328eb6e65ce36a5d753f8fd50737d5f3561d",
+    "outputs/tables/nicotinic_receptors/gene_effects.csv": "99065e421603f22bc6e2cf5e0e82917e653a67b5766b043ae599a8c321c8de8a"
+  },
+  "new_tests_performed": false,
+  "script_sha256": "ce8edebba700f854e84e670b1a2f7cd5197b10aafd98c8965913840ab46ff83e",
+  "outputs_sha256": {
+    "outputs/tables/nicotinic_receptors/cholinergic_set_coverage.csv": "1ee8a33e5067ca56ce2206733157bcc67feedfe11caaf483c85267e78840ce3f",
+    "outputs/tables/nicotinic_receptors/extraction_notes.txt": "56730a408ea559703818e03f7c68af0271ee5b0dbb5f18bb2b7c04067aec8eb2",
+    "outputs/tables/nicotinic_receptors/gene_effects.csv": "99065e421603f22bc6e2cf5e0e82917e653a67b5766b043ae599a8c321c8de8a",
+    "outputs/tables/nicotinic_receptors/gene_summary.csv": "9f8bd4846bf0558507b124be0f568e3e0a2e87a2c7813b77837794997f34c39d",
+    "outputs/tables/nicotinic_receptors/matched_differences.csv": "bc250438a9b26822dee9156c328dbd7b3ca239207d659b02cad6c7c6c568a50b",
+    "outputs/tables/nicotinic_receptors/original_cholinergic_enrichments.csv": "0da2d06c488175bfc4efa9f63882ba5a785cff8655d521ba75d59ad64f3d752a",
+    "outputs/tables/nicotinic_receptors/period_abundance.csv": "3bbcc4744de943358778a0d82265be0fc8920ec931d67873482f271e7e5b57bb",
+    "outputs/tables/nicotinic_receptors/sample_expression.csv": "07fc91004d44b38b2c68c6f7b060328eb6e65ce36a5d753f8fd50737d5f3561d",
+    "outputs/tables/nicotinic_receptors/UP_module_links_to_enriched_sets.csv": "192afe0e2807d02fe480ca64841821675412751fc6133f609c8a3ca89cf73e7f",
+    "outputs/tables/nicotinic_receptors/UP_module_STRING_edges.csv": "c6292df5fd3c39e938f08372ff553a48a6221017e5940ba9f7d82905cdcdef2c",
+    "outputs/figures/nicotinic_receptors/HT1080_nicotinic_receptor_followup.pdf": "37981772c8b31c1310342b77b7e7df249b03782f37f90e79e6c6bc12d83fb5e5",
+    "outputs/figures/nicotinic_receptors/HT1080_nicotinic_receptor_followup.png": "e5c46c5bdd63fa13390f6ab89bbfb1b19d6612ed22aaace4a01280ff782d52e6",
+    "outputs/figures/nicotinic_receptors/HT1080_nicotinic_receptor_followup.svg": "829dd559e96d8d83c404f4ed071a62ae284949b6b732e67469e1f7568813000f",
+    "NICOTINIC_RECEPTOR_FOLLOWUP.md": "3e1c87dafb0aff410ebc53d4a1fb698666241d72047edb4812d06d81b3b814cf",
+    "outputs/captions/nicotinic_receptor_followup.md": "5f987438eb498b7c8d4492bbc1dfbba3adc35d5d69854e652465fa8916dede93"
+  },
+  "visual_review": "passed: all family labels, heatmap values and individual sample points readable; zero-count markers unclipped",
+  "status": "complete",
+  "local_document_links_verified": 10,
+  "extractor_sha256": "5aa8e634f66b5fd2cb740b4cba87001b256988791f11728c172e024f54812bf1",
+  "completed_utc": "2026-09-14T19:24:05.209447+00:00"
+}

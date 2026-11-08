@@ -1,0 +1,29 @@
+{
+  "tested_overall": 23696,
+  "significant_overall": 3281,
+  "directionally_consistent": 3264,
+  "both_periods_significant": 966,
+  "higher": 94,
+  "lower": 3187,
+  "atlas_pages": 137,
+  "displayed_main_pathways": 21,
+  "selection": "Explicit representative pathways within eight author-approved biological themes; overall global FDR < 0.05 and matching NES directions across periods. Themes are interpretive groupings, not recomputed network modules. Heatmap-only display; the prior gene-set network has been removed.",
+  "exports": [
+    {
+      "file": "ch03_main_ht1080_gsea_themes_network.pdf",
+      "sha256": "5722c3a101c32b4a0bb18afcff9c095f2ad4fe33a52277519470f4946cbe4922"
+    },
+    {
+      "file": "ch03_main_ht1080_gsea_themes_network.svg",
+      "sha256": "db519ffc399edef2603f82a30a12732e1bb64124ba0bc77004da5bcf71ed24d0"
+    },
+    {
+      "file": "ch03_main_ht1080_gsea_themes_network.png",
+      "sha256": "f0e4628346996da234d7652eaedfeeb1a208ac869d4afb3be7bf14c1237eda71"
+    },
+    {
+      "file": "ch03_supp_ht1080_gsea_all_collections_atlas.pdf",
+      "sha256": "00a3ae1c6ea360592417988ea5fcc22672070e09f3daa21e8aef9f6855aa5157"
+    }
+  ]
+}

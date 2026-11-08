@@ -1,0 +1,47 @@
+DU145 genes missing from primary effects table: ['CDH2', 'TWIST1']
+     line                         gene_set      n  sign_agreement  spearman
+0  HT1080                      DU145_FDR05    122        0.418033 -0.043100
+1  HT1080  DU145_FDR05_and_CPMge1_in_other    102        0.382353 -0.080887
+2  HT1080                  DU145_thesis_DE     12        0.666667  0.125874
+3  HT1080         all_shared_primary_genes  16165        0.489638 -0.021815
+4    A549                      DU145_FDR05    122        0.524590 -0.094432
+5    A549  DU145_FDR05_and_CPMge1_in_other    116        0.517241 -0.116334
+6    A549                  DU145_thesis_DE     12        0.500000 -0.125874
+7    A549         all_shared_primary_genes  16165        0.466873 -0.062234
+                      dataset    group                                                                                      description  focus_tested  focus_same_sign  focus_sig  focus_sig_same_sign  focus_sig_opposite
+0         A549_clones_LOYvROY    A_LOY                                           A549 4 LOY vs 4 ROY clones (DESeq2, unpaired; LOY-ROY)            19               16          1                    1                   0
+1    A549_multiome_pb_LOYvROY    A_LOY                                      A549 multiome pseudobulk LOY vs ROY cells (DESeq2; LOY-ROY)            17               10          3                    2                   1
+2     MB49_cellline_YnegvYpos    A_LOY                             GSE229233 mouse MB49 bladder cancer cell line Y- vs Y+ (5v5, DESeq2)            18               11          2                    2                   0
+3        MB49_tumor_YnegvYpos    A_LOY           GSE229233 MB49 subcutaneous tumour Y- vs Y+ (5v5, DESeq2; includes host stroma/immune)            25               14          6                    1                   5
+4       GSE126712_lymph_XOvXY  B_XOvXY                                         GSE126712 primary lymphocytes 45,X vs 46,XY (limma-voom)            19                7          1                    1                   0
+5       GSE207112_troph_XOvXY  B_XOvXY                                  GSE207112 isogenic iPSC-trophoblast XO vs XY (blocked by round)            26               21          7                    6                   1
+6         GSE264742_NCC_XOvXY  B_XOvXY                              GSE264742 isogenic iPSC-neural crest XO vs XY (panel+round blocked)            25               19          6                    4                   2
+7       ERP156313_fetal_XOvXY  B_XOvXY                    ERP156313 fetal tissues 45,X vs 46,XY, tissue-adjusted consensus (limma-voom)            29                9          1                    0                   1
+8           PageLab_Fib_X0vXY  B_XOvXY                                                  Page lab SCA fibroblasts 45,X vs 46,XY (DESeq2)            11                4          0                    0                   0
+9           PageLab_LCL_X0vXY  B_XOvXY                                                         Page lab SCA LCLs 45,X vs 46,XY (DESeq2)            10                4          0                    0                   0
+10  GSE301297_undiff_UTYKOvWT  C_other           GSE301297 male hESC (SEES3) UTY-KO vs WT, undifferentiated (single Y gene KO, not LOY)            18                8          0                    0                   0
+11    GSE301297_undiff_DKOvWT  C_other                          GSE301297 male hESC UTX/UTY double KO vs WT, undifferentiated (not LOY)            18               14         13                   11                   2
+12     XYY_integrated_flipped  C_other  Integrated iPSC+NSC XYY vs XY consensus, SIGN FLIPPED (+ = lower with fewer Y); Y gain, not LOY            16                7         12                    5                   7
+             dataset direction     gene
+221    HT1080_merged        up    OVOL2
+700   HT1080_ADDBACK        up    OVOL2
+882        GSE207112        up    CNTN1
+901        GSE207112        up    CXCL1
+1340       GSE207112        up     ZEB1
+1341       GSE207112        up     ZEB2
+2041   HT1080_merged      down     BST2
+2085   HT1080_merged      down    CNTN1
+2097   HT1080_merged      down  CREB3L1
+2371   HT1080_merged      down     PXDN
+2576      HT1080_AUG      down     BST2
+2757      HT1080_AUG      down     PXDN
+2898  HT1080_ADDBACK      down    CNTN1
+2906  HT1080_ADDBACK      down  CREB3L1
+2926  HT1080_ADDBACK      down   EPS8L1
+3084  HT1080_ADDBACK      down    SNAI1
+3258       GSE207112      down    CLDN7
+3499       GSE207112      down    OVOL1
+3625       GSE207112      down    SNAI1
+3658       GSE207112      down  TACSTD2
+3932       GSE264742      down      LTB
+4089       GSE264742      down  TACSTD2

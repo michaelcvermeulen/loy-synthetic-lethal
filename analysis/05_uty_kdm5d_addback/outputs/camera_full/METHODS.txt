@@ -1,0 +1,11 @@
+Exploratory CAMERA screen using all human MSigDB collections returned by msigdbr, release 2026.1.Hs (H and C1-C9).
+The inventory records every set including those excluded. Retained sets contain 10-500 genes mapped to the frozen 17,724-Entrez-gene universe.
+Same primary voom expression, weights, matched-collection-occasion design and six contrasts as the original CAMERA analysis. No restriction to the 91 candidates or August signature.
+limma::camera: inter.gene.cor=0.01, allow.neg.cor=FALSE, sort=FALSE. No permutation-based P values.
+Primary FDR_all_sets_contrast: BH across all tested sets within each contrast. Also report BH within collection/contrast, within subcollection/contrast and globally across all six contrasts.
+Per-contrast files contain the three within-contrast FDR variants; combined camera_all.csv additionally contains the global FDR.
+Mean logFC and top genes by absolute moderated t are descriptive annotations; they do not define the CAMERA statistic or identify causal drivers.
+Overlapping pathway memberships and related signatures are not independent biological discoveries. C1 tests positional sets; many C3-C9 sets are signatures rather than pathways.
+Each construct is one established population sampled on three occasions; results are conditional population associations, not independently replicated construct effects.
+https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp
+https://igordot.github.io/msigdbr/reference/msigdbr.html

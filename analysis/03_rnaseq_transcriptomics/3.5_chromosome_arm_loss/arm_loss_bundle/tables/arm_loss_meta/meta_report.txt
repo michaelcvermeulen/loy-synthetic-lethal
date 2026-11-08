@@ -1,0 +1,335 @@
+arm-loss contrasts: 15 (A2058_1q, A2058_7p, A2058_8q, A2780_1q_vsTK, A2780_1q_vsWT, AGS_1q_vsTK, ARPE19_chrY, HCT116_8q, MCF10A_1q, MCF10Ahr_1q, RPE1_mono1018, RPE1_mono13, RPE1_mono19p, RPTEC_3p_early, RPTEC_3p_late)
+p53-induction contrasts: 3 (ip53_diploid, ip53_mono1018, ip53_mono13)
+
+=== Q1 Hallmark: most consistently DOWN across arm losses ===
+                                pathway     n    up    dn   sig   NES
+                                 <char> <int> <int> <int> <int> <num>
+ 1:             HALLMARK_MYC_TARGETS_V1    15     4    11    13 -0.91
+ 2:             HALLMARK_MYC_TARGETS_V2    15     4    11    11 -0.87
+ 3:  HALLMARK_OXIDATIVE_PHOSPHORYLATION    15     5    10     7 -0.46
+ 4:                HALLMARK_E2F_TARGETS    15     6     9    12 -0.78
+ 5:         HALLMARK_HEDGEHOG_SIGNALING    15     6     9     2 -0.23
+ 6: HALLMARK_WNT_BETA_CATENIN_SIGNALING    15     6     9     2 -0.19
+ 7:             HALLMARK_G2M_CHECKPOINT    15     7     8    12 -0.61
+ 8:                 HALLMARK_DNA_REPAIR    15     7     8     3 -0.10
+ 9:            HALLMARK_SPERMATOGENESIS    15     8     7     3 -0.05
+10:            HALLMARK_NOTCH_SIGNALING    15     7     8     3  0.00
+           rng   fdr
+        <char> <num>
+ 1: -3.6..+2.6  0.35
+ 2: -3.2..+2.3  0.35
+ 3: -2.5..+2.9  0.56
+ 4: -3.9..+2.6  0.74
+ 5: -1.9..+1.7  0.74
+ 6: -1.7..+1.5  0.74
+ 7: -3.5..+2.5  1.00
+ 8: -1.6..+1.8  1.00
+ 9: -1.9..+1.3  1.00
+10: -2.3..+1.7  1.00
+
+=== Q1 Hallmark: most consistently UP across arm losses ===
+                                       pathway     n    up    dn   sig   NES
+                                        <char> <int> <int> <int> <int> <num>
+ 1:                   HALLMARK_APICAL_JUNCTION    15    13     2    12  1.07
+ 2:                HALLMARK_TGF_BETA_SIGNALING    15    12     3     8  0.97
+ 3:             HALLMARK_XENOBIOTIC_METABOLISM    15    12     3     8  0.86
+ 4:           HALLMARK_PI3K_AKT_MTOR_SIGNALING    15    12     3     4  0.63
+ 5: HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION    15    11     4    14  0.89
+ 6:                    HALLMARK_UV_RESPONSE_DN    15    11     4    11  0.81
+ 7:                       HALLMARK_COAGULATION    15    11     4    13  0.80
+ 8:                        HALLMARK_COMPLEMENT    15    11     4    10  0.80
+ 9:               HALLMARK_ALLOGRAFT_REJECTION    15    11     4     9  0.79
+10:                 HALLMARK_PROTEIN_SECRETION    15    11     4     8  0.77
+11:                           HALLMARK_HYPOXIA    15    11     4    11  0.75
+12:           HALLMARK_ESTROGEN_RESPONSE_EARLY    15    11     4    10  0.64
+13:                 HALLMARK_ANDROGEN_RESPONSE    15    11     4     7  0.64
+14:                   HALLMARK_HEME_METABOLISM    15    11     4     4  0.60
+15:             HALLMARK_FATTY_ACID_METABOLISM    15    11     4     6  0.54
+16:           HALLMARK_TNFA_SIGNALING_VIA_NFKB    15    10     5    14  0.75
+17:   HALLMARK_REACTIVE_OXYGEN_SPECIES_PATHWAY    15    10     5     4  0.60
+18:                       HALLMARK_P53_PATHWAY    15    10     5    12  0.56
+19:                 HALLMARK_KRAS_SIGNALING_UP    15    10     5    13  0.51
+20:                        HALLMARK_GLYCOLYSIS    15    10     5     9  0.49
+21:              HALLMARK_BILE_ACID_METABOLISM    15    10     5     5  0.39
+22:                        HALLMARK_PEROXISOME    15    10     5     3  0.37
+23:           HALLMARK_CHOLESTEROL_HOMEOSTASIS    15    10     5     9  0.36
+24:            HALLMARK_ESTROGEN_RESPONSE_LATE    15    10     5     4  0.35
+25:           HALLMARK_IL6_JAK_STAT3_SIGNALING    15     9     6     8  0.48
+                                       pathway     n    up    dn   sig   NES
+           rng   fdr
+        <char> <num>
+ 1: -2.3..+1.9  0.35
+ 2: -1.6..+2.2  0.35
+ 3: -1.6..+1.6  0.35
+ 4: -1.6..+1.5  0.35
+ 5: -2.5..+2.7  0.35
+ 6: -1.9..+2.0  0.35
+ 7: -1.8..+2.4  0.35
+ 8: -1.7..+2.1  0.35
+ 9: -1.9..+2.2  0.35
+10: -1.8..+2.0  0.35
+11: -2.0..+2.2  0.35
+12: -2.1..+1.9  0.35
+13: -2.0..+1.8  0.35
+14: -1.7..+1.7  0.35
+15: -1.6..+1.5  0.35
+16: -2.4..+2.6  0.56
+17: -1.4..+1.8  0.56
+18: -2.2..+2.3  0.56
+19: -2.1..+2.2  0.56
+20: -1.5..+1.8  0.56
+21: -1.5..+1.8  0.56
+22: -1.7..+1.6  0.56
+23: -2.7..+2.0  0.56
+24: -2.2..+1.6  0.56
+25: -1.8..+2.3  0.74
+           rng   fdr
+
+=== Q1 Hallmark: LEAST consistent (direction splits across contrasts) ===
+                               pathway     n    up    dn   sig   NES        rng
+                                <char> <int> <int> <int> <int> <num>     <char>
+ 1:            HALLMARK_G2M_CHECKPOINT    15     7     8    12 -0.61 -3.5..+2.5
+ 2:            HALLMARK_APICAL_SURFACE    15     8     7     6  0.13 -1.7..+1.8
+ 3:                HALLMARK_DNA_REPAIR    15     7     8     3 -0.10 -1.6..+1.8
+ 4: HALLMARK_UNFOLDED_PROTEIN_RESPONSE    15     8     7     9  0.09 -1.8..+1.8
+ 5:              HALLMARK_ADIPOGENESIS    15     8     7     6  0.06 -1.4..+1.9
+ 6:           HALLMARK_SPERMATOGENESIS    15     8     7     3 -0.05 -1.9..+1.3
+ 7:           HALLMARK_MITOTIC_SPINDLE    15     7     8     7  0.02 -1.7..+2.6
+ 8:       HALLMARK_PANCREAS_BETA_CELLS    15     7     8     2  0.02 -1.7..+1.8
+ 9:           HALLMARK_NOTCH_SIGNALING    15     7     8     3  0.00 -2.3..+1.7
+10:               HALLMARK_E2F_TARGETS    15     6     9    12 -0.78 -3.9..+2.6
+11:   HALLMARK_IL6_JAK_STAT3_SIGNALING    15     9     6     8  0.48 -1.8..+2.3
+12:                HALLMARK_MYOGENESIS    15     9     6    10  0.45 -1.9..+2.0
+      fdr
+    <num>
+ 1:  1.00
+ 2:  1.00
+ 3:  1.00
+ 4:  1.00
+ 5:  1.00
+ 6:  1.00
+ 7:  1.00
+ 8:  1.00
+ 9:  1.00
+10:  0.74
+11:  0.74
+12:  0.74
+
+=== Q1 custom ribosomal-protein set, per contrast ===
+          contrast   NES    padj  size
+            <char> <num>   <num> <int>
+ 1:       A2058_7p -2.98 2.0e-19    92
+ 2: RPTEC_3p_early -2.67 1.5e-12    89
+ 3:  RPE1_mono1018 -2.37 1.1e-10    87
+ 4:    RPE1_mono13 -1.99 4.2e-06    88
+ 5:  RPTEC_3p_late -1.90 3.4e-05    89
+ 6:      MCF10A_1q -1.86 4.4e-05    89
+ 7:    ARPE19_chrY -1.73 1.1e-03    90
+ 8:       A2058_1q -1.46 9.2e-03    91
+ 9:    AGS_1q_vsTK -1.46 1.7e-02    88
+10:   RPE1_mono19p -1.10 2.5e-01    85
+11:       A2058_8q -1.04 3.7e-01    87
+12:      HCT116_8q  0.67 9.9e-01    86
+13:  A2780_1q_vsTK  0.88 7.0e-01    88
+14:    MCF10Ahr_1q  1.09 3.1e-01    89
+15:  A2780_1q_vsWT  1.33 8.0e-02    89
+
+=== Q1 interferon + inflammatory, per contrast ===
+Key: <contrast>
+          contrast HALLMARK_INFLAMMATORY_RESPONSE
+            <char>                          <num>
+ 1:       A2058_1q                           2.61
+ 2:       A2058_7p                           1.64
+ 3:       A2058_8q                           1.86
+ 4:  A2780_1q_vsTK                           1.92
+ 5:  A2780_1q_vsWT                           1.47
+ 6:    AGS_1q_vsTK                          -1.22
+ 7:    ARPE19_chrY                          -1.17
+ 8:      HCT116_8q                          -1.29
+ 9:      MCF10A_1q                           1.95
+10:    MCF10Ahr_1q                           1.97
+11:  RPE1_mono1018                           1.70
+12:    RPE1_mono13                          -1.71
+13:   RPE1_mono19p                           1.07
+14: RPTEC_3p_early                          -2.10
+15:  RPTEC_3p_late                          -2.09
+    HALLMARK_INTERFERON_ALPHA_RESPONSE HALLMARK_INTERFERON_GAMMA_RESPONSE
+                                 <num>                              <num>
+ 1:                               2.53                               2.65
+ 2:                               1.54                               1.60
+ 3:                               2.10                               2.13
+ 4:                               1.02                               1.31
+ 5:                               2.04                               1.84
+ 6:                              -3.36                              -2.94
+ 7:                              -1.24                              -1.53
+ 8:                              -2.07                              -2.06
+ 9:                               1.24                               1.37
+10:                               1.15                               1.55
+11:                               1.75                               1.79
+12:                              -1.98                              -1.58
+13:                              -1.10                              -1.13
+14:                               2.08                               1.50
+15:                              -1.94                              -1.77
+    HALLMARK_TNFA_SIGNALING_VIA_NFKB
+                               <num>
+ 1:                             2.40
+ 2:                             2.12
+ 3:                             1.84
+ 4:                             2.56
+ 5:                             2.28
+ 6:                             1.83
+ 7:                            -1.62
+ 8:                            -1.78
+ 9:                             2.01
+10:                             2.43
+11:                             1.91
+12:                            -1.90
+13:                             1.09
+14:                            -2.42
+15:                            -1.47
+
+=== Q1 p53 / proliferation, per contrast ===
+Key: <contrast>
+          contrast HALLMARK_E2F_TARGETS HALLMARK_G2M_CHECKPOINT
+            <char>                <num>                   <num>
+ 1:       A2058_1q                -0.71                    0.86
+ 2:       A2058_7p                 1.00                    1.36
+ 3:       A2058_8q                -2.32                   -2.46
+ 4:  A2780_1q_vsTK                -2.87                   -2.90
+ 5:  A2780_1q_vsWT                -2.85                   -2.94
+ 6:    AGS_1q_vsTK                 2.07                    1.48
+ 7:    ARPE19_chrY                -1.53                   -1.66
+ 8:      HCT116_8q                 2.08                    2.26
+ 9:      MCF10A_1q                -3.58                   -2.92
+10:    MCF10Ahr_1q                -3.95                   -3.52
+11:  RPE1_mono1018                -2.20                   -1.53
+12:    RPE1_mono13                 1.19                    1.00
+13:   RPE1_mono19p                 2.64                    2.48
+14: RPTEC_3p_early                -2.72                   -2.19
+15:  RPTEC_3p_late                 2.02                    1.46
+    HALLMARK_MYC_TARGETS_V1 HALLMARK_P53_PATHWAY
+                      <num>                <num>
+ 1:                   -0.74                 1.75
+ 2:                   -1.84                 1.39
+ 3:                   -1.89                 1.14
+ 4:                   -1.84                 2.28
+ 5:                   -2.24                 2.25
+ 6:                    2.60                 1.66
+ 7:                   -1.58                -1.28
+ 8:                    1.87                -2.18
+ 9:                   -3.08                 1.67
+10:                   -3.62                 1.84
+11:                   -2.45                 1.56
+12:                   -1.09                -1.84
+13:                    2.56                -1.32
+14:                   -2.58                -1.77
+15:                    2.26                 1.22
+
+=== Q2 Spearman correlation of NES profiles: arm loss vs pure p53 induction ===
+Key: <arm>
+               arm ip53_diploid ip53_mono1018 ip53_mono13
+            <char>        <num>         <num>       <num>
+ 1:       A2058_1q        -0.01         -0.10        0.01
+ 2:       A2058_7p         0.13         -0.28       -0.13
+ 3:       A2058_8q        -0.10          0.04        0.05
+ 4:  A2780_1q_vsTK        -0.09          0.13        0.09
+ 5:  A2780_1q_vsWT        -0.17          0.35        0.16
+ 6:    AGS_1q_vsTK        -0.11          0.16        0.28
+ 7:    ARPE19_chrY         0.03          0.00       -0.09
+ 8:      HCT116_8q         0.07         -0.22       -0.13
+ 9:      MCF10A_1q        -0.12         -0.07       -0.02
+10:    MCF10Ahr_1q        -0.21          0.03        0.05
+11:  RPE1_mono1018         0.09         -0.20        0.02
+12:    RPE1_mono13         0.13         -0.11       -0.24
+13:   RPE1_mono19p         0.03         -0.03        0.14
+14: RPTEC_3p_early         0.09          0.02       -0.20
+15:  RPTEC_3p_late        -0.01          0.34        0.10
+
+arm-vs-arm NES agreement: median rho = -0.00 (range -0.48..0.80, 105 pairs)
+arm-vs-p53  NES agreement: median rho = 0.01 (range -0.28..0.35)
+
+=== Q3 effect size vs protein-coding genes lost ===
+          contrast n_lost cis_lfc  n_DE p53_NES e2f_NES
+            <char>  <int>   <num> <int>   <num>   <num>
+ 1:    ARPE19_chrY     61  -6.264  2387   -1.28   -1.53
+ 2:       A2058_7p    299  -0.538   341    1.39    1.00
+ 3:    RPE1_mono13    322  -0.669  6497   -1.84    1.19
+ 4:       A2058_8q    418  -0.530   545    1.14   -2.32
+ 5:      HCT116_8q    418  -0.548    66   -2.18    2.08
+ 6: RPTEC_3p_early    511  -0.822  3257   -1.77   -2.72
+ 7:  RPTEC_3p_late    511  -0.835  2799    1.22    2.02
+ 8:   RPE1_mono19p    643  -0.713  8306   -1.32    2.64
+ 9:       A2058_1q    986  -0.426  6619    1.75   -0.71
+10:  A2780_1q_vsTK    986  -0.413  1179    2.28   -2.87
+11:  A2780_1q_vsWT    986  -0.454  1883    2.25   -2.85
+12:    AGS_1q_vsTK    986  -0.508  1185    1.66    2.07
+13:      MCF10A_1q    986  -0.482   676    1.67   -3.58
+14:    MCF10Ahr_1q    986  -0.347   130    1.84   -3.95
+15:  RPE1_mono1018    999  -0.503  7888    1.56   -2.20
+  (ARPE19_chrY excluded from the fits below: hemizygous 1->0, not 2->1)
+  n_padj05   vs genes lost: Spearman rho = +0.27 (n=14)
+  p53_NES    vs genes lost: Spearman rho = +0.73 (n=14)
+  e2f_NES    vs genes lost: Spearman rho = -0.43 (n=14)
+
+done
+
+=== Q3b segment-level means (distinct segments, n = 7 ) ===
+           seg n_lost HALLMARK_E2F_TARGETS HALLMARK_INTERFERON_ALPHA_RESPONSE
+        <char>  <num>                <num>                              <num>
+1:          7p    299                 1.00                               1.54
+2:       chr13    322                 1.19                              -1.98
+3:          8q    418                -0.12                               0.01
+4:          3p    511                -0.35                               0.07
+5:         19p    643                 2.64                              -1.10
+6:          1q    986                -1.98                               0.77
+7: chr10,chr18    999                -2.20                               1.75
+   HALLMARK_MYC_TARGETS_V1 HALLMARK_P53_PATHWAY RIBOSOMAL_PROTEIN
+                     <num>                <num>             <num>
+1:                   -1.84                 1.39             -2.98
+2:                   -1.09                -1.84             -1.99
+3:                   -0.01                -0.52             -0.19
+4:                   -0.16                -0.28             -2.28
+5:                    2.56                -1.32             -1.10
+6:                   -1.49                 1.91             -0.24
+7:                   -2.45                 1.56             -2.37
+  p53   vs genes lost (segment level): rho = +0.50, P = 0.267 (n=7)
+  e2f   vs genes lost (segment level): rho = -0.61, P = 0.167 (n=7)
+  myc   vs genes lost (segment level): rho = -0.14, P = 0.783 (n=7)
+  ifna  vs genes lost (segment level): rho = +0.36, P = 0.444 (n=7)
+  rp    vs genes lost (segment level): rho = +0.18, P = 0.713 (n=7)
+
+=== within-segment consistency across cell backgrounds ===
+                               pathway    seg n_lost  n_bg  n_up  mean
+                                <char> <char>  <int> <int> <int> <num>
+ 1:               HALLMARK_E2F_TARGETS     8q    418     2     1 -0.12
+ 2:               HALLMARK_E2F_TARGETS     3p    511     2     1 -0.35
+ 3:               HALLMARK_E2F_TARGETS     1q    986     6     1 -1.98
+ 4: HALLMARK_INTERFERON_ALPHA_RESPONSE     8q    418     2     1  0.01
+ 5: HALLMARK_INTERFERON_ALPHA_RESPONSE     3p    511     2     1  0.07
+ 6: HALLMARK_INTERFERON_ALPHA_RESPONSE     1q    986     6     5  0.77
+ 7:            HALLMARK_MYC_TARGETS_V1     8q    418     2     1 -0.01
+ 8:            HALLMARK_MYC_TARGETS_V1     3p    511     2     1 -0.16
+ 9:            HALLMARK_MYC_TARGETS_V1     1q    986     6     1 -1.49
+10:               HALLMARK_P53_PATHWAY     8q    418     2     1 -0.52
+11:               HALLMARK_P53_PATHWAY     3p    511     2     1 -0.28
+12:               HALLMARK_P53_PATHWAY     1q    986     6     6  1.91
+13:                  RIBOSOMAL_PROTEIN     8q    418     2     1 -0.19
+14:                  RIBOSOMAL_PROTEIN     3p    511     2     0 -2.28
+15:                  RIBOSOMAL_PROTEIN     1q    986     6     3 -0.24
+           rng
+        <char>
+ 1: -2.3..+2.1
+ 2: -2.7..+2.0
+ 3: -3.9..+2.1
+ 4: -2.1..+2.1
+ 5: -1.9..+2.1
+ 6: -3.4..+2.5
+ 7: -1.9..+1.9
+ 8: -2.6..+2.3
+ 9: -3.6..+2.6
+10: -2.2..+1.1
+11: -1.8..+1.2
+12: +1.7..+2.3
+13: -1.0..+0.7
+14: -2.7..-1.9
+15: -1.9..+1.3

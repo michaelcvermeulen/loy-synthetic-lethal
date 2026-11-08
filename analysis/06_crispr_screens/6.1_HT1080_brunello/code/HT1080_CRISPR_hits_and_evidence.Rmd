@@ -1,0 +1,400 @@
+---
+title: "HT1080 CRISPR Screen: Hits and Evidence for Validation"
+author: "LOY Screen Analysis"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 10,
+  fig.height = 7
+)
+
+# Load libraries
+library(tidyverse)
+library(DT)
+library(scales)
+
+# Set paths
+project_dir <- "A:/Dropbox/LOY_paralogs/projects/crispr_screen/ht1080_loy_screen_2"
+results_dir <- file.path(project_dir, "results")
+rnaseq_dir <- "A:/Dropbox/LOY_paralogs/data/RNAseq/AUG_13_2025_LOY_A549_HT1080/DE"
+
+# Data file paths
+drugz_file <- file.path(results_dir, "drugZ/LOY_vs_CTRL_unfiltered.txt")
+mageck_file <- file.path(project_dir, "test/POST_LOY_vs_CTRL.gene_summary.txt")
+rnaseq_de_file <- file.path(rnaseq_dir, "ht1080_LOY_v_WT_DE_noY.csv")
+rnaseq_expr_file <- file.path(rnaseq_dir, "lcpm_matrix.csv")
+count_file <- file.path(project_dir, "count/ht1080_screen2_R1.count.txt")
+integrated_file <- file.path(results_dir, "module3_integrated_data.csv")
+
+# Essential gene files
+essential_file <- file.path(project_dir, "resources/AchillesCommonEssentialControls.csv")
+nonessential_file <- file.path(project_dir, "resources/AchillesNonessentialControls.csv")
+
+# Thresholds
+FDR_THRESHOLD <- 0.5
+```
+
+# 1. Data Loading
+
+```{r load-drugz}
+# Load drugZ results (primary source)
+drugz <- read_tsv(drugz_file, show_col_types = FALSE) %>%
+  rename(gene = GENE)
+
+cat("drugZ results loaded:", nrow(drugz), "genes\n")
+```
+
+```{r load-mageck}
+# Load MAGeCK results for LFC values
+mageck <- read_tsv(mageck_file, show_col_types = FALSE)
+colnames(mageck) <- gsub("[|]", "_", colnames(mageck))
+
+mageck <- mageck %>%
+  rename(gene = id) %>%
+  select(gene, num,
+         mageck_neg_lfc = neg_lfc,
+         mageck_neg_fdr = neg_fdr,
+         mageck_goodsgrna = neg_goodsgrna)
+
+cat("MAGeCK results loaded:", nrow(mageck), "genes\n")
+```
+
+```{r load-rnaseq-de}
+# Load RNA-seq DE results
+rnaseq_de <- read_csv(rnaseq_de_file, show_col_types = FALSE) %>%
+  select(gene_name,
+         rnaseq_logFC = logFC,
+         rnaseq_FDR = FDR)
+
+cat("RNA-seq DE results loaded:", nrow(rnaseq_de), "genes\n")
+```
+
+```{r load-rnaseq-expr}
+# Load RNA-seq expression matrix (log2-CPM per replicate)
+rnaseq_expr <- read_csv(rnaseq_expr_file, show_col_types = FALSE)
+
+# Get the gene name column (first column)
+gene_col <- colnames(rnaseq_expr)[1]
+
+# Select HT1080 columns only and rename
+ht1080_cols <- colnames(rnaseq_expr)[grepl("ht1080", colnames(rnaseq_expr), ignore.case = TRUE)]
+cat("HT1080 expression columns found:", paste(ht1080_cols, collapse = ", "), "\n")
+
+rnaseq_expr <- rnaseq_expr %>%
+  select(all_of(c(gene_col, ht1080_cols))) %>%
+  rename(gene_id = 1)
+
+# Rename columns to cleaner names
+colnames(rnaseq_expr) <- gsub("ht1080_", "rnaseq_", colnames(rnaseq_expr), ignore.case = TRUE)
+
+cat("RNA-seq expression loaded:", nrow(rnaseq_expr), "genes,", ncol(rnaseq_expr) - 1, "HT1080 samples\n")
+```
+
+```{r load-crispr-counts}
+# Load CRISPR counts and calculate gene-level normalized CPM
+counts_raw <- read_tsv(count_file, show_col_types = FALSE)
+colnames(counts_raw)[1:2] <- c("sgRNA", "Gene")
+
+# Calculate library-size normalized CPM per sample
+sample_cols <- colnames(counts_raw)[3:ncol(counts_raw)]
+lib_sizes <- colSums(counts_raw[, sample_cols])
+
+cpm_matrix <- counts_raw %>%
+  select(all_of(sample_cols)) %>%
+  sweep(2, lib_sizes, "/") * 1e6
+
+# Combine and calculate gene-level averages
+counts_gene <- counts_raw %>%
+  select(sgRNA, Gene) %>%
+  bind_cols(cpm_matrix) %>%
+  group_by(Gene) %>%
+  summarize(
+    n_sgrnas = n(),
+    D0_CTRL_cpm = mean(D0_CTRL),
+    D0_LOY_cpm = mean(D0_LOY),
+    POST_CTRL_REP1_cpm = mean(POST_CTRL_REP1),
+    POST_CTRL_REP2_cpm = mean(POST_CTRL_REP2),
+    POST_LOY_REP1_cpm = mean(POST_LOY_REP1),
+    POST_LOY_REP2_cpm = mean(POST_LOY_REP2),
+    .groups = "drop"
+  ) %>%
+  rename(gene = Gene)
+
+cat("CRISPR counts loaded:", nrow(counts_gene), "genes\n")
+```
+
+```{r load-integrated}
+# Load integrated data for concordance and X-linked status
+integrated <- read_csv(integrated_file, show_col_types = FALSE) %>%
+  select(gene, is_x_linked, chromosome, concordance, crispr_good_sgrna)
+
+cat("Integrated data loaded:", nrow(integrated), "genes\n")
+```
+
+```{r load-essential}
+# Load essential gene lists
+essential_genes <- read_csv(essential_file, show_col_types = FALSE) %>%
+  pull(1) %>%
+  str_extract("^[^\\s(]+")
+
+cat("Essential genes loaded:", length(essential_genes), "genes\n")
+```
+
+# 2. Gene Annotations
+
+```{r define-gene-lists}
+# SAGA/STAGA complex members
+saga_genes <- c(
+  # Core module
+  "SUPT3H", "SUPT7L", "SUPT20H", "TAF5L", "TAF6L", "TAF9", "TAF10", "TAF12",
+  # HAT module
+  "KAT2A", "KAT2B", "TADA2B", "TADA3", "SGF29", "TADA1",
+
+  # DUB module
+  "USP22", "ATXN7", "ATXN7L3", "ENY2",
+  # Splicing module
+  "SF3B3", "SF3B5",
+  # TRRAP
+  "TRRAP"
+)
+
+# Y chromosome genes lost in LOY
+y_genes <- c("UTY", "USP9Y", "DDX3Y", "EIF1AY", "RPS4Y1", "ZFY",
+             "NLGN4Y", "KDM5D", "TBL1Y", "TMSB4Y")
+
+# Known X-linked paralogs (potential synthetic lethal candidates)
+x_paralogs <- c("DDX3X", "UTX", "KDM6A", "USP9X", "EIF1AX", "RPS4X",
+                "ZFX", "NLGN4X", "KDM5C", "TBL1X", "TMSB4X")
+
+cat("Gene lists defined:\n")
+cat("- SAGA complex:", length(saga_genes), "genes\n")
+cat("- Y chromosome:", length(y_genes), "genes\n")
+cat("- X-linked paralogs:", length(x_paralogs), "genes\n")
+```
+
+# 3. Build Master Table
+
+```{r build-master-table}
+# Start with drugZ as base (has all genes)
+master_table <- drugz %>%
+  # Join MAGeCK
+  left_join(mageck, by = "gene") %>%
+  # Join RNA-seq DE
+  left_join(rnaseq_de, by = c("gene" = "gene_name")) %>%
+  # Join RNA-seq expression (need to match gene names)
+  left_join(rnaseq_expr, by = c("gene" = "gene_id")) %>%
+  # Join CRISPR counts
+  left_join(counts_gene, by = "gene") %>%
+  # Join integrated data
+
+  left_join(integrated, by = "gene") %>%
+  # Add evidence columns
+  mutate(
+    is_essential = gene %in% essential_genes,
+    is_saga = gene %in% saga_genes,
+    is_x_paralog = gene %in% x_paralogs,
+    is_y_gene = gene %in% y_genes,
+    # Use X-linked from integrated data, fall back to x_paralogs list
+    is_x_linked = coalesce(is_x_linked, gene %in% x_paralogs),
+    num_good_sgrnas = coalesce(crispr_good_sgrna, as.integer(mageck_goodsgrna)),
+    # Significance flag
+    is_significant = fdr_synth < FDR_THRESHOLD,
+    # Empty annotation columns for curation
+    notes = "",
+    priority = "",
+    validation_status = ""
+  ) %>%
+  # Select and order columns
+  select(
+    # Gene info
+    gene, chromosome,
+    # drugZ stats
+    rank_synth, sumZ, normZ, fdr_synth, fdr_supp,
+    # MAGeCK
+    mageck_neg_lfc, mageck_neg_fdr,
+    # RNA-seq DE
+    rnaseq_logFC, rnaseq_FDR,
+    # RNA-seq expression per replicate
+    starts_with("rnaseq_ctrl"), starts_with("rnaseq_loy"),
+    # CRISPR counts per replicate
+    POST_CTRL_REP1_cpm, POST_CTRL_REP2_cpm,
+    POST_LOY_REP1_cpm, POST_LOY_REP2_cpm,
+    D0_CTRL_cpm, D0_LOY_cpm,
+    # Evidence flags
+    is_essential, is_x_linked, is_x_paralog, is_saga, is_y_gene,
+    concordance, num_good_sgrnas, n_sgrnas,
+    # Annotation columns
+    notes, priority, validation_status,
+    is_significant
+  ) %>%
+  arrange(rank_synth)
+
+cat("\n=== MASTER TABLE BUILT ===\n")
+cat("Total genes:", nrow(master_table), "\n")
+cat("Significant hits (FDR <", FDR_THRESHOLD, "):", sum(master_table$is_significant, na.rm = TRUE), "\n")
+```
+
+# 4. Summary Statistics
+
+```{r summary-stats}
+sig_hits <- master_table %>% filter(is_significant)
+
+cat("=== SUMMARY OF SIGNIFICANT HITS (FDR <", FDR_THRESHOLD, ") ===\n\n")
+cat("Total synthetic lethal hits:", nrow(sig_hits), "\n")
+cat("X-linked genes:", sum(sig_hits$is_x_linked, na.rm = TRUE), "\n")
+cat("X-linked paralogs (of Y genes):", sum(sig_hits$is_x_paralog, na.rm = TRUE), "\n")
+cat("SAGA complex members:", sum(sig_hits$is_saga, na.rm = TRUE), "\n")
+cat("Essential genes (Achilles):", sum(sig_hits$is_essential, na.rm = TRUE), "\n")
+cat("With RNA-seq support (FDR < 0.1):", sum(!is.na(sig_hits$rnaseq_FDR) & sig_hits$rnaseq_FDR < 0.1, na.rm = TRUE), "\n")
+```
+
+```{r highlight-genes}
+# Show key gene categories
+cat("\n=== X-LINKED PARALOG HITS ===\n")
+master_table %>%
+  filter(is_significant & is_x_paralog) %>%
+  select(gene, rank_synth, normZ, fdr_synth, mageck_neg_lfc, rnaseq_logFC) %>%
+  knitr::kable(digits = 3)
+
+cat("\n=== SAGA COMPLEX HITS ===\n")
+master_table %>%
+  filter(is_significant & is_saga) %>%
+  select(gene, rank_synth, normZ, fdr_synth, mageck_neg_lfc, rnaseq_logFC) %>%
+  knitr::kable(digits = 3)
+```
+
+# 5. Interactive Hit Tables
+
+## 5.1 Significant Hits (FDR < `r FDR_THRESHOLD`)
+
+```{r significant-hits-table}
+# Prepare display table for significant hits
+sig_display <- master_table %>%
+  filter(is_significant) %>%
+  mutate(
+    sumZ = round(sumZ, 2),
+    normZ = round(normZ, 2),
+    fdr_synth = signif(fdr_synth, 3),
+    fdr_supp = signif(fdr_supp, 3),
+    mageck_neg_lfc = round(mageck_neg_lfc, 3),
+    mageck_neg_fdr = signif(mageck_neg_fdr, 3),
+    rnaseq_logFC = round(rnaseq_logFC, 3),
+    rnaseq_FDR = signif(rnaseq_FDR, 3),
+    across(starts_with("rnaseq_ctrl") | starts_with("rnaseq_loy"), ~round(.x, 2)),
+    across(ends_with("_cpm"), ~round(.x, 1))
+  ) %>%
+  select(-is_significant)
+
+DT::datatable(
+  sig_display,
+  filter = "top",
+  extensions = c("Buttons", "ColReorder", "FixedHeader"),
+  options = list(
+    pageLength = 50,
+    scrollX = TRUE,
+    fixedHeader = TRUE,
+    colReorder = TRUE,
+    dom = "Bfrtip",
+    buttons = list(
+      list(extend = "csv", filename = "HT1080_significant_hits"),
+      list(extend = "excel", filename = "HT1080_significant_hits"),
+      list(extend = "copy"),
+      list(extend = "colvis", text = "Column visibility")
+    )
+  ),
+  caption = htmltools::tags$caption(
+    style = "caption-side: top; text-align: left; font-size: 16px; font-weight: bold;",
+    paste0("HT1080 LOY Synthetic Lethal Hits (FDR < ", FDR_THRESHOLD, ") - ", nrow(sig_display), " genes")
+  ),
+  rownames = FALSE
+) %>%
+  DT::formatStyle(
+    "is_x_paralog",
+    backgroundColor = DT::styleEqual(TRUE, "#cce5ff")
+  ) %>%
+  DT::formatStyle(
+    "is_saga",
+    backgroundColor = DT::styleEqual(TRUE, "#fff3cd")
+  ) %>%
+  DT::formatStyle(
+    "is_essential",
+    backgroundColor = DT::styleEqual(TRUE, "#f8d7da")
+  )
+```
+
+## 5.2 Full Gene Table (All Genes)
+
+```{r full-table}
+# Prepare full display table
+full_display <- master_table %>%
+  mutate(
+    sumZ = round(sumZ, 2),
+    normZ = round(normZ, 2),
+    fdr_synth = signif(fdr_synth, 3),
+    fdr_supp = signif(fdr_supp, 3),
+    mageck_neg_lfc = round(mageck_neg_lfc, 3),
+    mageck_neg_fdr = signif(mageck_neg_fdr, 3),
+    rnaseq_logFC = round(rnaseq_logFC, 3),
+    rnaseq_FDR = signif(rnaseq_FDR, 3),
+    across(starts_with("rnaseq_ctrl") | starts_with("rnaseq_loy"), ~round(.x, 2)),
+    across(ends_with("_cpm"), ~round(.x, 1))
+  ) %>%
+  select(-is_significant)
+
+DT::datatable(
+  full_display,
+  filter = "top",
+  extensions = c("Buttons", "ColReorder"),
+  options = list(
+    pageLength = 25,
+    scrollX = TRUE,
+    colReorder = TRUE,
+    dom = "Bfrtip",
+    buttons = list(
+      list(extend = "csv", filename = "HT1080_all_genes"),
+      list(extend = "excel", filename = "HT1080_all_genes"),
+      list(extend = "copy"),
+      list(extend = "colvis", text = "Column visibility")
+    )
+  ),
+  caption = htmltools::tags$caption(
+    style = "caption-side: top; text-align: left; font-size: 14px;",
+    "Full Gene Table (all genes, use filters to narrow)"
+  ),
+  rownames = FALSE
+)
+```
+
+# 6. Save Output
+
+```{r save-output}
+# Save master table to CSV
+output_file <- file.path(results_dir, "HT1080_CRISPR_hits_evidence_table.csv")
+write_csv(master_table, output_file)
+cat("\nFull table saved to:", output_file, "\n")
+
+# Also save significant hits separately
+sig_output_file <- file.path(results_dir, "HT1080_CRISPR_significant_hits.csv")
+write_csv(master_table %>% filter(is_significant), sig_output_file)
+cat("Significant hits saved to:", sig_output_file, "\n")
+```
+
+# 7. Session Info
+
+```{r session-info}
+sessionInfo()
+```

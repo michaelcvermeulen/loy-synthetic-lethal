@@ -1,0 +1,16 @@
+contrast,method,n_FDR,n_selected_0.5
+LOY_v_CTRL,unblocked,659,657
+LXHA_v_CTRL,unblocked,1290,1280
+UTY_v_CTRL,unblocked,341,341
+KDM5D_v_CTRL,unblocked,1992,1956
+DUAL_v_CTRL,unblocked,242,242
+LOY_v_LXHA,unblocked,3467,3372
+UTY_v_LXHA,unblocked,1028,1023
+KDM5D_v_LXHA,unblocked,0,0
+DUAL_v_LXHA,unblocked,1523,1506
+UTY_v_LOY,unblocked,2160,2126
+KDM5D_v_LOY,unblocked,3764,3659
+DUAL_v_LOY,unblocked,1378,1371
+UTY_v_KDM5D,unblocked,1823,1796
+DUAL_v_UTY,unblocked,0,0
+DUAL_v_KDM5D,unblocked,2588,2526

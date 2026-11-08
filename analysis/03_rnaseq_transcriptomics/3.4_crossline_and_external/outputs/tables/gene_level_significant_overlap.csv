@@ -1,0 +1,4 @@
+line_1,line_2,sig_1,sig_2,both,both_same_sign,sign_agreement_fraction,binomial_P_vs_half
+"HT1080","A549",626,0,0,0,NA,NA
+"HT1080","DU145",626,122,24,9,0.375,0.307456254959107
+"A549","DU145",0,122,0,0,NA,NA

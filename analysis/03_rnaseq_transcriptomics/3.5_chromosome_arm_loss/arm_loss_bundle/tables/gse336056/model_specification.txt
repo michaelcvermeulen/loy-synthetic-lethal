@@ -1,0 +1,7 @@
+GSE336056 sgYq arm: Yq-null vs Yq-intact (MAST hurdle, bayesglm + ebayes)
+Cells: 194 Yq-null vs 6407 Yq-intact, >= 10000 UMI, 4 HTO libraries (2 per day)
+Expression: log2(1 + 1e4 * counts / nUMI). Genes: detection >= 10% in either group.
+Pooled: ~ status + cngeneson + sample. Per-day: ~ status + cngeneson + sample (2 libs).
+Positive logFC = higher in Yq-null. padj = BH within each fit.
+gene_class by GENCODE v49 coordinate: chrY (MSY + TTTY15), PAR (chrX PAR coords + PAR_genes.csv), chrX, autosomal.
+GSEA ranks: MAST logFC_pooled, autosomal + chrX only (chrY/PAR/unannotated excluded).

@@ -1,0 +1,10 @@
+{
+  "pairs": 6581127,
+  "read_fingerprint": {
+    "records": 13162254,
+    "bases": 1754190141,
+    "hash_xor": 276412494429343834892706204962556170795,
+    "hash_sum": 99260003739428679630195919272154360905
+  },
+  "matches_original_primary_reads": true
+}

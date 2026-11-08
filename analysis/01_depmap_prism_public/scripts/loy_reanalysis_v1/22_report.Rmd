@@ -1,0 +1,1076 @@
+---
+title: "Y-chromosome loss in DepMap 26Q1: dependencies, drug sensitivities, context and expression"
+subtitle: "loy_reanalysis_v1, a fresh analysis from the raw tables"
+date: "2026-10-02"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    self_contained: true
+    theme: readable
+  pdf_document:
+    toc: false
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 10pt
+mainfont: DejaVu Serif
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%", fig.align = "center")
+suppressPackageStartupMessages(library(data.table))
+derived <- Sys.getenv("LOY_REPORT_DERIVED")
+rr <- function(name) { x <- readRDS(file.path(derived, paste0(name, ".rds"))); setDT(x); x }
+js <- function(name) jsonlite::fromJSON(file.path(derived, paste0(name, ".json")))
+num <- function(x) format(x, big.mark = ",", trim = TRUE)
+pv <- function(p) ifelse(is.na(p), "", ifelse(p < 1e-3, formatC(p, format = "e", digits = 1), formatC(p, format = "f", digits = 3)))
+r2 <- function(x) formatC(x, format = "f", digits = 2)
+f3 <- function(x) formatC(x, format = "f", digits = 3)
+show <- function(dt, ...) knitr::kable(dt, ...)
+
+calls <- rr("y_status_calls")[Sex == "Male"]
+cohort <- rr("cohort")
+sizes <- rr("cohort_sizes")
+validation <- js("call_validation")
+genes <- rr("gene_pan_results")
+gene_json <- js("gene_pan_summary")
+hits <- genes[associated == TRUE][order(p)]
+rnai <- rr("gene_pan_hits_rnai")
+continuous <- rr("gene_pan_continuous")
+drugs <- rr("drug_pan_results")
+consensus <- rr("drug_pan_consensus")
+mechanism <- rr("drug_pan_mechanism")
+gene_ctx <- js("context_gene_summary")
+drug_ctx <- js("context_drug_summary")
+gene_ctx_summary <- rr("context_gene_summary")
+ctx_cal <- rbind(rr("context_gene_calibration")[, outcome := "genes"], rr("context_drug_calibration")[, outcome := "drugs"])
+ctx_hits <- rr("context_gene_hits")
+ctx_robust <- rr("robustness_context_gene_hits")
+heterogeneity <- rr("context_gene_lineage_heterogeneity")
+de <- rr("expression_de_results")
+de_json <- js("expression_de_summary")
+dosage <- rr("expression_de_dosage_control")
+de_pathways <- rr("expression_de_pathways")
+dep_summary <- rr("expression_dependency_summary")
+dep_set <- rr("expression_dependency_set")
+attribution <- rr("expression_dependency_y_genes")
+dep_top <- rr("expression_dependency_top")
+overlap <- rr("expression_dependency_de_overlap")
+accuracy <- rr("forest_expression_accuracy")
+forest_features <- rr("forest_expression_features")
+forest_null <- rr("forest_expression_null")
+confounder <- rr("forest_confounders")
+forest_y <- rbindlist(lapply(list.files(file.path(derived, "forest_y_status"), "^forest_y_status_summary_.*\\.rds$", full.names = TRUE), readRDS))
+forest_y_genes <- { x <- readRDS(file.path(derived, "forest_y_status", "forest_y_status_crispr_effect.rds")); setDT(x); x }
+robust <- rr("robustness_gene_hits")
+by_definition <- rr("robustness_gene_scan_by_definition")
+drug_by_definition <- rr("robustness_drug_scan_by_definition")
+cmp_calls <- rr("comparison_call_agreement")
+cmp_genes <- rr("comparison_gene_scan")
+cmp_candidates <- rr("comparison_prior_candidates")
+controls <- rr("pipeline_controls")
+controls_json <- js("pipeline_controls")
+
+n_neg <- sum(calls$y_call %in% "Y_negative"); n_pos <- sum(calls$y_call %in% "Y_positive"); n_aside <- sum(is.na(calls$y_call))
+in_crispr <- cohort$ModelID %in% rownames(readRDS(file.path(derived, "matrices", "crispr_effect.rds")))
+wgd_neg <- cohort[in_crispr & y_negative %in% 1, mean(WGD, na.rm = TRUE)]
+wgd_all <- cohort[in_crispr & y_negative %in% 0, mean(WGD, na.rm = TRUE)]
+wgd_one <- cohort[in_crispr & y_call_one_copy %in% "Y_positive", mean(WGD, na.rm = TRUE)]
+within <- robust[check == "within lineage"]
+definite <- calls[rna_call %in% c("depleted", "expressed") & dna_call %in% c("loss", "retained")]
+n_agree <- sum((definite$rna_call == "depleted") == (definite$dna_call == "loss"))
+crispr <- sizes[dataset == "crispr_effect"]
+hit_symbols <- hits$symbol
+paired <- attribution[paired == TRUE & dependency %in% hit_symbols]
+best_drug <- drugs[which.min(p)]
+shuffled <- function(outcome_name, column) paste(ctx_cal[outcome == outcome_name & run != "observed", sum(get(column)), by = run]$V1, collapse = ", ")
+observed <- function(outcome_name, column) ctx_cal[outcome == outcome_name & run == "observed", sum(get(column))]
+acc_wide <- dcast(accuracy, dependency ~ sub(" .*$", "", model), value.var = "r2_mean")
+bh <- function(p) p.adjust(p, method = "BH")
+# The X partners as their own pre-specified family, with their RNAi result.
+partners <- merge(genes[!is.na(y_partner), .(symbol, y_partner, estimate, p)], rr("gene_pan_rnai")[, .(symbol, rnai_estimate = estimate, rnai_p = p)], by = "symbol", all.x = TRUE)
+partners[, fdr_family := bh(p)]
+extra_partners <- partners[!symbol %in% hit_symbols & fdr_family < 0.05][order(p)]
+quiet_partners <- partners[!symbol %in% hit_symbols & fdr_family >= 0.05, symbol]
+partner_text <- paste(sprintf("%s (%s, RNAi p = %s)", extra_partners$symbol, r2(extra_partners$estimate), ifelse(is.na(extra_partners$rnai_p), "not measured", pv(extra_partners$rnai_p))), collapse = ", ")
+# PRISM secondary: tail of the p-values and direction of the nominal hits.
+secondary <- drugs[dataset == "prism_secondary"]
+secondary_tail <- sum(secondary$p < 0.001)
+secondary_expected <- 0.001 * nrow(secondary)
+secondary_positive <- secondary[p < 0.05, mean(estimate > 0)]
+other_datasets <- drugs[dataset != "prism_secondary"]
+screen_matrix <- readRDS(file.path(derived, "matrices", "prism_secondary_screen.rds"))
+top_secondary <- secondary[order(p)][1:10]
+hts_share <- vapply(top_secondary$feature, function(f) { v <- screen_matrix[[f]]; mean(v[!is.na(v)] == "HTS002") }, numeric(1))
+# Alternative-definition drug hits, by compound.
+alt_hits <- drug_by_definition[definition != "primary" & hits > 0, .(compound = unlist(strsplit(compounds, ";", fixed = TRUE))), by = .(dataset, definition)]
+alt_counts <- alt_hits[, .(definitions = uniqueN(definition)), by = .(dataset, compound)][order(-definitions)]
+n_alt_definitions <- uniqueN(drug_by_definition[definition != "primary", definition])
+alt_text <- paste(sprintf("%s in %d", tolower(alt_counts$compound), alt_counts$definitions), collapse = " and ")
+secondary_forest_features <- forest_y[dataset == "prism_secondary", features]
+# Context screen: detectable interaction after correction for the number of tests in each class.
+power_multiplier <- qnorm(0.975) + qnorm(0.8)
+class_tests <- gene_ctx_summary[, .(class_tests = sum(tests)), by = class]
+gene_ctx_summary <- merge(gene_ctx_summary, class_tests, by = "class")
+gene_ctx_summary[, corrected_mde := median_interaction_mde / power_multiplier * (qnorm(1 - 0.05 / (2 * class_tests)) + qnorm(0.8))]
+mde_nominal <- median(gene_ctx_summary$median_interaction_mde, na.rm = TRUE)
+mde_corrected <- median(gene_ctx_summary$corrected_mde, na.rm = TRUE)
+q_liberal <- heterogeneity[selective == TRUE, mean(q_p < 0.05, na.rm = TRUE)]
+# Earlier interaction candidates that have a counterpart test here (one row per distinct test).
+earlier <- unique(cmp_candidates[grepl("interaction", test_type) & new_note != "not tested in the new analysis",
+  .(name = fifelse(is.na(symbol) | symbol == "", compound_name, symbol), old_effect, new_dataset, new_context, new_estimate, new_p, new_fdr)], by = c("name", "new_dataset", "new_context"))
+earlier[, same_direction_nominal := new_p < 0.05 & sign(new_estimate) == sign(old_effect)]
+earlier_examples <- earlier[same_direction_nominal == TRUE][order(new_p)][1:min(3, sum(earlier$same_direction_nominal))]
+# What the cancer-type tests could detect (stage 24).
+power <- js("power_summary")
+power_census <- rr("power_census")
+power_types <- rr("power_cancer_types")
+power_limits <- rr("power_limits")
+power_shift <- rr("power_shift_detection")
+power_bench <- rr("power_benchmarks")
+power_detect <- rr("power_benchmark_detection")
+power_null <- rr("power_benchmark_null")
+power_levels <- merge(rr("power_benchmark_levels"), unique(rr("power_shift_detection")[, .(context_id, level, label)]), by = "context_id")
+power_positive <- rr("power_positive_controls")
+power_genotype <- rr("power_genotype_context_limits")
+power_drugs <- rr("power_drug_limits")
+level_names <- c(lineage = "Lineage", disease = "Primary disease", subtype = "Subtype")
+level_plural <- c(lineage = "lineages", disease = "diseases", subtype = "subtypes")
+census_of <- function(l) power_census[level == l]
+n_types <- uniqueN(power_shift$context_id)
+harmonic <- function(a, b) 1 / (1 / a + 1 / b)
+# Shift found 80% of the time, per tested cancer type and bar; NA where no shift on the grid reaches 80%.
+limit_of <- function(bar_name, grid_unit, target_value = 0.8) power_limits[bar == bar_name & unit == grid_unit & target == target_value]
+one_chronos <- limit_of("one_type", "chronos")
+run_chronos <- limit_of("as_run", "chronos")
+one_sd <- limit_of("one_type", "sd")
+run_sd <- limit_of("as_run", "sd")
+largest_type <- one_chronos[which.min(limit)]
+smallest_reached <- one_chronos[reachable == TRUE][which.max(limit)]
+median_limit <- function(l) one_chronos[level == l, median(limit, na.rm = TRUE)]
+never_one <- one_sd[reachable == FALSE]
+never_run <- run_sd[reachable == FALSE]
+names_of <- function(dt) paste(sprintf("%s (%d vs %d)", dt$label, dt$n_negative, dt$n_positive), collapse = ", ")
+untestable <- power_types[status %in% c("below the gate", "one Y group missing")][order(-(n_negative + n_positive))]
+# Normal-theory limit for the pan-cancer scan, for scale.
+pan_limit <- (qnorm(1 - 0.05 / (2 * nrow(genes))) + qnorm(0.8)) * sqrt(1 / crispr$y_negative + 1 / crispr$y_positive) * power$gene_sd$median
+formula <- one_sd[, .(context_id, label, n_negative, n_positive, as_analysed = limit, best_case, size = harmonic(n_negative, n_positive))][order(-size)]
+formula_top <- formula[1:3]
+# Benchmarks, moved into each cancer type as a copy of the benchmark gene.
+detect_own <- power_detect[design == "own gene"]
+detect_typical <- power_detect[design == "typical gene" & with_spread == TRUE]
+detect_clean <- power_detect[design == "typical gene" & with_spread == FALSE]
+reach_own <- merge(power_bench[, .(benchmark = label, class, effect)], detect_own[, .(types = sum(one_type >= 0.8), half = sum(one_type >= 0.5), as_run = sum(as_run >= 0.8), best = max(one_type)), by = benchmark], by = "benchmark")[order(-types, -best)]
+reach_typical <- detect_typical[, .(types = sum(one_type >= 0.8), best = max(one_type)), by = benchmark]
+types_finding <- function(name) reach_own[benchmark == name, types]
+weak_best <- max(reach_typical[benchmark %in% power_bench[class %in% c("Paralog or synthetic lethal", "Collateral") & gene != "STAG1", label], types])
+best_of <- function(name) reach_own[benchmark == name, best]
+bench_at <- function(dt, name, type_label, type_level = "lineage") dt[benchmark == name & label == type_label & level == type_level, one_type]
+level_of <- function(name, type_label) power_levels[benchmark == name & label == type_label & level == "lineage", gene_level]
+# Does a benchmark's copy do worse where the gene is already more of a dependency? Rank correlation per benchmark, lineages only.
+room <- merge(detect_own[level == "lineage", .(benchmark, context_id, one_type)], power_levels[, .(benchmark, context_id, gene_level)], by = c("benchmark", "context_id"))
+room <- room[, .(spread = max(one_type) - min(one_type), rho = suppressWarnings(cor(gene_level, one_type, method = "spearman"))), by = benchmark][spread >= 0.5]
+positive_by_level <- power_positive[, .(chances = .N, nominal = sum(inside_p < 0.05), alone = sum(own_fdr < 0.05), family = sum(inside_fdr_class < 0.05), none = uniqueN(context_id) - uniqueN(context_id[own_fdr < 0.05]), types = uniqueN(context_id), predicted = sum(predicted_one_type)), by = level]
+positive_lineage <- power_positive[level == "lineage", .(alone = sum(own_fdr < 0.05), predicted = sum(predicted_one_type), everywhere = sum(predicted_everywhere_one_type)), by = symbol][match(hit_symbols, symbol)]
+positive_seen <- sum(positive_lineage$alone)
+positive_expected <- sum(positive_lineage$everywhere)
+power_alone <- rr("power_alone_hits")
+alone_other <- power_alone[established == FALSE]
+named_chronos <- limit_of("candidate", "chronos")
+run_reached <- run_chronos[reachable == TRUE]
+ceiling_rise <- { w <- dcast(power_shift[unit == "sd" & shift %in% c(6, 10)], context_id ~ shift, value.var = "one_type"); max(w[["10"]] - w[["6"]]) }
+called <- function(name) reach_own[benchmark == name, as_run]
+strongest <- reach_own[class == "Oncogene addiction" & as_run > 0][order(-as_run), sub(" in .*$", "", benchmark)]
+cancer_calls <- gene_ctx_summary[class %in% c("lineage", "disease", "subtype"), sum(context_specific)]
+n_floor <- power_types[status == "tested", sum(!floor_reaches_one_type)]
+genotype_one <- power_genotype[bar == "one_type" & target == 0.8]
+genotype_example <- genotype_one[label == "TERT" & class == "amplification"]
+drug_testable <- power_drugs[testable == TRUE]
+drug_by_dataset <- drug_testable[, .(lineages = .N, median_limit = median(best_case_dataset_sd, na.rm = TRUE), braf = abs(braf_effect_sd[1]), would_find_braf = sum(best_case_dataset_sd < abs(braf_effect_sd), na.rm = TRUE)), by = dataset]
+
+# Stages 25 to 30: organoids, RNAi and primary AML. Every object here carries an ext_ prefix.
+ext_rr <- function(name) { x <- readRDS(file.path(derived, "extension", paste0(name, ".rds"))); setDT(x); x }
+ext_js <- function(name) jsonlite::fromJSON(file.path(derived, "extension", paste0(name, ".json")))
+ext_list <- function(x, none = "none") if (length(x) == 0) none else if (length(x) == 1) x else paste(paste(head(x, -1), collapse = ", "), "and", tail(x, 1))
+ext_short <- function(x) sub(" \\(.*$", "", x)
+ext_shuffled <- function(dt, column) paste(dt[run != "observed"][[column]], collapse = ", ")
+ext_pair <- function(a, b) sprintf("%d\u00a0/\u00a0%d", a, b)
+ext_count_word <- function(n) if (n == 0) "none" else as.character(n)
+ext_start <- function(n) if (n == 0) "None is" else if (n == 1) "One is" else paste(n, "are")
+ext_r1 <- function(x) formatC(x, format = "f", digits = 1)
+# Names for print: drug names in lower case unless they are codes; contexts and genotype groups in words.
+ext_drug <- function(x) { short <- ext_short(x); ifelse(grepl("^[A-Z][a-z]+$", short), tolower(short), short) }
+ext_context_name <- function(class, label) {
+  ifelse(class == "molecular_subtype" & grepl("_LoF$", label), paste(sub("_LoF$", "", label), "loss of function"),
+    ifelse(class == "driver", paste(label, "driver mutation"),
+      ifelse(class == "deletion", paste(label, "deletion"),
+        ifelse(class == "amplification", paste(label, "amplification"),
+          ifelse(label == "WGD", "genome doubling", gsub("_", " ", label))))))
+}
+ext_genotype_name <- function(x) ifelse(x == "WGD", "genome-doubled", ifelse(x == "Metastasis-derived", "metastasis-derived", paste0(x, "-altered")))
+# Organoids.
+ext_org <- ext_js("organoid_prepare_summary")
+ext_org_scan <- ext_js("organoid_scan_summary")
+ext_org_cohort <- ext_rr("organoid_cohort")
+ext_org_primary <- ext_org_cohort[in_primary == TRUE]
+ext_org_males <- ext_org_cohort[male == TRUE]
+ext_org_pan <- ext_rr("organoid_pan_results")
+ext_org_hits <- ext_org_pan[associated == TRUE][order(p)]
+ext_org_next <- ext_org_pan[associated == FALSE][which.min(p)]
+ext_org_types <- ext_rr("organoid_type_screen")
+ext_org_cal <- ext_rr("organoid_calibration")
+ext_org_controls <- ext_rr("organoid_controls")
+ext_org_inside <- ext_rr("organoid_genotype_screen")[detected_inside_only == TRUE][order(inside_p)]
+ext_org_checks <- ext_rr("organoid_hit_followup")[is_hit == TRUE]
+ext_org_definitions <- ext_org_checks[check == "Y-status definition" & variant != "primary", uniqueN(variant)]
+ext_org_permutation <- ext_org_checks[check %like% "permutation"]
+ext_count <- function(type, value) ext_org_primary[OncotreeLineage == type & y_negative == value, .N]
+ext_g <- function(gene) ext_org_pan[symbol == gene]
+ext_in <- function(gene, type_name) ext_org_types[symbol == gene & type == type_name]
+ext_tier <- function(tier) ext_org_males[y_tier %in% tier, .N]
+ext_org_kept_dna <- ext_org_males[y_tier == "rna_led_dna_ambiguous" & rna_call == "depleted" & dna_y_retained > 0.5, .N]
+ext_org_low_dna <- ext_org_males[y_tier == "rna_led_dna_ambiguous" & rna_call == "expressed" & dna_y_ratio < 0.2, .N]
+ext_org_continuous <- ext_rr("organoid_continuous")[fdr < 0.05][order(p)]
+# Screen quality by Y group, without the weights (which are themselves a function of screen quality).
+ext_tpr_rank <- wilcox.test(TPR ~ y_negative, data = ext_org_primary, exact = FALSE)$p.value
+ext_tpr_fit <- coef(summary(lm(TPR ~ factor(OncotreeLineage) + LibraryV1 + MSI + y_negative, data = ext_org_primary)))["y_negative", ]
+ext_ctl <- function(g) ext_org_controls[gene == g]
+ext_msi <- function(value) ext_org_primary[OncotreeLineage == "Colorectal" & y_negative == value, sprintf("%d of %d", sum(MSI), .N)]
+ext_panel <- ext_org_scan$genotype_contexts
+ext_panel[ext_panel == "WGD"] <- "genome doubling"
+ext_panel[ext_panel == "Metastasis-derived"] <- "metastatic origin"
+# RNAi.
+ext_rnai <- ext_js("rnai_context_run_summary")
+ext_rnai_inside <- ext_rr("rnai_context_inside_only")
+ext_rnai_by_gene <- ext_rnai_inside[, .N, by = symbol][order(-N)]
+ext_rnai_types <- ext_rr("rnai_context_focused")[class %in% c("lineage", "disease", "subtype") & inside_fdr_focused < 0.05][order(inside_p)]
+ext_rnai_type_text <- if (nrow(ext_rnai_types) == 0) "no paired gene passes inside a cancer type" else paste(ext_rnai_types[, .(text = sprintf("%s also passes inside %s", symbol[1], ext_list(tolower(label)))), by = symbol]$text, collapse = "; ")
+ext_rnai_cal <- ext_rr("rnai_context_calibration")[, .(inside = sum(inside_fdr_class_hits), specific = sum(context_specific)), by = run]
+ext_rnai_shared <- sum(in_crispr & !is.na(cohort$y_negative) & cohort$ModelID %in% rownames(readRDS(file.path(derived, "matrices", "rnai.rds"))))
+# Cell lines and organoids combined.
+ext_comb <- ext_js("combined_summary")
+ext_pan <- ext_rr("combined_pan")
+ext_pan_hits <- ext_pan[combined_hit == TRUE][order(combined_p)]
+ext_both <- ext_pan_hits[evidence == "supported by both", symbol]
+ext_one <- ext_pan_hits[evidence == "carried by one source", symbol]
+ext_within <- ext_rr("combined_within_type")
+ext_col <- "Colorectal adenocarcinoma"
+ext_oes <- "Oesophagogastric adenocarcinoma"
+ext_best <- function(label) ext_within[pair == label][which.min(combined_p)]
+ext_share <- function(label) ext_within[pair == label, median((1 / organoid_unit^2) / (1 / organoid_unit^2 + 1 / cell_unit^2))]
+ext_cross <- ext_rr("combined_cross_assay_summary")
+ext_leads <- ext_rr("combined_cell_line_leads_in_rnai")
+ext_leads_agree <- ext_leads[tested_in_rnai == TRUE & rnai_inside_p < 0.05 & sign(rnai_inside) == sign(crispr_inside)]
+ext_leads_other <- ext_leads[tested_in_rnai == FALSE & symbol != "EIF1AX"]
+ext_seen <- ext_rr("combined_seen_before")
+ext_power <- ext_rr("extension_power")
+ext_pw <- function(a, s) ext_power[analysis == a & source == s]
+ext_lung <- one_sd[which.min(limit)]
+ext_oes_lines <- cohort[in_crispr & !is.na(y_negative) & OncotreePrimaryDisease == "Esophagogastric Adenocarcinoma"]
+# Primary AML.
+ext_aml <- ext_js("beataml_prepare_summary")
+ext_aml_scan <- ext_js("beataml_scan_summary")
+ext_aml_all <- ext_rr("beataml_cohort")[in_primary == TRUE]
+ext_aml_screen <- ext_aml_all[!is.na(age)]
+ext_aml_high <- ext_aml_screen[f >= 0.5]
+ext_aml_drugs <- ext_rr("beataml_drug_results")
+ext_aml_hits <- ext_aml_drugs[associated == TRUE][order(p)]
+ext_lead <- ext_aml_drugs[which.min(p)]
+ext_aml_follow <- ext_rr("beataml_hit_followup")[inhibitor == ext_lead$inhibitor]
+ext_fu <- function(text) ext_aml_follow[variant %like% text][1]
+ext_aml_checks <- ext_aml_follow[!check %like% "added after|leave one|permutation" & !variant %like% "^main"]
+ext_aml_weakest <- ext_aml_checks[which.max(p)]
+ext_aml_controls <- ext_rr("beataml_controls")
+ext_aml_cal <- ext_rr("beataml_calibration")
+ext_aml_families <- ext_rr("beataml_family_results")
+ext_mek_family <- ext_aml_families[family == "STE7 family"]
+ext_aml_compare <- ext_rr("beataml_cell_line_comparison_summary")
+ext_aml_ras <- ext_rr("beataml_ras_by_y_loss")
+ext_ras_high <- ext_aml_ras[y_loss == "f at least 0.5"]
+ext_ras_mid <- ext_aml_ras[y_loss == "f above the floor"]
+ext_ras_none <- ext_aml_ras[y_loss == "no Y loss"]
+ext_t821 <- function(high) ext_aml_screen[(f >= 0.5) == high, sprintf("%d of %d", sum(t8_21), .N)]
+ext_aml_power <- ext_rr("beataml_power")
+ext_mek <- ext_aml_drugs[inhibitor %like% "Trametinib|CI-1040"][order(p)]
+ext_sensitive <- ext_aml_drugs[estimate < 0][which.min(p)]
+# Stages 31 to 33: DepMap NextGen as a third CRISPR source. Every object here carries an ng_ prefix.
+ng_prep <- ext_js("nextgen_prepare_summary")
+ng_scan <- ext_js("nextgen_scan_summary")
+ng_comb <- ext_js("nextgen_combined_summary")
+ng_cohort <- ext_rr("nextgen_cohort")
+ng_primary <- ng_cohort[in_primary == TRUE]
+ng_eligible <- ng_cohort[eligible == TRUE]
+ng_males <- ng_cohort[recorded_male == TRUE]
+ng_all_males <- ext_rr("nextgen_y_calls")[recorded_male == TRUE]
+ng_donors <- ext_rr("nextgen_donor_groups")
+ng_pan <- ext_rr("nextgen_pan_results")
+ng_paired <- ext_rr("nextgen_paired_genes")
+ng_null <- ext_rr("nextgen_calibration")[run != "observed"]
+ng_runs <- nrow(ng_null)
+ng_controls <- ext_rr("nextgen_controls")
+ng_types <- ext_rr("nextgen_type_screen")
+ng_follow <- ext_rr("nextgen_hit_followup")[context == "All models"]
+ng_continuous <- ext_rr("nextgen_continuous")[fdr < 0.05][order(p)]
+ng_three <- ext_rr("nextgen_combined_pan")
+ng_three_hits <- ng_three[combined_hit == TRUE][order(combined_p)]
+ng_three_follow <- ext_rr("nextgen_combined_followup")
+ng_hits <- ext_rr("nextgen_combined_hits")
+ng_pooled_all <- ext_rr("nextgen_pooled_type")
+ng_within <- ext_rr("nextgen_combined_within_type")
+ng_pooled_named <- ext_rr("nextgen_pooled_named")
+ng_sensitivity <- ext_rr("nextgen_pooled_sensitivity")
+ng_shared <- ext_rr("nextgen_shared_donors")
+ng_power <- ext_rr("nextgen_power")
+ng_counts <- ext_rr("nextgen_pooled_types")
+ng_rnai <- rr("gene_pan_rnai")
+ng_names <- ng_paired$symbol
+ng_g <- function(gene) ng_pan[symbol == gene]
+ng_pg <- function(gene) ng_paired[symbol == gene]
+ng_t <- function(gene) ng_three[symbol == gene]
+ng_n <- function(rows, value) sum(rows$y_negative == value)
+ng_models <- function(rows) ext_pair(ng_n(rows, 1), ng_n(rows, 0))
+ng_pw <- function(a, s) ng_power[analysis == a & source == s]
+ng_tier <- function(tier) ng_eligible[y_tier %in% tier, .N]
+ng_fu <- function(gene, pattern, column = "p") ng_follow[symbol == gene & variant %like% pattern][[column]][1]
+ng_cfu <- function(gene, pattern, column = "p") ng_three_follow[symbol == gene & variant %like% pattern][[column]][1]
+ng_pn <- function(gene, from = "Pooled") ng_pooled_named[symbol == gene & source == from]
+ng_pct <- function(x) formatC(100 * x, format = "f", digits = 0)
+ng_chance <- function(x) ifelse(x > 0.995, ">99%", paste0(ng_pct(x), "%"))
+ng_range <- function(low, high) ifelse(ng_chance(low) == ng_chance(high), ng_chance(low), paste(ng_chance(low), "to", ng_chance(high)))
+ng_in <- function(type_name, source_name, column) ng_counts[type == type_name & source == source_name][[column]]
+ng_shuffled <- function(count) sprintf("%d of %d", count, ng_runs)
+ng_lineage <- function(x) sub("^esophagus", "oesophagus", sub("^cns/brain$", "brain", tolower(x)))
+# Genes passing FDR in NextGen alone that are not among the four, and combined hits outside the four.
+ng_other <- ng_pan[associated == TRUE & named == FALSE][order(p)]
+ng_new <- ng_three_hits[!symbol %in% ng_names]
+ng_every <- ng_names[ng_names %in% ng_three_hits[evidence == "supported by every source", symbol]]
+ng_dome <- ng_primary[dome == 1]
+ng_brain <- ng_primary[OncotreeLineage == "CNS/Brain"]
+ng_stomach <- ng_primary[OncotreeLineage == "Esophagus/Stomach"]
+ng_pancreas <- ng_primary[OncotreeLineage == "Pancreas"]
+ng_bowel <- ng_primary[OncotreeLineage == "Bowel"]
+ng_genotype_pair <- ng_donors[kind == "same donor inside NextGen" & sex == "Male" & same_hcmi_donor == FALSE & same_name_root == FALSE]
+ng_oes <- "Oesophagogastric adenocarcinoma"
+ng_oes_rows <- ng_within[pair == ng_oes]
+ng_oes_best <- ng_oes_rows[which.min(combined_p)]
+ng_pool <- ng_comb$pooled[[1]]
+ng_pool_name <- tolower(names(ng_comb$pooled)[1])
+ng_pool_holds <- ng_names[ng_names %in% ng_pooled_named[source == "Pooled" & named_fdr < 0.05, symbol]]
+ng_pool_fails <- setdiff(ng_names, ng_pool_holds)
+ng_treated <- function(rows) rows[, sum(treatment_status %in% c("Treated", "Post-treatment"))]
+ng_weakest <- ng_sensitivity[which.max(p)]
+ng_disagree <- ng_shared[calls_agree %in% FALSE]
+# The verdict on the four paired genes rests on permutation p-values; the model's own run small.
+ng_confirmed <- ng_paired[outcome_permutation == "replicated", symbol]
+ng_unconfirmed <- setdiff(ng_names, ng_confirmed)
+ng_h <- function(gene) ng_hits[symbol == gene]
+ng_extra <- ng_hits[named == FALSE][order(combined_p)]
+ng_both <- function(flags, yes, no) if (all(flags)) sprintf("Both %s.", yes) else if (!any(flags)) sprintf("Neither %s.", no) else sprintf("%s %s and %s does not.", ng_extra$symbol[flags], no, ng_extra$symbol[!flags])
+ng_num <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+# Hits below their cut by less than the shuffles can resolve: the upper 95% bound of the count of shuffles at least as extreme crosses the cut.
+ng_unresolved <- ng_extra[permutation_below_cut == TRUE & qgamma(0.975, round(permutation_p * (permutation_shuffles + 1))) / (permutation_shuffles + 1) > bh_cut, symbol]
+# Models called dependent on a gene, as a count: cell lines from the stored scan, NextGen from its own.
+ng_dependent <- function(gene) c(cell = genes[symbol == gene, round(fraction_dependent_negative * n_negative + fraction_dependent_positive * n_positive)], cell_n = genes[symbol == gene, n_negative + n_positive],
+  nextgen = ng_g(gene)[, round(fraction_dependent_negative * n_negative + fraction_dependent_positive * n_positive)], nextgen_n = ng_g(gene)[, n_negative + n_positive])
+ng_before <- rr("robustness_gene_hits")[check == "within lineage" & variant == "Pancreas" & symbol %in% ng_names]
+ng_sci <- function(x) formatC(x, format = "e", digits = 0)
+
+# Stages 34 to 36: driver status inside cancer types. Every object here carries a dt_ prefix.
+dt_prep <- ext_js("driver_type_prepare_summary")
+dt_tests <- ext_js("driver_type_tests_summary")
+dt_power <- ext_js("driver_type_power_summary")
+dt_distance <- ext_rr("driver_type_gate_distance")
+dt_cells <- function(lev) dt_distance[source == "Cell lines" & level == lev]
+dt_splits <- ext_rr("driver_type_splits")[fitted == TRUE]
+dt_smaller <- dt_splits[, pmin(neg_alt, pos_alt)]
+dt_four <- dt_splits[label == "specificity testable"]
+# Cancer type names in running text: lower case, British spelling, CNS kept in capitals.
+dt_name <- function(type) sub("^cns/", "CNS/", sub("^esophag", "oesophag", tolower(type)))
+dt_by_type <- function(rows) rows[, .N, by = type][order(-N), ext_list(sprintf("%s (%d)", dt_name(type), N))]
+dt_gene_order <- dt_splits[, .N, by = gene][order(-N), gene]
+dt_split <- function(g, t, lev = "lineage") dt_splits[gene == g & type == t & level == lev]
+dt_worst_alone <- dt_splits[which.min(kept_inside_alone)]
+dt_screen <- ext_rr("driver_type_screen")
+dt_null <- ext_rr("driver_type_calibration")[run != "observed"]
+dt_null_cells <- dt_null[source == "Cell lines"]
+dt_null_org <- dt_null[source == "Sanger organoids"]
+dt_runs <- nrow(dt_null_cells)
+dt_shuffled <- function(count) sprintf("%d of %d", count, dt_runs)
+dt_controls <- ext_rr("driver_type_controls")
+dt_control <- function(pattern) dt_controls[grepl(pattern, control)]
+dt_paired <- ext_rr("driver_type_paired_genes")
+dt_paired[, smaller := pmin(n_neg_in, n_pos_in)]
+dt_seen <- function(test) dt_paired[test(smaller), formatC(100 * mean(shown), format = "f", digits = 0)]
+dt_follow <- unique(ext_rr("driver_type_hit_followup")[, .(split_id, feature, symbol, robust)])
+dt_org_splits <- ext_rr("driver_type_organoid_splits")
+dt_org <- ext_rr("driver_type_organoid_screen")
+dt_comb <- ext_rr("driver_type_combined")
+dt_pairs <- ext_rr("driver_type_pairs")
+dt_nextgen <- ext_rr("driver_type_census")[source == "NextGen"][order(-pmin(neg_alt, pos_alt), -(neg_alt + pos_alt))][1]
+dt_pct <- function(x) formatC(100 * x, format = "f", digits = 0)
+dt_r1 <- function(x) formatC(x, format = "f", digits = 1)
+dt_sci <- function(x) formatC(x, format = "e", digits = 1)
+dt_set <- dt_prep$settings
+dt_gate <- dt_set$gate
+dt_small_cut <- 1e-5
+dt_sizes <- c(2, 4, 1)
+dt_small <- dt_screen[inside_p < dt_small_cut]
+dt_other <- dt_small[!symbol %in% hit_symbols][order(inside_p)]
+dt_top <- dt_screen[order(inside_p)][1]
+dt_top_difference <- dt_screen[order(interaction_p)][1]
+dt_limits <- ext_rr("driver_type_limits")[unit == "sd" & target == 0.8]
+dt_lim <- function(b) dt_limits[bar == b]
+dt_reach <- function(b) dt_lim(b)[, sum(reachable)]
+dt_largest_shift <- max(ext_rr("driver_type_shift_detection")[unit == "sd", shift])
+dt_needed <- ext_rr("driver_type_lines_needed")[below_grid == FALSE & above_grid == FALSE]
+dt_multiples <- dt_power$simulation$multiples
+dt_bench <- ext_rr("driver_type_benchmark_detection")
+dt_cut <- ext_rr("driver_type_cut_check")
+dt_olim <- ext_rr("driver_type_organoid_limits")
+dt_target <- 0.8
+dt_word <- function(n) c("none", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")[n + 1]
+dt_info <- ext_rr("driver_type_power_splits")
+dt_prior_df <- dt_info[, inside_df - df_new]
+dt_all_shifts <- ext_rr("driver_type_shift_detection")[unit == "sd"]
+dt_at <- function(size, b) dt_all_shifts[shift == size][[b]]
+dt_fam <- dt_lim("family")
+dt_fam[, smaller := pmin(neg_alt, pos_alt)]
+dt_raw <- dt_lim("family_raw")
+dt_raw[, smaller := pmin(neg_alt, pos_alt)]
+dt_named_difference <- dt_lim("named_difference")
+dt_ratio <- function(b) dt_lim(b)[reachable == TRUE, limit / best_case]
+dt_buckets <- function(rows) rows[, .(today = sum(multiple == 1), within_4 = sum(multiple <= 4), within_16 = sum(is.finite(multiple)), beyond = sum(is.infinite(multiple)), median = median(multiple), bound = median(multiple) %in% multiple[at_most], splits = .N)]
+dt_multiple <- function(x, bound = FALSE) ifelse(is.infinite(x), sprintf("more than %d", max(dt_multiples)), paste0(ifelse(bound, "at most ", ""), formatC(x, format = "f", digits = 1)))
+dt_median <- function(rows) dt_buckets(rows)[, dt_multiple(median, bound)]
+dt_size <- function(size, b = "family") dt_needed[convention == "size" & abs(effect_sd - size) < 1e-9 & bar == b]
+dt_known <- function(ref, how, b = "family") dt_needed[reference == ref & convention == how & bar == b]
+dt_short <- function(reference) sub(" in Y-negative$", "", reference)
+dt_shown_refs <- c("KRAS in KRAS-driver", "WRN in MSI", "DDX3X in Y-negative", "EIF1AX in Y-negative", "ZFX in Y-negative", "RPS4X in Y-negative", "PRMT5 in MTAP-deleted")
+dt_refs <- unique(dt_needed[reference %in% dt_shown_refs, .(reference, convention, effect_chronos, effect_sd)])
+dt_ref <- function(ref, how) dt_refs[reference == ref & convention == how]
+dt_found <- function(ref, how, bar) dt_bench[label == ref & design == how, sum(get(bar) >= dt_target, na.rm = TRUE)]
+dt_paired_own <- dt_refs[convention == "own spread" & reference %in% paste(hit_symbols, "in Y-negative"), range(effect_sd)]
+dt_paired_typical <- dt_refs[convention == "typical gene" & reference %in% paste(hit_symbols, "in Y-negative"), range(effect_sd)]
+dt_paired_multiples <- function(how) vapply(paste(hit_symbols, "in Y-negative"), function(ref) dt_buckets(dt_known(ref, how))$median, numeric(1))
+# The check on real lines: a split cut to 1/k and copied back k times, against the real split.
+dt_compared <- dt_cut[is.finite(copied_against_real_log2) & at_grid_floor == FALSE]
+dt_compared_at <- function(b) dt_compared[bar == b]
+# A limit of the copied split against the real one, in percent: below zero when the copies find smaller shifts.
+dt_signed <- function(log2_ratio) sprintf("%+.0f", 100 * (2^log2_ratio - 1))
+dt_log2 <- function(x) formatC(x, format = "f", digits = 2)
+dt_org_best <- dt_olim[source == "Sanger organoids"]
+dt_comb_best <- dt_olim[source == "Cell lines and organoids"]
+dt_paired_difference <- dt_paired[is.finite(interaction_p)]
+dt_paired_difference[, difference_fdr := p.adjust(interaction_p, method = "BH")]
+# Tests that appear twice because two splits hold the same altered lines and give the same p-value.
+dt_distinct <- function(rows) unique(rows[, .(symbol, altered_set, p = signif(inside_p, 10))])
+dt_ols <- dt_screen[inside_fdr_ols < 0.05]
+dt_ols_org <- dt_org[inside_fdr_ols < 0.05]
+dt_raw_fdr <- p.adjust(dt_screen$inside_p_raw, method = "BH")
+```
+
+# Summary
+
+This is a new analysis of chromosome-Y loss in male DepMap 26Q1 cell lines, built from the raw tables and independent of the three September analyses in this collection. It asks which gene dependencies and drug sensitivities go with Y loss across cancers, which of those depend on context, and which genes' expression is associated with the dependencies.
+
+- **Y status.** Of `r num(nrow(calls))` annotated male lines, `r n_neg` are Y-negative, `r n_pos` are Y-positive and `r n_aside` are set aside. The call leads with RNA (seven Y genes) and uses DNA copy number as support; where both are definite they agree in `r n_agree` of `r nrow(definite)` lines.
+- **Dependencies.** Comparing `r crispr$y_negative` Y-negative with `r crispr$y_positive` Y-positive lines, `r nrow(hits)` of `r num(nrow(genes))` genes pass FDR 0.05: `r paste(hit_symbols, collapse = ", ")`. Each is the X-linked partner of a Y gene, each survives adjustment for genome doubling, TP53 status and aneuploidy, and each holds under all nine Y-status definitions tried. No other gene passes.
+- **Drugs.** No compound passes FDR 0.05 in any of `r uniqueN(drugs$dataset)` dataset-screens (`r num(nrow(drugs))` tests), in a model that pools `r nrow(consensus)` compounds across datasets, or as a mechanism or target class. The closest is `r tolower(best_drug$compound_name)` (FDR `r f3(best_drug$fdr)` in PRISM secondary). It passes under some alternative Y-status definitions but is not reproduced in a second screen of the same compound, and PRISM secondary as a whole shows a small shift that looks like a screen effect.
+- **Context.** Across `r num(gene_ctx$screen_tests)` gene and `r num(drug_ctx$tests)` drug interaction tests the screens made `r gene_ctx$screen_context_specific` and `r drug_ctx$context_specific` context-specific calls. Shuffling Y status gives the same yield, so the context screens show nothing beyond chance. The four hits are not specific to a lineage or genotype, although the size of the DDX3X and EIF1AX effects varies between lineages.
+- **What the cancer-type tests could have found.** Enough lines to test exist for `r census_of('lineage')$at_least_5` of `r census_of('lineage')$with_lines` lineages, but for only `r census_of('disease')$at_least_5` of `r census_of('disease')$with_lines` primary diseases and `r census_of('subtype')$at_least_5` of `r census_of('subtype')$with_lines` subtypes. For a gene named in advance, a shift of about `r r2(median(named_chronos$limit))` Chronos units inside one cancer type would be found 80% of the time. Genome-wide it had to reach `r r2(largest_type$limit)` (`r largest_type$label`) to `r r2(smallest_reached$limit)` (`r smallest_reached$label`) with the cancer type analysed alone, and under the screen's own rule `r nrow(never_run)` of the `r n_types` tested cancer types have no effect size that is found that often. An effect like BRAF dependency in BRAF V600E lines would have been called by the screen in `r called('BRAF in BRAF V600E')` of the `r n_types`. Of `r nrow(reach_own)` known vulnerabilities, `r sum(reach_own$as_run == 0)` would have been called in none (`r reach_own[types == 0, .N]` with the cancer type analysed alone, `r sum(reach_typical$types == 0)` when the same effect sits on an ordinary gene).
+- **Other models.** Three public sources were added on 2026-10-04. In `r nrow(ext_org_primary)` male organoids (`r sum(ext_org_primary$y_negative == 1)` Y-negative, `r sum(ext_org_primary$y_negative == 0)` Y-positive), `r nrow(ext_org_hits)` of `r num(nrow(ext_org_pan))` genes pass, `r ext_list(ext_org_hits$symbol)`; ZFX does not, and EIF1AX is not in the organoid library. With the organoids, the effect detectable genome-wide in colorectal and oesophagogastric cancer falls from about `r ext_r1(ext_pw(ext_col, "Cell lines")$genome_wide)` SD to about `r ext_r1(ext_pw(ext_col, "Combined")$genome_wide)` SD, and `r if (sum(ext_within$combined_hit) == 0) "no gene passes" else paste(sum(ext_within$combined_hit), "pass")` in either. RNAi shows `r if (ext_rnai$screen_context_specific == 0) "nothing" else ext_rnai$screen_context_specific` context-specific. In primary AML, `r nrow(ext_aml_hits)` of `r nrow(ext_aml_drugs)` inhibitors passes, `r ext_list(ext_drug(ext_aml_hits$inhibitor))`, which is less active with Y loss; the association weakens once RAS-pathway mutations are in the model. DepMap NextGen was added as a fourth source on 2026-10-05. In `r nrow(ng_primary)` male models (`r ng_n(ng_primary, 1)` Y-negative, `r ng_n(ng_primary, 0)` Y-positive), `r ext_list(ng_confirmed)` replicate. `r ext_list(ng_unconfirmed)` has the right sign but is not confirmed (p = `r f3(ng_pg("ZFX")$p)` in the model, `r f3(ng_pg("ZFX")$permutation_p)` by permutation). No other gene is called. With the three CRISPR sources together the four still pass, and `r nrow(ng_extra)` more genes cross FDR 0.05 with small effects, `r ext_list(ng_extra$symbol)`. Neither is a vulnerability of Y loss, and neither stays a hit once NextGen's model carries genome doubling, TP53 and aneuploidy. Pooled across sources, `r ext_list(ng_pool_holds)` also show the Y effect inside `r ng_pool_name`.
+- **Driver status inside cancer types.** Added on 2026-10-06. Of `r num(dt_cells("lineage")$pairs)` pairs of a driver gene and a lineage with an altered line, `r dt_cells("lineage")$at_least_5` have `r dt_word(dt_gate)` altered lines per Y group and `r dt_cells("lineage")$all_four_cells` can test whether the Y effect differs by driver status. Over the three levels that makes `r nrow(dt_splits)` splits. None of `r num(dt_tests$inside_tests)` tests among altered lines and `r num(dt_tests$interaction_tests)` tests of a difference passes, and the smallest p-values are the four paired genes. A gene named in advance needs a shift of about `r dt_r1(median(dt_lim("candidate")$limit))` SD. A search needs several SD: the layer's rank-based test reaches `r dt_pct(dt_target)`% detection in `r dt_reach("family")` of the `r nrow(dt_splits)` splits, at `r dt_r1(median(dt_fam$limit, na.rm = TRUE))` SD, and a test on the Chronos scale would need about `r dt_r1(median(dt_raw$limit, na.rm = TRUE))` SD. For effects like the known ones, the median split would need from `r dt_median(dt_known("DDX3X in Y-negative", "typical gene"))` to `r dt_multiple(max(dt_paired_multiples("own spread")))` times its lines, depending on how variable the gene is.
+- **Expression.** Dependency on each X gene tracks expression of its own Y partner: with all seven Y genes in one model, the paired gene is the strongest term for all `r nrow(paired)` hits, and the relationship is graded even among lines that still express the Y. Outside chrY, `r de_json$de` genes differ in expression between the groups, led by pseudoautosomal genes, which fall by about `r r2(abs(dosage[dosage_class == "PAR", median_log_fc]))` log2 units as the loss of one of two copies predicts.
+- **Forests.** Random forests agree with the regressions. A genome-wide forest that predicts Y status from dependencies confirms `r forest_y[dataset == "crispr_effect", stable]` genes, the same four, and none on shuffled labels; no compound is confirmed in any drug dataset. Y status and Y-gene expression predict the four dependencies, and the wider transcriptome adds only for ZFX.
+
+In short: with every eligible line included, Y loss creates four strong, specific dependencies on X-linked paralogs. These data show no drug sensitivity and no context-specific vulnerability large enough to detect. Organoids confirm two of the four dependencies and add none. NextGen models confirm `r ext_list(ng_confirmed)` and not `r ext_list(ng_unconfirmed)`, and three CRISPR sources together add no vulnerability. Splitting cancer types by driver status adds none either; a search over the `r nrow(dt_splits)` splits that can be tested would have seen only shifts of several SD.
+
+# What was compared
+
+```{r tiers}
+tier_names <- c(concordant = "RNA and DNA agree", dna_only = "DNA only (no RNA)", rna_only = "RNA only (no DNA)", rna_led_dna_ambiguous = "RNA definite, DNA partial or mosaic",
+  rna_intermediate = "RNA intermediate", dna_ambiguous_no_rna = "DNA partial or mosaic, no RNA", no_data = "no RNA or DNA", discordant = "RNA and DNA disagree")
+tiers <- calls[, .(`Y-negative` = sum(y_call %in% "Y_negative"), `Y-positive` = sum(y_call %in% "Y_positive"), `Set aside` = sum(is.na(y_call))), by = y_tier]
+tiers[, Evidence := tier_names[y_tier]]
+show(tiers[match(names(tier_names), y_tier), .(Evidence, `Y-negative`, `Y-positive`, `Set aside`)], caption = "Male lines by the evidence behind the call.")
+```
+
+```{r fig1}
+knitr::include_graphics("figures/fig1_y_status_calls.png")
+```
+
+**How Y status was called.** The RNA score is the mean log2(TPM+1) of DDX3Y, EIF1AY, KDM5D, RPS4Y1, USP9Y, UTY and ZFY. Annotated female lines, which have no Y, set the reference: none of `r validation$females_with_rna` exceeds 1.0. A male line is *depleted* at a mean of 1.0 or less with at most one gene above its female maximum, and *expressed* at 2.5 or more with at least six genes above. The DNA call uses the relative copy ratio of the same genes (whole-genome sequencing where available, otherwise exome): loss at 0.03 or below, retained at 0.20 or above. RNA decides; DNA fills in where RNA is missing, and a clear disagreement sets the line aside.
+
+Three points about this definition matter for reading the results.
+
+- **The `r sum(calls$y_tier == "rna_intermediate")` RNA-intermediate lines are mostly real partial deletions**, for example loss of Yq with RPS4Y1 and ZFY retained. They are neither Y-negative nor intact, so they leave the two-group comparison, but they are used in the expression analyses, where they are the most informative lines.
+- **Controls are every Y-positive male, Y-gain included.** Among CRISPR-screened lines this gives `r crispr$y_positive` controls instead of the `r by_definition[definition == "one_copy_controls", y_positive]` with a one-copy estimate, and their genome-doubling rate (`r round(100 * wgd_all)`%) is closer to that of Y-negative lines (`r round(100 * wgd_neg)`%) than the one-copy controls' is (`r round(100 * wgd_one)`%).
+- **Calls are stable.** `r sum(!calls$call_stable)` of `r num(nrow(calls))` males change call when every threshold is moved by 20%. All `r validation$rna_depleted_wgs_definite` RNA-depleted lines with a definite whole-genome call are DNA losses.
+
+**Who is in the comparison.** Eligible lines are annotated male, from a cancer, and not engineered: `r num(nrow(cohort))` lines, `r sum(cohort$in_primary)` with a call. All models of a donor are kept and the donor is a blocking factor. Lineage is a covariate in every model.
+
+```{r sizes}
+labels <- c(crispr_effect = "CRISPR (Chronos)", rnai = "RNAi (DEMETER2)", expr_tpm_pc = "Expression", prism_REPPRIMARY = "PRISM REP.PRIMARY", prism_REP1M = "PRISM REP.1M",
+  prism_REP300 = "PRISM REP.300", prism_secondary = "PRISM secondary", gdsc1 = "GDSC1", gdsc2 = "GDSC2", ctrp = "CTRP v2")
+show(sizes[match(names(labels), dataset), .(Assay = labels[dataset], `Y-negative` = y_negative, `Y-positive` = y_positive, `Set aside` = set_aside)], caption = "Eligible male lines per assay.")
+```
+
+Y-negative lines differ from Y-positive lines in ways that could mimic a Y effect, which is why every hit is re-tested with these as covariates.
+
+```{r confounders}
+conf <- cohort[in_primary == TRUE, .(`Genome doubled` = mean(WGD, na.rm = TRUE), `TP53 altered` = mean(tp53_altered, na.rm = TRUE), `LOH fraction` = mean(LoHFraction, na.rm = TRUE),
+  `Aneuploidy score` = mean(Aneuploidy, na.rm = TRUE), `KY CRISPR library` = mean(LibraryKY, na.rm = TRUE)), by = .(Group = fifelse(y_negative == 1, "Y-negative", "Y-positive"))]
+show(conf, digits = 2, caption = "Group means of the main confounders (fractions, except the aneuploidy score).")
+```
+
+# Gene dependencies across cancers
+
+```{r fig2}
+knitr::include_graphics("figures/fig2_pan_cancer_genes.png")
+```
+
+```{r hits}
+tab <- merge(hits, rnai[, .(symbol, rnai_estimate, rnai_p)], by = "symbol", sort = FALSE)
+show(tab[, .(Gene = symbol, `Y partner` = y_partner, Effect = r2(estimate), FDR = pv(fdr), `Adjusted effect` = r2(estimate_adjusted),
+  `Dependent, Y-neg` = paste0(round(100 * fraction_dependent_negative), "%"), `Dependent, Y-pos` = paste0(round(100 * fraction_dependent_positive), "%"),
+  `RNAi effect` = ifelse(is.na(rnai_estimate), "not in table", r2(rnai_estimate)), `RNAi p` = pv(rnai_p))],
+  caption = "Hits at FDR 0.05. Effect: Chronos score, Y-negative minus Y-positive. Adjusted: with genome doubling, TP53 and aneuploidy added. Dependent: dependency probability of at least 0.5.")
+```
+
+- **Model.** Chronos effect on lineage, CRISPR library and Y status, fitted by limma with donor blocking; `r num(nrow(genes))` autosomal and X genes, one FDR family.
+- **Nothing else passes.** `r sum(genes$fdr < 0.05)` genes are below FDR 0.05 and `r sum(genes$fdr < 0.25)` below 0.25. The test statistics are close to their null (inflation factor `r r2(gene_json$lambda)`), and there is no overall shift in common-essential genes between the groups (difference `r formatC(gene_json$essential_shift$estimate, format = "f", digits = 3)`, p = `r pv(gene_json$essential_shift$p)`).
+- **The other X partners, tested as their own family.** Among the `r nrow(partners)` pre-specified X partners of Y genes, `r nrow(extra_partners)` more pass FDR 0.05 within that family: `r partner_text`. These effects are small and none is reproduced in RNAi, so they are weak candidates; `r paste(quiet_partners, collapse = ", ")` show nothing. On the continuous Y-expression score, which uses all `r gene_json$continuous_lines` males with RNA, KDM5C also passes genome-wide (FDR `r pv(continuous[symbol == "KDM5C", fdr])`).
+- **RNAi agrees.** In `r gene_json$rnai_lines` lines with RNAi data, `r gene_json$hits_rnai_replicated` of the `r gene_json$hits_with_rnai` hits present in that table replicate with the same sign.
+
+## Robustness of the four hits
+
+```{r fig3}
+knitr::include_graphics("figures/fig3_gene_hit_robustness.png")
+```
+
+```{r definitions}
+definition_names <- c(primary = "primary call", concordant_only = "RNA and DNA agree only", rna_only = "RNA only", dna_only = "DNA only", one_copy_controls = "one-copy controls only",
+  no_relative_gain = "relative Y gain removed", lenient_rna_rule = "lenient RNA rule", xist_high_removed = "XIST-high lines removed", threshold_stable_only = "threshold-stable calls only")
+show(by_definition[, .(Definition = definition_names[definition], Lines = lines, `Y-negative` = y_negative, `Y-positive` = y_positive, `Hits at FDR 0.05` = hits, Genes = gsub(";", ", ", genes))],
+  caption = "The genome-wide scan repeated under each Y-status definition.")
+```
+
+```{r robustness-numbers}
+perm <- robust[check == "permutation within lineage" & symbol %in% hit_symbols]
+loo <- robust[check == "leave one lineage out" & symbol %in% hit_symbols]
+conf_hits <- confounder[role == "hit"]
+conf_null <- confounder[role != "hit"]
+```
+
+- **Definitions.** The same four genes pass under every definition, including DNA-only calls, RNA-only calls, concordant calls only, one-copy controls only, the lenient RNA rule, and with XIST-high lines removed.
+- **Permutation.** Shuffling Y status within lineage 20,000 times never produced a statistic as large as the observed one for any hit (p = `r pv(max(perm$p))`, the smallest value that many shuffles can give).
+- **Lineages.** Dropping any one lineage leaves every effect with the same sign; the smallest leave-one-lineage-out effects are `r paste(sprintf("%s %s", hit_symbols, r2(sapply(hit_symbols, function(s) loo[symbol == s][which.min(abs(estimate)), estimate]))), collapse = ", ")`.
+- **Flexible adjustment.** In a forest that can also use lineage, library, genome doubling, TP53, aneuploidy, LOH, ploidy, MSI, CIN and screen quality, real Y status beats confounder-matched shuffled copies of itself in at least 80% of subsamples for `r sum(conf_hits$survives)` of `r nrow(conf_hits)` genes checked (`r paste(conf_hits[survives == TRUE, symbol], collapse = ", ")`). The same test passes for `r sum(conf_null$survives)` of `r nrow(conf_null)` random non-hit genes.
+
+# Drug sensitivities across cancers
+
+```{r fig4}
+knitr::include_graphics("figures/fig4_pan_cancer_drugs.png")
+```
+
+```{r drugs}
+dataset_names <- c(prism_REPPRIMARY = "PRISM REP.PRIMARY", prism_REP1M = "PRISM REP.1M", prism_REP300 = "PRISM REP.300", prism_secondary = "PRISM secondary", gdsc1 = "GDSC1", gdsc2 = "GDSC2", ctrp = "CTRP v2")
+per <- drugs[, .(Compounds = .N, `FDR < 0.05` = sum(fdr < 0.05), `Smallest FDR` = f3(min(fdr)), `Top compound` = tolower(compound_name[which.min(p)])), by = dataset]
+per <- merge(per, sizes[, .(dataset, `Y-negative` = y_negative, `Y-positive` = y_positive)], by = "dataset")
+show(per[match(names(dataset_names), dataset), .(Dataset = dataset_names[dataset], `Y-negative`, `Y-positive`, Compounds, `FDR < 0.05`, `Smallest FDR`, `Top compound`)],
+  caption = "Per-dataset scans: response on lineage and Y status, donor-clustered robust errors.")
+```
+
+- **No main effect in any dataset.** The p-values follow the null line in six of the seven panels (`r sum(other_datasets$p < 0.001)` compounds below 0.001 across them, against `r r2(0.001 * nrow(other_datasets))` expected).
+- **PRISM secondary shows a small shift.** It has `r secondary_tail` compounds below p = 0.001 against `r r2(secondary_expected)` expected, and `r round(100 * secondary_positive)`% of its compounds with p < 0.05 have Y-negative lines *less* sensitive. The ten strongest were read mostly in the older HTS002 screen (median `r round(100 * median(hts_share))`% of their lines), and most are not anticancer agents (for example rifampin, estrone and bumetanide). That pattern points to a batch or screen effect rather than to specific pharmacology.
+- **Pooling across datasets does not help.** For `r nrow(consensus)` compounds measured in more than one dataset family (GDSC1 and GDSC2 count as separate families), a mixed model with the cell line as a random effect gives a smallest FDR of `r r2(min(consensus$fdr, na.rm = TRUE))` (`r tolower(consensus[which.min(p), compound_name])`). Most drug-profiled lines appear in several datasets, so a plain meta-analysis would count them more than once.
+- **No mechanism or target class.** Of `r nrow(mechanism)` classes with at least five compounds, tested against `r num(js("drug_pan_summary")$permutations)` within-lineage shuffles, none passes FDR 0.05 (smallest `r r2(min(mechanism$fdr))`). With that many shuffles the smallest attainable p is `r pv(1 / (js("drug_pan_summary")$permutations + 1))`, too large for a single class to pass on its own; the smallest observed p was `r pv(min(mechanism$p))`, well above that floor.
+- **The nearest miss does not replicate.** `r tolower(best_drug$compound_name)` in PRISM secondary has Y-negative lines *less* sensitive (FDR `r f3(best_drug$fdr)`, `r best_drug$n_negative` vs `r best_drug$n_positive` lines). Under the `r n_alt_definitions` alternative Y-status definitions, PRISM secondary compounds pass FDR 0.05 as follows: `r alt_text` definitions. The same compound in the PRISM primary screen shows no effect (p = `r pv(drugs[dataset == "prism_REPPRIMARY" & compound_name == best_drug$compound_name, p][1])`), and both sit inside the screen-wide shift described above.
+- **Forests agree, with a coverage caveat.** Drug responses predict Y status no better than lineage alone, and no compound is selected in any dataset. The forests use only compounds measured in at least 90% of lines; in PRISM secondary that is `r secondary_forest_features` of `r nrow(secondary)` compounds, which excludes both compounds above.
+
+```{r drug-power}
+z_power <- qnorm(0.8)
+mde <- drugs[, .(nominal = (qnorm(0.975) + z_power) * median(se / response_sd), corrected = (qnorm(1 - 0.05 / (2 * .N)) + z_power) * median(se / response_sd)), by = dataset]
+```
+
+**What the scan could see.** With these group sizes a typical compound would show a difference of `r r2(min(mde$nominal))` to `r r2(max(mde$nominal))` response standard deviations at a nominal 0.05 with 80% power, and `r r2(min(mde$corrected))` to `r r2(max(mde$corrected))` after correcting for the number of compounds in the dataset. Smaller effects, or effects confined to a subset of lines, are not excluded.
+
+# Context-specific interactions
+
+```{r fig5}
+knitr::include_graphics("figures/fig5_context_screen.png")
+```
+
+For each context the model adds the context and its interaction with Y status; the interaction is the test of context dependence. For a binary context a context-specific call also needs a significant Y effect inside the context. A continuous context (CIN, ploidy, aneuploidy, LOH fraction) has no inside group, so its calls rest on the interaction alone. The panel covers `r gene_ctx$contexts_fitted` contexts for genes: lineages, diseases and subtypes, DepMap's inferred molecular subtypes, driver genes with at least 20 altered lines, amplifications and deep deletions, genome doubling, MSI, and continuous CIN, ploidy, aneuploidy and LOH fraction. A context is fitted when every Y-by-context cell has at least five lines.
+
+```{r context}
+ctx_tab <- data.table(
+  Screen = c("Gene dependencies", "Drug responses"),
+  Tests = c(num(gene_ctx$screen_tests), num(drug_ctx$tests)),
+  `Interactions at class FDR 0.05` = c(observed("genes", "interaction_fdr_class_hits"), observed("drugs", "interaction_fdr_class_hits")),
+  `Same, five shuffles` = c(shuffled("genes", "interaction_fdr_class_hits"), shuffled("drugs", "interaction_fdr_class_hits")),
+  `Context-specific calls` = c(observed("genes", "context_specific"), observed("drugs", "context_specific")),
+  `Same, five shuffles ` = c(shuffled("genes", "context_specific"), shuffled("drugs", "context_specific"))
+)
+show(ctx_tab, caption = "Yield of the context screens on the real labels and on five shuffles of Y status within lineage and context level.")
+```
+
+- **The screens return what chance returns.** The observed counts sit inside the range of the shuffled runs for both genes and drugs.
+- **The four hits are not context-specific.** In the focused family of the hits and the other X partners against every context (`r num(gene_ctx$focused_tests)` tests), no interaction passes.
+- **Effect size does vary by lineage for two of them.** Cochran's Q across `r heterogeneity[symbol == "DDX3X", lineages]` lineages is significant for DDX3X (p = `r pv(heterogeneity[symbol == "DDX3X", q_p])`) and EIF1AX (p = `r pv(heterogeneity[symbol == "EIF1AX", q_p])`) but not for ZFX (p = `r pv(heterogeneity[symbol == "ZFX", q_p])`) or RPS4X (p = `r pv(heterogeneity[symbol == "RPS4X", q_p])`). The Q test runs somewhat liberal here (`r round(100 * q_liberal)`% of selective genes reach p < 0.05), so this is moderate evidence. The direction never changes: the within-lineage effect runs from `r r2(within[symbol == "DDX3X", max(estimate)])` to `r r2(within[symbol == "DDX3X", min(estimate)])` for DDX3X and from `r r2(within[symbol == "EIF1AX", max(estimate)])` to `r r2(within[symbol == "EIF1AX", min(estimate)])` for EIF1AX (Figure 3b). So the dependency is present everywhere and differs in size, which a one-lineage-against-the-rest test at these sample sizes did not pick up.
+- **One candidate.** `r ctx_hits$symbol[1]` with `r ctx_hits$label[1]` is the screen's single call (interaction p = `r pv(ctx_hits$interaction_p[1])`). CIN is continuous, so the call rests on the interaction alone. It is stable to leaving out any line, to RNA-only and DNA-only calls and to adjustment for genome doubling, TP53 and aneuploidy (permutation p = `r pv(ctx_robust$permutation_p[1])`), but RNAi does not reproduce it (p = `r pv(ctx_robust$replication_p[1])`) and one shuffled run produced a call of the same kind. Treat it as a lead, not a finding.
+- **What the screen could see.** By the normal-theory formula, the smallest interaction detectable with 80% power in a typical context was about `r r2(mde_nominal)` Chronos units at a nominal 0.05, and about `r r2(mde_corrected)` after correcting for the number of tests in its class (Figure 5c). That is larger than the whole ZFX effect (`r r2(genes[symbol == "ZFX", estimate])`), and it is a best case: the formula uses raw-scale standard errors, and the test that was run is rank-based. The next section measures what that test could find.
+
+**A correction made during the analysis.** The first pass tested interactions on the raw scale and returned dozens of hits, nearly all from cells of five to nine lines. Checking the tail of the p-value distribution showed the tests were too liberal there: 2.6 times the expected number of p < 0.001 for genes in the smallest cells, and 27 times for drug effects inside the smallest contexts. Selective dependencies and drug responses are heavy-tailed, so one extreme line can carry a small cell. The screen was rerun on rank-normalised outcomes, which restored calibration (Figure 5b), and the hits disappeared. Effect sizes are still reported on the raw scale.
+
+# What the cancer-type tests could detect
+
+```{r fig9}
+knitr::include_graphics("figures/fig9_power_clean_shift.png")
+```
+
+The context screens found nothing beyond chance. This section asks what they could have found, had Y loss created a dependency in one cancer type only. Cancer type is taken at three levels of the Oncotree hierarchy: lineage, primary disease and subtype.
+
+The limits come from the screen's own model, not from a formula. A real selective gene is shifted towards more dependent in the Y-negative lines of one cancer type and tested as the one gene added to the real ones. It counts as found when its p-value is below a bar, and three bars are used. "Named in advance" is one gene chosen beforehand, at p < 0.05. "Alone" is the cancer type analysed on its own, genome-wide over its `r num(power$selective_genes)` selective genes: the p-value at which one more test would pass FDR 0.05 in that family. "As run" is the screen's rule, which needs the interaction and the effect inside the cancer type, each among all cancer types of that level. Each probability comes from `r power$simulation$benchmark_replicates` or `r power$simulation$shift_genes` simulated genes and so carries a Monte Carlo error of about 0.02; a count of cancer types at the 80% mark can move by one or two.
+
+```{r census}
+show(power_census[, .(Level = level_names[level], `Cancer types with lines` = with_lines, `Both Y groups present` = both_groups, `At least 5 lines per group` = at_least_5,
+  `At least 10 per group` = at_least_10, `Lines in a testable type` = sprintf("%d of %d", lines_in_testable, lines_total))],
+  caption = "Cancer types among the lines with CRISPR data and a Y call. Five lines per Y group is the gate the screen used.")
+```
+
+- **Many cancer types cannot be tested.** At least five Y-negative and five Y-positive lines exist for `r census_of("lineage")$at_least_5` of `r census_of("lineage")$with_lines` lineages, which hold `r census_of("lineage")$lines_in_testable` of the `r census_of("lineage")$lines_total` lines, but for only `r census_of("disease")$at_least_5` of `r census_of("disease")$with_lines` primary diseases and `r census_of("subtype")$at_least_5` of `r census_of("subtype")$with_lines` subtypes (Figure 9a, b). The screen tested every one of them. The largest it could not test are `r names_of(untestable[level == "lineage"][1:3])` among lineages, and `r names_of(untestable[level == "subtype"][1:6])` among subtypes.
+- **A gene named in advance is a different matter.** At p < 0.05, a shift of `r r2(min(named_chronos$limit))` to `r r2(max(named_chronos$limit))` Chronos units (median `r r2(median(named_chronos$limit))`) is found 80% of the time in every one of the `r n_types` tested cancer types. The limits that follow are the price of searching the genome.
+- **Genome-wide, the effect must be large.** With the cancer type analysed alone, the shift found 80% of the time runs from `r r2(largest_type$limit)` Chronos units in `r largest_type$label` to `r r2(smallest_reached$limit)` in `r smallest_reached$label` (Figure 9c). Among the cancer types that get there, the median is `r r2(median_limit("lineage"))` for lineages, `r r2(median_limit("disease"))` for primary diseases and `r r2(median_limit("subtype"))` for subtypes. Under the screen's own rule it runs from `r r2(min(run_reached$limit))` (`r run_reached[which.min(limit), label]`) to `r r2(max(run_reached$limit))` (`r run_reached[which.max(limit), label]`). For scale, the DDX3X effect is `r r2(genes[symbol == "DDX3X", estimate])` and the ZFX effect `r r2(genes[symbol == "ZFX", estimate])`, and the pan-cancer scan could find a shift of about `r r2(pan_limit)` by the normal-theory formula.
+- **The smallest tested types have a ceiling.** In `r nrow(never_one)` of the `r n_types` tested cancer types no shift of any size is found 80% of the time, even with the type analysed alone: `r names_of(never_one)`. Under the screen's own rule that is true of `r nrow(never_run)`. The ceiling comes from the rank-based scores, which the screen had to use because the raw-scale test was miscalibrated in small cells. Five or six lines can only be so extreme in rank, and a larger shift does not help: from 6 to 10 SD, detection rises by `r r2(ceiling_rise)` at most. A test confined to the cancer type's own lines would do worse. For `r n_floor` of the tested types the smallest p-value an exact two-sample test can give is above the bar; the screen gets below it only because it ranks each line against all `r power$lines` and takes its variance from all genes.
+- **The textbook formula is too optimistic.** By the normal-theory formula the limits would be `r r2(min(formula$best_case, na.rm = TRUE))` to `r r2(max(formula$best_case, na.rm = TRUE))` SD of a gene's line-to-line spread. The simulation agrees within `r round(100 * max(abs(formula_top$as_analysed / formula_top$best_case - 1), na.rm = TRUE))`% in the three largest cancer types, needs `r r2(median(formula$as_analysed / formula$best_case, na.rm = TRUE))` times as much in the median type that reaches 80% at all, and never gets there in `r nrow(never_one)`.
+
+```{r limits}
+limit_tab <- merge(one_chronos[, .(context_id, level, label, n_negative, n_positive, alone_80 = limit)], limit_of("one_type", "chronos", 0.5)[, .(context_id, alone_50 = limit)], by = "context_id")
+limit_tab <- merge(limit_tab, run_chronos[, .(context_id, run_80 = limit)], by = "context_id")
+limit_tab <- merge(limit_tab, one_sd[, .(context_id, alone_ceiling = ceiling)], by = "context_id")
+limit_tab <- merge(limit_tab, run_sd[, .(context_id, run_ceiling = ceiling)], by = "context_id")
+limit_tab <- merge(limit_tab, named_chronos[, .(context_id, named_80 = limit)], by = "context_id")
+limit_tab <- limit_tab[order(-harmonic(n_negative, n_positive))]
+cell <- function(x) ifelse(is.na(x), "not reached", r2(x))
+limit_table <- function(l, first = FALSE) {
+  note <- if (first) " Smallest clean shift, in Chronos units. Named gene: found 80% of the time for one gene named in advance. 50% and 80%: found that often with the cancer type analysed alone. As run: found 80% of the time under the screen's rule. Lines: Y-negative / Y-positive. Ceiling: probability of finding a shift of 10 SD. 'Not reached': no shift up to 2 Chronos units is found that often." else " Columns as in the table of lineages."
+  show(limit_tab[level == l, .(`Cancer type` = label, Lines = sprintf("%d\u00a0/\u00a0%d", n_negative, n_positive), `Named gene` = cell(named_80), `50%` = cell(alone_50), `80%` = cell(alone_80), `80%, as run` = cell(run_80),
+    Ceiling = r2(alone_ceiling), `Ceiling, as run` = r2(run_ceiling))], caption = paste0(c(lineage = "Lineages.", disease = "Primary diseases.", subtype = "Subtypes.")[[l]], note))
+}
+limit_table("lineage", first = TRUE)
+```
+
+```{r limits-disease}
+limit_table("disease")
+```
+
+```{r limits-subtype}
+limit_table("subtype")
+```
+
+```{r fig10}
+knitr::include_graphics("figures/fig10_power_benchmarks.png")
+```
+
+Known vulnerabilities give the scale. Each was estimated in the same eligible male lines with the same model. It was then moved: a resampled copy of the benchmark gene, with its own noise and lineage levels, in which the dependent lines are the Y-negative lines of one cancer type.
+
+```{r benchmarks}
+bench_tab <- reach_own[order(match(class, unique(power_bench$class)), -abs(effect))]
+bench_tab <- merge(bench_tab, power_bench[, .(benchmark = label, sd_altered, sd_reference)], by = "benchmark", sort = FALSE)
+bench_tab <- merge(bench_tab, reach_typical[, .(benchmark, ordinary = types)], by = "benchmark", sort = FALSE)
+class_sizes <- bench_tab[, .N, by = class]
+show(bench_tab[, .(Benchmark = benchmark, Effect = r2(effect), Spread = sprintf("%s / %s", r2(sd_altered), r2(sd_reference)), `80%` = types, `50%` = half, `80%, as run` = as_run, Best = r2(best), `80%, ordinary gene` = ordinary)],
+  caption = sprintf("Known vulnerabilities and the number of tested cancer types (of %d) in which the screen would find a Y-loss effect like them. Effect in Chronos units; spread is the SD among altered and among other lines. 80%% and 50%%: cancer types finding a copy of the benchmark gene that often when analysed alone; as run: under the screen's rule; best: the highest probability in any cancer type. Last column: the same effect and spread on an ordinary selective gene. Rows are in the classes of Figure 10a: %s.",
+    n_types, paste(sprintf("%s (%d)", class_sizes$class, class_sizes$N), collapse = ", ")))
+```
+
+- **The strongest oncogene addictions would have been called in the larger cancer types.** Under the screen's own rule, a Y-loss effect like BRAF dependency in BRAF V600E lines would have been called in `r called("BRAF in BRAF V600E")` of the `r n_types` tested cancer types, one like NRAS in NRAS Q61 in `r called("NRAS in NRAS Q61")`, KRAS in KRAS-driver lines in `r called("KRAS in KRAS-driver")` and CTNNB1 in APC loss in `r called("CTNNB1 in APC loss")`; the other `r sum(reach_own$as_run == 0)` of `r nrow(reach_own)` benchmarks in none. The screen made `r if (cancer_calls == 0) "no call" else sprintf("%d calls", cancer_calls)` in any cancer type, so for those cancer types its silence is informative: Y loss creates no dependency of that size and shape there. With the cancer type analysed alone the four counts rise to `r types_finding("BRAF in BRAF V600E")`, `r types_finding("NRAS in NRAS Q61")`, `r types_finding("KRAS in KRAS-driver")` and `r types_finding("CTNNB1 in APC loss")` (Figure 10a), and `r reach_own[types > 0, .N]` of `r nrow(reach_own)` benchmarks are found in at least one cancer type.
+- **Analysed alone, the real data are almost as quiet.** At that bar the four established dependencies pass in `r power_alone[established == TRUE, .N]` gene-by-type combinations, and `r nrow(alone_other)` other `r if (nrow(alone_other) == 1) "combination does" else "combinations do"`: `r paste(sprintf("%s in %s (effect %s, FDR %s within that cancer type and %s among all of its level, %d vs %d lines)", alone_other$symbol, alone_other$label, r2(alone_other$inside), f3(alone_other$own_fdr), f3(alone_other$inside_fdr_class), alone_other$n_negative, alone_other$n_positive), collapse = "; ")`. With `r n_types` cancer types each searched on its own, one or two passes of this kind are expected by chance, so this is a lead and not a finding.
+- **Smaller effects would not.** `r reach_own[types == 0, .N]` of `r nrow(reach_own)` benchmarks are found 80% of the time in no cancer type, even analysed alone. Among them are WRN in MSI lines (`r r2(best_of("WRN in MSI"))` at best), SMARCA2 in SMARCA4-mutant lines (`r r2(best_of("SMARCA2 in SMARCA4-mutant"))`) and PRMT5 in MTAP-deleted lines (`r r2(best_of("PRMT5 in MTAP-deleted"))`).
+- **Where the gene is already a dependency, there is no room.** A copy of a benchmark gene is hardest to find in the lineage that already depends on it: BRAF in skin (`r r2(bench_at(detect_own, "BRAF in BRAF V600E", "Skin"))`, where BRAF sits `r r2(abs(level_of("BRAF in BRAF V600E", "Skin")))` Chronos units below the typical line even without V600E), KRAS in bowel (`r r2(bench_at(detect_own, "KRAS in KRAS-driver", "Bowel"))`) and CTNNB1 in bowel and liver (`r r2(bench_at(detect_own, "CTNNB1 in APC loss", "Bowel"))` and `r r2(bench_at(detect_own, "CTNNB1 in APC loss", "Liver"))`). Lines already at the bottom of the ranking move little in rank when pushed further. Across the `r nrow(room)` benchmarks whose detection varies by lineage, the rank correlation between the gene's level in a lineage and detection there has a median of `r r2(median(room$rho, na.rm = TRUE))`.
+- **The gene matters as well as the effect.** Benchmark genes are noisier than most. With the same mean effect and spread put on an ordinary selective gene, `r sum(reach_typical$types > 0)` of `r nrow(reach_typical)` benchmarks reach 80% in at least one cancer type, against `r sum(reach_own$types > 0)` as copies of themselves. EIF1AX shows the gap: an effect of its size on an ordinary gene would be found in `r reach_typical[benchmark == "EIF1AX in Y-negative", types]` of `r n_types` cancer types, and EIF1AX itself in `r types_finding("EIF1AX in Y-negative")`. A Y-loss dependency in a quiet gene is easier to see than these benchmarks suggest; one in a gene as variable as they are is not. Either way the synthetic-lethal and collateral benchmarks other than STAG1 stay out of reach: on an ordinary gene WRN, SMARCA2, ARID1B, CREBBP, PIK3CB, PRMT5 and MAT2A reach 80% in `r if (weak_best == 0) "no cancer type" else sprintf("at most %d cancer types", weak_best)`.
+- **Chance alone gives nothing.** A copy of each benchmark gene with no effect passes the genome-wide bar in at most `r sprintf("%.2f", 100 * max(power_null$one_type))`% of runs, and real genes with no shift in `r sprintf("%.2f", 100 * power$null_shift$one_type)`% at most.
+- **The four established dependencies as a check.** Inside single lineages DDX3X, EIF1AX, ZFX and RPS4X reach genome-wide significance in `r paste(positive_lineage$alone, collapse = ", ")` of `r positive_by_level[level == "lineage", types]` lineages (Figure 10b). These effects sit in every Y-negative line, not in one cancer type, so for this comparison the genes were resampled that way: the simulation then expects `r paste(sprintf("%.1f", positive_lineage$everywhere), collapse = ", ")`, that is `r sprintf("%.1f", positive_expected)` recoveries against `r positive_seen` seen. A count that high has probability `r r2(ppois(positive_seen - 1, positive_expected, lower.tail = FALSE))` under the simulation, so the two agree, and the simulation does not flatter the argument: if anything it finds a little less than the data did. (With the effect confined to the one lineage, as for the benchmarks, it expects `r paste(sprintf("%.1f", positive_lineage$predicted), collapse = ", ")`.) None of the four is recovered in `r positive_by_level[level == "lineage", none]` of the `r positive_by_level[level == "lineage", types]` lineages. Among primary diseases `r positive_by_level[level == "disease", alone]` of `r positive_by_level[level == "disease", chances]` gene-by-type combinations are recovered, and among subtypes `r positive_by_level[level == "subtype", alone]` of `r positive_by_level[level == "subtype", chances]`. Effects that are real, and among the largest in the genome, are mostly invisible one cancer type at a time.
+- **Genotype-defined contexts.** The same simulation on the `r nrow(genotype_one)` driver, copy-number, molecular-subtype and genome-doubling or MSI contexts gives an 80% limit below 2 Chronos units in `r sum(genotype_one$reachable)` of them, with a median of `r r2(median(genotype_one$limit_chronos, na.rm = TRUE))`; in `r sum(!genotype_one$inside_fitted)` the screen could not fit the effect inside the context at all. Inside such a context the Y effect is estimated within lineage, so what counts is how many lineages hold both Y groups, not how many lines there are. `r genotype_example$label` amplification has `r genotype_example$n_neg_in` Y-negative and `r genotype_example$n_pos_in` Y-positive lines, but only `r genotype_example$lineages_with_both` of its `r genotype_example$lineages` lineages hold both, and a shift of 2 Chronos units is found `r round(100 * genotype_example$detection_at_largest_shift)`% of the time. The large contexts do better than any cancer type: TP53 alteration and genome doubling reach 80% at `r r2(genotype_one[label == "TP53" & class == "driver", limit_chronos])` and `r r2(genotype_one[label == "WGD", limit_chronos])`.
+- **Drugs.** By the normal-theory formula, which is the best case, a lineage needs an effect of `r r2(min(drug_testable$best_case_dataset_sd, na.rm = TRUE))` to `r r2(max(drug_testable$best_case_dataset_sd, na.rm = TRUE))` SD to be the one discovery among a dataset's compounds. BRAF-inhibitor response in BRAF-altered lines, the drug benchmark of the pipeline controls, is `r r2(min(drug_by_dataset$braf, na.rm = TRUE))` to `r r2(max(drug_by_dataset$braf, na.rm = TRUE))` SD; an effect of that size would be found in `r sum(drug_by_dataset$would_find_braf)` of `r sum(drug_by_dataset[!is.na(braf), lineages])` dataset-by-lineage tests.
+
+**What this means for the choice of experiment.** The cancer-type nulls in this analysis are bounded, not empty. In the best-covered cancer types a Y-loss dependency as strong as the strongest oncogene addictions (`r paste(strongest, collapse = ", ")`) would have been called. One the size of a known synthetic-lethal or collateral dependency would not have been, STAG1 in STAG2-mutant lines apart, and most primary diseases and subtypes could not be asked at all. Two of the reasons belong to the cell-line panel, and no reanalysis changes them:
+
+- **Fixed sample sizes.** The number of Y-negative lines per cancer type is what it is: `r census_of("lineage")$with_lines - census_of("lineage")$at_least_5` of `r census_of("lineage")$with_lines` lineages, `r census_of("disease")$with_lines - census_of("disease")$at_least_5` of `r census_of("disease")$with_lines` primary diseases and `r census_of("subtype")$with_lines - census_of("subtype")$at_least_5` of `r census_of("subtype")$with_lines` subtypes cannot be tested.
+- **Association.** A difference that is found is still a difference between groups of unrelated lines, which also differ in TP53 status, genome doubling and subtype.
+
+Two more belong to the analysis, and no better one is at hand:
+
+- **A ceiling in the small types.** In `r nrow(never_run)` of the `r n_types` that can be tested, the screen's rule finds no effect of any size 80% of the time. The rank-based scores cause it, and the raw-scale test that would avoid it was miscalibrated in exactly those cells.
+- **Dilution.** The test is of a group mean. A dependency present in only some Y-negative lines of a cancer type is spread across all of them, which is one reason the benchmarks do worse than clean shifts of the same size; the benchmark genes' own noise is another.
+
+An isogenic comparison, the same line with and without the Y chromosome, sets its own sample size, can be made in a cancer type that has no usable lines here, and attributes a difference to Y loss itself. This analysis does not measure how sensitive such a screen would be, and one background does not generalise to others.
+
+# Organoids, RNAi and primary AML
+
+```{r fig11}
+knitr::include_graphics("figures/fig11_more_models.png")
+```
+
+The cell lines are too few per cancer type, so three public sources were screened for vulnerabilities that go with Y loss: Sanger organoid CRISPR screens (Herranz-Ors et al. 2026), RNAi (DEMETER2) on the cell lines, and drug response of primary AML samples (BeatAML2). The design was written down before any of their results was read; the two later changes are marked where they apply.
+
+```{r ext-overview}
+ext_overview <- rbind(
+  data.table(Screen = "Organoids, all types", Models = ext_pair(sum(ext_org_primary$y_negative == 1), sum(ext_org_primary$y_negative == 0)), Tests = num(nrow(ext_org_pan)),
+    Passing = ext_list(ext_org_hits$symbol), Shuffled = ext_shuffled(ext_org_cal, "pan_fdr_hits")),
+  data.table(Screen = "Organoids, by type", Models = ext_pair(ext_count("Colorectal", 1) + ext_count("Oesophageal", 1), ext_count("Colorectal", 0) + ext_count("Oesophageal", 0)), Tests = num(ext_org_scan$type_tests),
+    Passing = ext_count_word(ext_org_scan$type_specific + ext_org_scan$inside_only), Shuffled = ext_shuffled(ext_org_cal, "inside_fdr_hits")),
+  data.table(Screen = "RNAi, by context", Models = ext_pair(ext_rnai$y_negative, ext_rnai$y_positive), Tests = num(ext_rnai$screen_tests),
+    Passing = ext_count_word(ext_rnai$screen_context_specific), Shuffled = ext_shuffled(ext_rnai_cal, "specific")),
+  data.table(Screen = "Cell lines + organoids, all types", Models = ext_pair(ext_pw("Pan-cancer", "Combined")$n_negative, ext_pw("Pan-cancer", "Combined")$n_positive), Tests = num(nrow(ext_pan)),
+    Passing = ext_list(ext_pan_hits$symbol), Shuffled = "not run"),
+  data.table(Screen = "Cell lines + organoids, by type", Models = ext_pair(ext_pw(ext_col, "Combined")$n_negative + ext_pw(ext_oes, "Combined")$n_negative, ext_pw(ext_col, "Combined")$n_positive + ext_pw(ext_oes, "Combined")$n_positive),
+    Tests = num(nrow(ext_within)), Passing = ext_count_word(sum(ext_within$combined_hit)), Shuffled = "not run"),
+  data.table(Screen = "Primary AML, inhibitors", Models = ext_pair(nrow(ext_aml_high), ext_aml_screen[f == 0, .N]), Tests = num(nrow(ext_aml_drugs)),
+    Passing = ext_list(ext_drug(ext_aml_hits$inhibitor)), Shuffled = ext_shuffled(ext_aml_cal, "fdr_hits"))
+)
+show(ext_overview, col.names = c("Screen", "Models", "Tests", "Passing", "Shuffled"), align = "lllll",
+  caption = "The added screens. Models: Y-negative / Y-positive (AML: Y-loss fraction of at least 0.5 / of 0 in the cohort). Shuffled: passing in each of five runs with Y status shuffled.")
+```
+
+## Organoids
+
+- **Y status.** Of `r ext_org$screened` screened organoids, `r ext_org$males` are male by both clinical record and genome. The cell-line rule was applied on the organoids' own RNA scale and checked against chrY copy number (Figure 11b). RNA and DNA agree in `r ext_tier("concordant")`; `r ext_tier("rna_led_dna_ambiguous")` have a definite RNA call and an unclear DNA result, and keep the RNA call; `r ext_tier("rna_intermediate")` have intermediate RNA and `r ext_tier("discordant")` is contradicted by DNA, and these `r ext_tier(c("rna_intermediate", "discordant"))` are set aside. Of the RNA-led calls, `r ext_org_kept_dna` are Y-negative organoids that express no Y gene but keep most of the male-specific region in DNA (the red points at the right of Figure 11b), and `r ext_org_low_dna` are Y-positive organoids that express all seven Y genes with little chrY left in DNA, as a minority of cells keeping the Y would give. The DNA-confirmed definition among the follow-up checks leaves all RNA-led calls out. Without the `r ext_org$males - ext_org$eligible` adenoma and with one organoid per patient, `r nrow(ext_org_primary)` remain: `r ext_count("Colorectal", 1)` Y-negative and `r ext_count("Colorectal", 0)` Y-positive colorectal, `r ext_count("Oesophageal", 1)` and `r ext_count("Oesophageal", 0)` oesophageal, and `r ext_org_primary[!OncotreeLineage %in% c("Colorectal", "Oesophageal"), .N]` of other types (Figure 11a). No organoid or donor identifier appears in the DepMap model table.
+- **Two genes pass, and both were expected.** `r ext_list(sprintf("%s (%s, FDR %s)", ext_org_hits$symbol, r2(ext_org_hits$estimate_chronos_equivalent), pv(ext_org_hits$fdr)))` are more needed in Y-negative organoids (Figure 11c). Effects are in Chronos-equivalent units: the organoid score divided by `r r2(ext_org$effect_scale)`, the typical depletion of a common-essential gene in these screens. No other gene of `r num(nrow(ext_org_pan))` passes; the next is `r ext_org_next$symbol` (FDR `r r2(ext_org_next$fdr)`). The same scan with Y level as a continuous score, over `r ext_org_scan$continuous_organoids` male organoids with the intermediate ones included, gives `r if (setequal(ext_org_continuous$symbol, ext_org_hits$symbol)) "the same genes" else ext_list(ext_org_continuous$symbol)` (FDR `r pv(max(ext_org_continuous$fdr))`). Both hits were visible in an undocumented comparison already on disk, so they count as replication in independent models, not as discoveries.
+- **Both hold in every follow-up check.** Each keeps the label `r unique(ext_org_hits$label)`. Each keeps its sign under `r ext_org_definitions` other Y-status definitions (among them RNA and DNA in agreement, `r ext_org_checks[variant == "dna_confirmed", n[1]]` organoids), in microsatellite-stable organoids only, with the other library, with both organoids of a patient, with two further covariate sets and with any one organoid left out; the largest p across these is `r pv(ext_org_checks[!check %like% "permutation", max(p, na.rm = TRUE)])`. The permutation p is `r pv(max(ext_org_permutation$p))`, the smallest that 20,000 shuffles can give.
+- **ZFX does not carry over, and EIF1AX cannot be tested.** ZFX has an effect of `r r2(ext_g("ZFX")$estimate_chronos_equivalent)` in organoids (p = `r pv(ext_g("ZFX")$p)`) against `r r2(genes[symbol == "ZFX", estimate])` in cell lines, and the two sources differ (p = `r pv(ext_pan[symbol == "ZFX", smd_difference_p])`; the organoid effect is near zero on any scale). EIF1AX is not in the organoid gene set. CORO1A, the third gene of the comparison on disk, does not pass here (FDR `r r2(ext_g("CORO1A")$fdr)`) and has no support in cell lines (p = `r pv(ext_seen[symbol == "CORO1A", cell_p])`) or RNAi (p = `r pv(ext_seen[symbol == "CORO1A", rnai_p])`).
+- **Nothing is specific to a cancer type.** Among `r num(ext_org$genes_selective)` selective genes tested in colorectal and oesophageal organoids, `r ext_count_word(ext_org_scan$type_specific)` `r if (ext_org_scan$type_specific == 1) "is" else "are"` specific to one type and `r ext_count_word(ext_org_scan$inside_only)` `r if (ext_org_scan$inside_only == 1) "passes" else "pass"` inside one type at FDR 0.05 (`r ext_shuffled(ext_org_cal, "inside_fdr_hits")` with Y status shuffled). The interaction with cancer type needs a larger effect than a test inside one type, so the inside tests are where a finding was possible. Taken as genes named in advance, DDX3X and RPS4X hold inside both types: p = `r pv(ext_in("DDX3X", "Colorectal")$inside_p)` and `r pv(ext_in("RPS4X", "Colorectal")$inside_p)` in colorectal, `r pv(ext_in("DDX3X", "Oesophageal")$inside_p)` and `r pv(ext_in("RPS4X", "Oesophageal")$inside_p)` in oesophageal organoids.
+- **Nothing is specific to a genotype.** The secondary panel (`r ext_list(ext_panel)`) gives `r if (ext_org_scan$genotype_specific == 0) "no specific result" else sprintf("%d specific result%s", ext_org_scan$genotype_specific, if (ext_org_scan$genotype_specific == 1) "" else "s")` in `r num(ext_org_scan$genotype_tests)` tests. The `r nrow(ext_org_inside)` detections inside a group are the same two genes: `r ext_list(sprintf("%s in %s", ext_org_inside$symbol, ext_genotype_name(ext_org_inside$context)))` organoids.
+- **Controls and calibration.** Known biology is recovered: KRAS is more needed in KRAS-mutant organoids (p = `r pv(ext_ctl("KRAS")$p)`), WRN in MSI organoids (p = `r pv(ext_ctl("WRN")$p)`), and MDM2 less in TP53-altered ones (p = `r pv(ext_ctl("MDM2")$p)`). The scan over all organoids has lambda `r r2(ext_org_scan$lambda)`, and shuffled Y status gives `r ext_shuffled(ext_org_cal, "pan_fdr_hits")` hits in five runs.
+- **Screen quality and Y status.** Y-negative organoids have somewhat better screens: a median true-positive rate of `r r2(ext_org_primary[y_negative == 1, median(TPR)])` against `r r2(ext_org_primary[y_negative == 0, median(TPR)])` (rank-sum p = `r pv(ext_tpr_rank)`). With tumour type, library and MSI in the model the difference is `r r2(ext_tpr_fit[["Estimate"]])` (p = `r pv(ext_tpr_fit[["Pr(>|t|)"]])`). A better screen depletes every needed gene further, which would favour "more needed in Y-negative". The fits on the raw scale therefore weight each organoid by its noise, estimated without Y status in the model. A hit keeps its label only if it survives adjustment for the organoid's common-essential depletion and also shows in the depletion calls with screen quality in the model. Common-essential depletion itself does not differ between the Y groups (`r f3(ext_org_scan$essential_shift$estimate)`, p = `r pv(ext_org_scan$essential_shift$p)`).
+- **A correction to the first run.** The first run also applied the weights to the rank-based tests and reported DDX3X as passing genome-wide inside colorectal organoids, and with it one combined result. Shuffled Y status then showed the weighted rank tests to be inflated. The weights were removed from every rank-based test, which now have lambda `r r2(ext_org_scan$inside_lambda)` (`r r2(min(ext_org_scan$shuffled_inside_lambda))` to `r r2(max(ext_org_scan$shuffled_inside_lambda))` with Y status shuffled), and both detections are withdrawn.
+
+## RNAi
+
+- **What to expect.** RNAi covers `r ext_rnai$lines` of the lines (`r ext_rnai$y_negative` Y-negative, `r ext_rnai$y_positive` Y-positive), about half the CRISPR cohort, and `r ext_rnai_shared` of them are CRISPR lines. The CRISPR context screen found nothing beyond chance, so a genome-wide finding here was unlikely, and agreement between the two assays is not independent replication.
+- **Nothing context-specific.** The context screen was repeated on RNAi with `r num(ext_rnai$genes_screen)` selective genes and `r ext_rnai$contexts_fitted` contexts: `r num(ext_rnai$screen_tests)` tests, each kept only where every Y-by-context cell holds at least five lines with data for that gene. `r ext_start(ext_rnai$screen_context_specific)` context-specific, and `r ext_count_word(ext_rnai$focused_context_specific)` in the focus family of `r ext_rnai$genes_focused` X-linked genes (`r ext_shuffled(ext_rnai_cal, "specific")` with Y status shuffled).
+- **Inside a context, only the paired genes.** Without an interaction, `r nrow(ext_rnai_inside)` tests pass inside a context (`r ext_shuffled(ext_rnai_cal, "inside")` with Y status shuffled): `r ext_list(sprintf("%s in %d", ext_rnai_by_gene$symbol, ext_rnai_by_gene$N))`, all in large genotype groups (`r ext_list(unique(ext_context_name(ext_rnai_inside$class, ext_rnai_inside$label)))`) and none in a cancer type. Within the focus family, `r ext_rnai_type_text`. These are the pan-cancer RNAi results for RPS4X and DDX3X seen again inside large groups.
+- **Agreement with CRISPR is modest.** Over `r num(sum(ext_cross$pairs))` gene-by-context pairs tested in both assays, `r sum(ext_cross$inside_both_nominal)` are nominal (p < 0.05) in both with the same sign, and the rank correlation of the effects is `r r2(ext_cross[, weighted.mean(inside_rank_correlation, inside_tested)])`. Two assays that shared nothing would give about `r round(sum(ext_cross$inside_expected_by_chance))` such pairs, but these share most of their lines, so some agreement is expected with no Y effect at all, and the count is not evidence of one. Of `r nrow(ext_leads)` leads from the cell-line screens, `r sum(ext_leads$tested_in_rnai)` can be tested in RNAi and `r nrow(ext_leads_agree)` agree, all of them `r ext_list(unique(ext_leads_agree$symbol))`. The other `r sum(!ext_leads$tested_in_rnai)` cannot: EIF1AX is not in the RNAi data, and the `r nrow(ext_leads_other)` leads outside the paired genes, CIB1 in bladder among them, are not screened there or fall below the gate.
+
+## Cell lines and organoids combined
+
+Each source was screened alone and then combined per gene from its own p-value and sign, weighted by its design. The two sources score on different scales, so effect sizes are not pooled. RNAi is left out of the combination because most of its lines are the CRISPR lines.
+
+- **All types together: the paired genes.** Over `r num(nrow(ext_pan))` genes in both scans, `r nrow(ext_pan_hits)` pass: `r ext_list(ext_both)`, supported by both sources, and `r ext_list(ext_one)`, carried by the cell lines alone (Figure 11d). In Chronos-equivalent units DDX3X is `r r2(ext_g("DDX3X")$estimate_chronos_equivalent)` in organoids against `r r2(genes[symbol == "DDX3X", estimate])` in cell lines, and RPS4X `r r2(ext_g("RPS4X")$estimate_chronos_equivalent)` against `r r2(genes[symbol == "RPS4X", estimate])`. The standardised effects differ for DDX3X (p = `r pv(ext_pan[symbol == "DDX3X", smd_difference_p])`) and not for RPS4X (p = `r pv(ext_pan[symbol == "RPS4X", smd_difference_p])`), but a noisier screen lowers a standardised effect, so that difference is not evidence of a weaker dependency. The organoids carry `r round(100 * ext_comb$organoid_weight_share)`% of the information, so this test gains little over the cell lines alone.
+- **Inside a cancer type: no gene.** The Y effect inside colorectal cell lines was combined with that inside colorectal organoids, and oesophagogastric cell lines with oesophageal organoids, over `r num(ext_within[pair == ext_col, .N])` genes each. `r if (sum(ext_within$combined_hit) == 0) "No gene passes in either." else sprintf("%d pass.", sum(ext_within$combined_hit))` The closest are `r ext_best(ext_col)$symbol` in colorectal cancer (FDR `r r2(ext_best(ext_col)$combined_fdr)`) and `r ext_best(ext_oes)$symbol` in oesophagogastric cancer (FDR `r r2(ext_best(ext_oes)$combined_fdr)`) (Figure 11e). The organoids carry `r round(100 * ext_share(ext_col))`% and `r round(100 * ext_share(ext_oes))`% of the information.
+- **MSI is in the colorectal model.** Microsatellite instability is more common among Y-positive models in both colorectal sources (`r ext_msi(0)` Y-positive against `r ext_msi(1)` Y-negative organoids), so an unadjusted combination would have rewarded any MSI-linked dependency, such as WRN. It is a covariate on both sides. Before it was added, the cell-line refit reproduced the stored p-values exactly.
+- **The oesophagogastric cell lines are mostly gastric.** All `r ext_oes_lines[OncotreeSubtype == "Esophageal Adenocarcinoma", .N]` oesophageal adenocarcinoma lines are Y-negative, so the `r ext_oes_lines[y_negative == 0, .N]` Y-positive lines of that group are gastric or junctional. All rectal lines are Y-negative as well.
+
+## Primary AML
+
+```{r fig12}
+knitr::include_graphics("figures/fig12_primary_aml.png")
+```
+
+- **Y loss as a fraction.** A primary sample is a mixture of cells with and without the Y, so Y loss was measured as a fraction: the seven Y genes, each relative to its X partner and to the median male specimen. Below `r r2(ext_aml$floor)` the measure follows cell composition and is set to 0.
+- **Who has Y loss.** With one specimen per patient there are `r nrow(ext_aml_all)` male patients, and the `r nrow(ext_aml_screen)` with a recorded age enter the drug screen. Of those, `r nrow(ext_aml_high)` have a fraction of at least 0.5: `r ext_aml_high[evidence_tier == "karyotype -Y", .N]` with a clone without Y in the karyotype, `r ext_aml_high[evidence_tier == "karyotype XY", .N]` with Y in every karyotyped cell and `r ext_aml_high[evidence_tier == "no karyotype", .N]` without a karyotype (Figure 12a). Where the karyotype gives a clone size, it tracks the RNA fraction (rank correlation `r r2(ext_aml$karyotype_rank_correlation)`, `r ext_aml$karyotype_compared` specimens; Figure 12b).
+- **Control.** FLT3 inhibitors are more active in FLT3-ITD specimens, as known: `r ext_list(sprintf("%s (p = %s)", ext_drug(ext_aml_controls$inhibitor), pv(ext_aml_controls$p)))`.
+- **One inhibitor passes, and it is less active with Y loss.** `r ext_short(ext_lead$inhibitor)`, a MEK inhibitor, loses activity as the Y-loss fraction rises: its rank-normalised AUC is `r r2(ext_lead$estimate)` SD higher at complete loss than at none (permutation p = `r pv(ext_lead$p)`, FDR `r f3(ext_lead$fdr)` among `r nrow(ext_aml_drugs)` inhibitors; Figure 12c). It was tested in `r ext_lead$n` patients, `r ext_lead$high_loss` of them with a fraction of at least 0.5. Shuffled Y loss gives `r ext_shuffled(ext_aml_cal, "fdr_hits")` hits in five runs. The other MEK inhibitors point the same way without passing, `r ext_list(sprintf("%s (p = %s)", ext_drug(ext_mek$inhibitor), pv(ext_mek$p)))`, and the MEK family as a whole does not pass (FDR `r r2(ext_mek_family$fdr)`); `r sum(ext_aml_families$fdr < 0.05)` of `r nrow(ext_aml_families)` drug families do.
+- **No inhibitor is more active with Y loss.** The strongest result in that direction is `r ext_drug(ext_sensitive$inhibitor)` (FDR `r r2(ext_sensitive$fdr)`). Y loss does not go with a specimen's mean response across inhibitors either (p = `r pv(ext_aml_scan$general_response$p)`). The screen shows no drug vulnerability of AML with Y loss.
+- **The hit passes the checks fixed in advance.** Its label is `r ext_lead$label`: it survives adjustment for TP53, FLT3-ITD, NPM1 and the specimen's mean response (p = `r pv(ext_lead$p_adjusted)`). With any one patient left out the largest p is `r pv(ext_fu("largest p")$p)`. The sign holds in all `r nrow(ext_aml_checks)` variants of exposure, specimens and covariates, among them Y loss confirmed by karyotype (p = `r pv(ext_fu("confirmed by karyotype")$p)`) and the Y genes alone (p = `r pv(ext_fu("Y genes alone")$p)`), and without the t(8;21) cases (p = `r pv(ext_lead$p_without_t8_21)`); the weakest is the variant "`r ext_aml_weakest$variant`" (p = `r pv(ext_aml_weakest$p)`, `r ext_aml_weakest$n` patients).
+- **RAS-pathway mutations account for part of it.** This check was added after the hit was seen, because response to MEK inhibitors in AML follows mutations in NRAS, KRAS and PTPN11. No patient with Y loss and exome data carries one: `r ext_ras_high$ras_pathway_mutant` of `r ext_ras_high[, ras_pathway_mutant + ras_pathway_wild_type]` with a fraction of at least 0.5 and `r ext_ras_mid$ras_pathway_mutant` of `r ext_ras_mid[, ras_pathway_mutant + ras_pathway_wild_type]` with a smaller one, against `r ext_ras_none$ras_pathway_mutant` of `r ext_ras_none[, ras_pathway_mutant + ras_pathway_wild_type]` without Y loss (p = `r pv(ext_aml_ras$fisher_p[1])` for the first group against the rest; Figure 12d). With RAS-pathway status in the model the slope falls from `r r2(ext_fu("^main")$estimate)` to `r r2(ext_fu("plus RAS-pathway mutation")$estimate)` SD (p = `r pv(ext_fu("plus RAS-pathway mutation")$p)`), and among RAS-wild-type patients it is `r r2(ext_fu("wild-type specimens only")$estimate)` SD (p = `r pv(ext_fu("wild-type specimens only")$p)`). Neither would pass the screen. Part of the association is that Y loss marks RAS-wild-type disease.
+- **Cell lines cannot check it.** `r ext_short(ext_lead$inhibitor)` was not screened as a single agent in the cell-line datasets. Across the `r ext_aml_compare$inhibitors[1]` inhibitors screened in both, the slopes do not agree in sign with the pan-cancer cell-line estimates (`r round(100 * ext_aml_compare$sign_agreement[1])`% agree, p = `r pv(ext_aml_compare$p[1])`). They agree in `r round(100 * ext_aml_compare$sign_agreement[2])`% of `r ext_aml_compare$inhibitors[2]` with the estimates inside myeloid lines (p = `r pv(ext_aml_compare$p[2])`, one of two tests).
+- **Only large effects are detectable.** With at most `r nrow(ext_aml_high)` patients carrying the signal, and `r median(ext_aml_drugs$high_loss)` for the typical inhibitor, the screen finds `r r2(ext_aml_power$named)` SD for a named inhibitor and `r r2(ext_aml_power$genome_wide)` SD across the panel, at best.
+
+## What the additions show
+
+```{r ext-power}
+ext_power_tab <- rbind(ext_power, ext_aml_power, fill = TRUE)[, .(
+  Test = sub("^Pan-cancer$", "All cancer types", sub(" adenocarcinoma$", "", sub(", drug response$", "", analysis))), Source = sub(" \\(.*$", "", source),
+  Models = ext_pair(n_negative, n_positive), `Named gene` = r2(named), `Genome-wide` = r2(genome_wide))]
+show(ext_power_tab, align = "lllll",
+  caption = "Best-case effect found 80% of the time, in SD of a gene's or inhibitor's spread between models, from each fitted design. Models: Y-negative / Y-positive; for BeatAML2, patients with a Y-loss fraction of at least 0.5 / of 0 in the cohort, the limit is that of the typical inhibitor, and the effect is that of complete loss. Named gene: one test at p < 0.05. Genome-wide: one more discovery in the family as tested. RNAi: a gene with data in every line.")
+```
+
+- **Two of the four paired genes hold in independent models.** DDX3X and RPS4X are more needed in Y-negative organoids. ZFX is not, and EIF1AX could not be tested.
+- **More models did not produce a cancer-type-specific vulnerability.** With the organoids, the effect detectable genome-wide falls from `r r2(ext_pw(ext_col, "Cell lines")$genome_wide)` to `r r2(ext_pw(ext_col, "Combined")$genome_wide)` SD in colorectal and from `r r2(ext_pw(ext_oes, "Cell lines")$genome_wide)` to `r r2(ext_pw(ext_oes, "Combined")$genome_wide)` SD in oesophagogastric cancer, about what `r tolower(ext_lung$label)`, the largest lineage, reaches in the cell lines alone (`r r2(ext_lung$limit)` SD by simulation). No gene passes at that depth. These are best-case figures: a smaller effect would still be missed, and every other cancer type stays where the power analysis left it. For all cancer types together the organoids add little (`r r2(ext_pw("Pan-cancer", "Cell lines")$genome_wide)` to `r r2(ext_pw("Pan-cancer", "Combined")$genome_wide)` SD).
+- **Primary samples add one lead, and it is not a vulnerability.** `r ext_short(ext_lead$inhibitor)` is less active with Y loss in AML. The result rests on `r ext_lead$high_loss` patients with a fraction of at least 0.5 among `r ext_lead$n` tested and is partly explained by RAS status. It is the one new result of six screens, each controlled on its own.
+
+# DepMap NextGen models
+
+```{r fig13}
+knitr::include_graphics("figures/fig13_nextgen.png")
+```
+
+DepMap NextGen (Neiswender et al. 2026) has `r ng_prep$screened` organoid and neurosphere models with a screen that passed quality control, all with one Cas12a library and scored with Chronos, as the cell lines are. It was added on 2026-10-05 as a third CRISPR source: screened alone, then combined with the cell lines and the Sanger organoids. The four paired genes were named in advance, so for them NextGen is replication in independent models. Any other gene is a discovery, and in NextGen alone it must also clear a bar set by shuffling Y status. The cohort, the Y calls and the list of tests were frozen before any NextGen gene was compared with Y status. Two checks were added after results were seen; each is marked where it applies, and both can only weaken a result.
+
+```{r ng-overview}
+ng_overview <- rbind(
+  data.table(Screen = "NextGen, the four paired genes", Models = ng_models(ng_primary), Tests = num(nrow(ng_paired)),
+    Passing = if (length(ng_unconfirmed) == 0) ext_list(ng_confirmed) else sprintf("%s; %s on the model's p-value only", ext_list(ng_confirmed), ext_list(ng_unconfirmed)), Shuffled = ng_shuffled(sum(ng_null$named_replicated > 0))),
+  data.table(Screen = "NextGen, all genes", Models = ng_models(ng_primary), Tests = num(nrow(ng_pan)),
+    Passing = sprintf("%s; %s pass FDR and not the bar", ext_list(ng_pan[associated == TRUE & named == TRUE, symbol]), ext_list(ng_other$symbol)), Shuffled = ng_shuffled(sum(ng_null$pan_fdr_hits > 0))),
+  data.table(Screen = "NextGen, inside oesophagus/stomach", Models = ng_models(ng_stomach), Tests = num(ng_scan$type_tests),
+    Passing = ext_count_word(ng_scan$type_specific + ng_scan$inside_only), Shuffled = ng_shuffled(sum(ng_null$inside_fdr_hits > 0))),
+  data.table(Screen = "Three sources, all types", Models = ext_pair(ng_pw("All cancer types", "Three sources")$n_negative, ng_pw("All cancer types", "Three sources")$n_positive), Tests = num(nrow(ng_three)),
+    Passing = sprintf("%s; %s with small effects that do not hold up", ext_list(ng_three_hits[symbol %in% ng_names, symbol]), ext_list(ng_extra$symbol)), Shuffled = "not run"),
+  data.table(Screen = "Three sources, inside oesophagogastric", Models = ext_pair(ng_pw(ng_oes, "Three sources")$n_negative, ng_pw(ng_oes, "Three sources")$n_positive), Tests = num(nrow(ng_oes_rows)),
+    Passing = ext_count_word(sum(ng_oes_rows$combined_hit)), Shuffled = "not run"),
+  data.table(Screen = "Pancreas pooled, the four paired genes", Models = ext_pair(ng_pn(ng_names[1])$n_negative, ng_pn(ng_names[1])$n_positive), Tests = num(nrow(ng_paired)),
+    Passing = ext_list(ng_pool_holds), Shuffled = "exact test")
+)
+show(ng_overview, col.names = c("Screen", "Models", "Tests", "Passing", "Shuffled"), align = "lllll",
+  caption = sprintf("The NextGen screens. Models: Y-negative / Y-positive. Shuffled: runs out of %d with Y status shuffled within stratum that gave at least one passing gene (for all genes, at FDR 0.05 before the bar).", ng_runs))
+```
+
+## The NextGen cohort
+
+- **Y status.** Sex is the recorded sex: `r sum(ng_cohort$Sex == "Male")` of the screened models are male, `r sum(ng_cohort$Sex == "Female")` female and `r sum(ng_cohort$Sex == "Unknown")` unknown. The cell-line rule was applied on NextGen's own RNA scale and checked against the copy number of the seven Y genes (Figure 13b). One change was needed. Recorded females show almost no Y signal in this table: their largest mean over the seven genes is `r f3(ng_prep$rna_thresholds$female_mean_max)` log2 units, against `r r2(js("call_thresholds")$female_mean_max)` in the cell lines. "No Y expression" was therefore defined as at most the female maximum or `r 100 * ng_prep$rna_thresholds$ceiling_fraction`% of the typical male level, whichever is larger. Without that, males with a trace of Y signal and little or no chrY in DNA would have been left out. Across the `r nrow(ng_all_males)` recorded males in the data set, screened or not, RNA and DNA agree in `r ng_all_males[y_tier == "concordant", .N]` and contradict each other in `r ng_all_males[y_tier == "discordant", .N]`.
+- **Who enters.** Of the `r nrow(ng_males)` screened males, `r ng_males[malignant == FALSE, .N]` are not cancers and `r ng_males[malignant == TRUE & shared_with_sanger == TRUE, .N]` come from donors that Sanger also screened; those donors stay with the Sanger cohort, as decided beforehand. A further `r ng_tier("rna_intermediate")` have intermediate RNA and are set aside, and `r ng_eligible[called == TRUE & first_of_donor == FALSE, .N]` are a second model of a donor already in the cohort; one of these pairs has unrelated names and was found by genotype alone (`r r2(ng_genotype_pair$genotype_similarity)` of rare damaging calls shared, where pairs below the cut share at most `r r2(ng_prep$genotype$other_max_below_cut)`). That leaves `r nrow(ng_primary)` models: `r ng_n(ng_primary, 1)` Y-negative and `r ng_n(ng_primary, 0)` Y-positive (Figure 13a). RNA and DNA agree for `r ng_tier("concordant")` of the `r nrow(ng_eligible)` eligible males; `r ng_tier("rna_led_dna_ambiguous")` keep an RNA call where DNA is unclear, and `r ng_tier("dna_only")` has DNA only.
+- **Y status is tied to screen format and cancer type.** Of the `r ng_n(ng_primary, 1)` Y-negative models, `r ng_n(ng_dome, 1)` were screened as three-dimensional organoids, against `r ng_n(ng_dome, 0)` of the `r ng_n(ng_primary, 0)` Y-positive ones. Brain models, screened as neurospheres, are mostly Y-positive (`r ng_n(ng_brain, 1)` Y-negative, `r ng_n(ng_brain, 0)` Y-positive). The model therefore has one term per lineage and screen format. The `r ng_prep$design$models_in_one_group_strata` models in a stratum with one Y group add nothing, and the design is worth about `r round(ng_prep$design$balanced_equivalent)` balanced models per group.
+- **Y loss travels with genome doubling and with noisier screens.** Genome doubling is found in `r ng_primary[y_negative == 1, sum(WGD == 1, na.rm = TRUE)]` of `r ng_primary[y_negative == 1, sum(!is.na(WGD))]` Y-negative models with a value, against `r ng_primary[y_negative == 0, sum(WGD == 1, na.rm = TRUE)]` of `r ng_primary[y_negative == 0, sum(!is.na(WGD))]` Y-positive ones. Median NNMD, a screen-quality score where more negative is better, is `r r2(ng_primary[y_negative == 1, median(ScreenNNMD)])` in Y-negative against `r r2(ng_primary[y_negative == 0, median(ScreenNNMD)])` in Y-positive models; within strata the difference is `r r2(ng_scan$quality_shift$estimate)` (p = `r pv(ng_scan$quality_shift$permutation_p)` from 20,000 shuffles). Fits on the Chronos scale weight each model by its noise, estimated without Y status in the model, and every hit is refitted with NNMD as a covariate. The per-model mean of the common-essential genes does not differ significantly between the groups (`r f3(ng_scan$essential_shift$estimate)`, p = `r pv(ng_scan$essential_shift$permutation_p)`), but gene by gene they lean the way a noisier screen would, as the scan below shows.
+
+## NextGen alone
+
+- **Controls.** Known biology is recovered in the `r sum(ng_cohort$malignant)` screened cancer models of both sexes: KRAS is more needed in models with a KRAS hotspot mutation (p = `r pv(ng_controls[gene == "KRAS", p])`; `r f3(ng_controls[gene == "KRAS", p_unweighted])` without the weights, which misses the gate of `r ng_controls[gene == "KRAS", p_max]`), and MDM2 less in TP53-altered ones (p = `r pv(ng_controls[gene == "MDM2", p])`).
+- **Three of the four paired genes replicate; ZFX is not confirmed.** The rule set in advance asks for the cell-line sign and BH below 0.05 among the four. On the model's p-values all four pass it (Figure 13c and the table below). But the shuffles show that those p-values run small: with Y status shuffled, the rule called at least one paired gene replicated in `r sum(ng_null$named_replicated > 0)` of `r ng_runs` runs, about twice as often as well-calibrated p-values would. Each gene was therefore also given a permutation p-value from `r ng_num(ng_paired$permutation_shuffles[1])` shuffles, and the same rule was applied to those. This step was added after the first full run. With it, `r ext_list(ng_confirmed)` still replicate. ZFX is not confirmed: p = `r f3(ng_pg("ZFX")$p)` in the model and `r f3(ng_pg("ZFX")$permutation_p)` by permutation, and it is not significant with screen quality (p = `r f3(ng_fu("ZFX", "screen NNMD"))`) or with genome doubling, TP53 and aneuploidy in the model (p = `r f3(ng_fu("ZFX", "plus WGD"))`). Its sign holds in every variant. DDX3X is the strongest, at `r r2(ng_pg("DDX3X")$estimate)` Chronos units (p = `r pv(ng_pg("DDX3X")$p)`). It also passes genome-wide (FDR `r pv(ng_g("DDX3X")$fdr)`) and is the only one of the four to meet the robustness rule of the follow-up: with any one model left out its largest p is `r pv(ng_fu("DDX3X", "largest p"))`, and its estimate is `r r2(ng_fu("DDX3X", "dome organoids", "estimate"))` in the three-dimensional organoid screens alone and `r r2(ng_fu("DDX3X", "screen NNMD", "estimate"))` with screen quality in the model.
+
+```{r ng-paired}
+show(ng_paired[, .(Gene = symbol, `NextGen effect` = r2(estimate), `Model p` = pv(p), `Permutation p` = pv(permutation_p), `Rule on permutation p` = outcome_permutation, `Cell-line effect` = r2(cell_line_estimate),
+  `Chance of replication` = ng_range(chance_at_strictest, chance_at_most_lenient))], align = "lllllll",
+  caption = sprintf("The four paired genes in NextGen. Effects are Y-negative minus Y-positive, in Chronos units, here and in the cell-line scan. Permutation p: Y status shuffled within stratum, %s times. Rule on permutation p: the rule set in advance, applied to the permutation p-values; \"not replicated\" means not significant and significantly smaller than in the cell lines. Chance of replication: computed before the test from the cell-line effect, the design and each gene's spread, at the strictest and the most lenient BH step.", ng_num(ng_paired$permutation_shuffles[1])))
+```
+
+- **EIF1AX and ZFX show a smaller contrast here, and it comes from the Y-positive models.** EIF1AX is `r r2(ng_pg("EIF1AX")$estimate)` here against `r r2(ng_pg("EIF1AX")$cell_line_estimate)` in the cell lines (p = `r pv(ng_pg("EIF1AX")$difference_p)` for the difference), and ZFX `r r2(ng_pg("ZFX")$estimate)` against `r r2(ng_pg("ZFX")$cell_line_estimate)` (p = `r pv(ng_pg("ZFX")$difference_p)`). DDX3X and RPS4X do not differ (p = `r pv(ng_pg("DDX3X")$difference_p)` and `r pv(ng_pg("RPS4X")$difference_p)`). Both sources are scored in Chronos units, but with different libraries. Y-negative models score alike in the two sources (EIF1AX `r r2(ng_pg("EIF1AX")$mean_negative)` here and `r r2(ng_pg("EIF1AX")$cell_line_mean_negative)` in the cell lines; ZFX `r r2(ng_pg("ZFX")$mean_negative)` and `r r2(ng_pg("ZFX")$cell_line_mean_negative)`), while Y-positive models are more dependent here (EIF1AX `r r2(ng_pg("EIF1AX")$mean_positive)` against `r r2(ng_pg("EIF1AX")$cell_line_mean_positive)`; ZFX `r r2(ng_pg("ZFX")$mean_positive)` against `r r2(ng_pg("ZFX")$cell_line_mean_positive)`). A Cas12a guide that also cuts the Y copy would give exactly this pattern, as would another difference between the libraries or the cultures, and the collection has no guide map to check. The smaller contrast is therefore not evidence of a weaker dependency. It is also why the rule's "not replicated" for ZFX is reported as "not confirmed". RPS4X had the lowest chance of replication before the test, so a miss there would have been uninformative; it replicated.
+- **No other gene is called.** Besides the four, `r nrow(ng_other)` genes pass FDR 0.05, `r ext_list(ng_other$symbol)`, both less needed in Y-negative models (`r r2(ng_other$estimate[1])` and `r r2(ng_other$estimate[2])` Chronos units). Neither clears the bar that `r ng_runs` shuffles set for a discovery, p < `r pv(ng_scan$null$pan_bar)`: `r ng_other$symbol[1]` misses it narrowly (p = `r formatC(ng_other$p[1], format = "e", digits = 2)`; the bar is itself an estimate from `r ng_runs` runs) and `r ng_other$symbol[2]` by more (p = `r pv(ng_other$p[2])`). Neither shows anything in the cell lines (`r f3(genes[symbol == ng_other$symbol[1], estimate])` and `r f3(genes[symbol == ng_other$symbol[2], estimate])` Chronos units; p = `r r2(genes[symbol == ng_other$symbol[1], p])` and `r r2(genes[symbol == ng_other$symbol[2], p])`), in the Sanger organoids or in RNAi, which all hold more models.
+- **The scan's p-values run small, and screen quality is why.** Shuffled Y status alone gives a gene at FDR 0.05 in `r sum(ng_null$pan_fdr_hits > 0)` of `r ng_runs` runs (`r formatC(100 * mean(ng_null$pan_fdr_hits > 0), format = "f", digits = 1)`%), and `r r2(mean(ng_null$pan_below_1e5))` genes per run below p = `r ng_sci(1e-5)` where `r r2(1e-5 * nrow(ng_pan))` are expected, so an FDR hit in this scan is weak evidence by itself. The observed inflation factor is `r r2(ng_scan$lambda)`, a value that `r ng_scan$null$runs_at_or_above_lambda` of the `r ng_runs` shuffles reach. The excess sits in the `r num(ng_scan$essential$genes)` common-essential genes: their inflation factor is `r r2(ng_scan$essential$lambda)` against `r r2(ng_scan$essential$lambda_other_genes)` for the other genes, `r ng_pct(ng_scan$essential$positive)`% of their estimates are positive, and `r ng_scan$essential$runs_at_or_above_lambda` of the shuffles reach that. A noisier Y-negative screen gives this pattern, because every needed gene then looks a little less needed. With screen quality in the model the factor falls to `r r2(ng_scan$lambda_quality_adjusted)`. `r ng_other$symbol[1]` is one of the common-essential genes. Shuffling Y status also breaks its link with screen quality, so the bar from the shuffles does not protect against this bias; the quality-adjusted estimates do. The bias runs against the four paired genes, which are more needed in Y-negative models. The rank-based test inside oesophagus/stomach has an inflation factor of `r r2(ext_rr("nextgen_calibration")[run == "observed", inside_lambda])` (`r r2(ng_scan$null$inside_lambda_median)` at the median of the shuffles).
+- **The cell-line label.** In the cell lines a hit is LOY-specific when it survives adjustment for genome doubling, TP53 and aneuploidy and for common-essential depletion, and also shows in the dependency calls; here it must survive screen quality as well. DDX3X survives the adjustments (`r r2(ng_g("DDX3X")$estimate_adjusted)` with the genomic covariates in `r ng_scan$adjusted_models` models, `r r2(ng_g("DDX3X")$estimate_quality_adjusted)` with screen quality). Its dependency calls point the same way, `r ng_pct(ng_g("DDX3X")$fraction_dependent_negative)`% of Y-negative against `r ng_pct(ng_g("DDX3X")$fraction_dependent_positive)`% of Y-positive models dependent, but the contrast is not significant with screen quality in the model (p = `r r2(ng_g("DDX3X")$dependent_fraction_p)`; `r f3(ng_g("DDX3X")$dependent_fraction_p_without_quality)` without it, which is how the cell-line stage tests it). `r if (ng_scan$loy_specific == 0) "No gene carries the label in NextGen alone" else sprintf("%d genes carry the label in NextGen alone", ng_scan$loy_specific)`; DDX3X is `r ng_g("DDX3X")$label` there.
+- **Y level as a continuous score.** The same scan with the share of Y expression lost as a continuous score, over `r ng_scan$continuous_models` models with the intermediate ones included, gives `r ext_list(ng_continuous$symbol)` at FDR 0.05.
+- **Nothing by cancer type.** Only oesophagus/stomach has five models per Y group (`r ng_n(ng_stomach, 1)` Y-negative, `r ng_n(ng_stomach, 0)` Y-positive). Among `r num(ng_scan$type_tests)` selective genes, `r ext_count_word(ng_scan$inside_only + ng_scan$type_specific)` passes inside it or is specific to it, and `r ext_count_word(sum(ng_null$inside_fdr_hits > 0))` of the `r ng_runs` shuffled runs gave a call. As a gene named in advance, DDX3X has p = `r pv(ng_types[symbol == "DDX3X", inside_p])` inside it.
+
+## Three sources together
+
+Each source enters with its own p-value and sign, weighted by its design, as in the two-source combination; a gene that one source does not test is combined over the others. The cell lines carry about `r ng_pct(ng_comb$weight_share$cell_lines)`% of the information, the Sanger organoids about `r ng_pct(ng_comb$weight_share$organoids)`% and NextGen about `r ng_pct(ng_comb$weight_share$nextgen)`%. No NextGen model is among the cell lines, and no donor is known to be shared between the sources.
+
+- **The paired genes.** Over `r num(nrow(ng_three))` genes in the cell-line scan and at least one other, `r nrow(ng_three_hits)` pass, against `r sum(ng_three$two_source_hit, na.rm = TRUE)` with two sources. `r ext_list(ng_every)` are supported by every source that tests them. ZFX passes on the strength of the cell lines: the Sanger organoids show no ZFX effect, and NextGen alone does not confirm it, although under the one-sided rule of the combination NextGen counts as support (`r sub("supported by ", "", ng_t("ZFX")$evidence)`; Figure 13d). EIF1AX is new to the combined family. The Sanger library does not target it, so NextGen is its only test outside the cell lines.
+- **Two more genes cross FDR 0.05, and neither is a vulnerability of Y loss.** `r ng_extra$symbol[1]` (FDR `r f3(ng_extra$combined_fdr[1])`) is less needed in Y-negative models in all three sources: `r r2(ng_extra$cell_estimate[1])` Chronos units in the cell lines (p = `r pv(ng_new$cell_p[1])`), `r r2(ng_extra$nextgen_estimate[1])` in NextGen (p = `r f3(ng_new$nextgen_p[1])`), and p = `r f3(ng_new$organoid_p[1])` in the Sanger organoids. In the cell lines it is a dependency in `r ng_pct(ng_extra$cell_dependent_negative[1])`% of Y-negative and `r ng_pct(ng_extra$cell_dependent_positive[1])`% of Y-positive lines. `r ng_extra$symbol[2]` (FDR `r f3(ng_extra$combined_fdr[2])`) has a slightly lower score in Y-negative models, `r r2(ng_extra$cell_estimate[2])` in the cell lines (p = `r pv(ng_new$cell_p[2])`) and `r r2(ng_extra$nextgen_estimate[2])` in NextGen (p = `r f3(ng_new$nextgen_p[2])`), with p = `r r2(ng_new$organoid_p[2])` in the organoids. But it is not a dependency: its mean score is above zero in both Y groups of both sources, and `r ng_dependent(ng_extra$symbol[2])[["cell"]]` of `r ng_dependent(ng_extra$symbol[2])[["cell_n"]]` cell lines and `r ng_dependent(ng_extra$symbol[2])[["nextgen"]]` of `r ng_dependent(ng_extra$symbol[2])[["nextgen_n"]]` NextGen models are called dependent on it. Neither gene is a hit in any single source, and in the cell lines both shifts are smaller than the 0.10 Chronos units that a single-source hit must reach; DDX3X is `r round(abs(ng_t("DDX3X")$cell_estimate / ng_extra$cell_estimate[1]))` times larger than `r ng_extra$symbol[1]` there.
+- **How far the two hold up.** These checks were designed after the two genes were seen, and they can only weaken a result. With Y status shuffled within stratum in every source at once, `r ng_num(ng_extra$permutation_shuffles[1])` times, the permutation p is `r pv(ng_extra$permutation_p[1])` for `r ng_extra$symbol[1]` and `r pv(ng_extra$permutation_p[2])` for `r ng_extra$symbol[2]`; to stay hits at their ranks they need p below `r pv(ng_extra$bh_cut[1])` and `r pv(ng_extra$bh_cut[2])`. `r ng_both(ng_extra$permutation_below_cut, "stay below", "stays below")``r if (length(ng_unresolved) > 0) sprintf(" For %s the margin is smaller than the shuffles can resolve.", ext_list(ng_unresolved)) else ""` With any one of the `r ng_cfu(ng_extra$symbol[1], "largest p", "n")` models left out, the largest p is `r pv(ng_extra$leave_one_out_largest_p[1])` and `r pv(ng_extra$leave_one_out_largest_p[2])`. `r ng_both(ng_extra$leave_one_out_below_cut, "stay below their cut", "stays below its cut")` The sign holds with RNA-only and with DNA-confirmed Y calls. NextGen's unadjusted estimate is what carries both over the line. With two sources their FDR was `r r2(ng_extra$two_source_fdr[1])` and `r r2(ng_extra$two_source_fdr[2])`. With screen quality in NextGen's model the three-source FDR is `r f3(ng_extra$fdr_nextgen_with_screen_quality[1])` and `r r2(ng_extra$fdr_nextgen_with_screen_quality[2])`; with genome doubling, TP53 and aneuploidy in NextGen's model, `r r2(ng_extra$fdr_nextgen_with_genomic_covariates[1])` and `r r2(ng_extra$fdr_nextgen_with_genomic_covariates[2])`; with every source's adjusted model, `r r2(ng_extra$fdr_every_source_adjusted[1])` and `r r2(ng_extra$fdr_every_source_adjusted[2])`. RNAi shows neither (p = `r r2(ng_extra$rnai_p[1])` and `r r2(ng_extra$rnai_p[2])`). `r ng_extra$symbol[1]` is a small, consistent shift that passes only with NextGen's unadjusted estimate, and `r ng_extra$symbol[2]` is borderline. Neither is reported as a finding.
+- **Inside oesophagogastric adenocarcinoma, still no gene.** With NextGen as a third source inside this cancer type, `r num(nrow(ng_oes_rows))` genes are tested and `r ext_count_word(sum(ng_oes_rows$combined_hit))` passes. `r ng_oes_best$symbol` comes closest (FDR `r r2(ng_oes_best$combined_fdr)`, from `r r2(ng_oes_best$two_source_fdr)` with two sources). Colorectal cancer stays as reported, because NextGen has only `r ng_n(ng_bowel, 1)` Y-negative and `r ng_n(ng_bowel, 0)` Y-positive bowel models, below the gate of five per group.
+- **Pancreas, the sources pooled.** Pancreas is the one cancer type that no source can test alone and the sources together can: the cell lines have `r ng_in("Pancreas", "Cell lines", "n_negative")` Y-negative and `r ng_in("Pancreas", "Cell lines", "n_positive")` Y-positive lines, and NextGen `r ng_in("Pancreas", "NextGen", "n_negative")` and `r ng_in("Pancreas", "NextGen", "n_positive")` models. The cell lines alone had been tested inside pancreas before, with none of the four paired genes significant (p = `r r2(min(ng_before$p))` to `r r2(max(ng_before$p))`; Figure 3b). New here are the NextGen models and a pooled test. It ranks the scores within each source and compares the Y groups within strata, the screening library in the cell lines and the screen format in NextGen. All Y-positive pancreatic cell lines sit in one library, so the comparison is `r ng_pn(ng_names[1], "Cell lines")$n_negative` against `r ng_pn(ng_names[1], "Cell lines")$n_positive` lines there and `r ng_pn(ng_names[1], "NextGen")$n_negative` against `r ng_pn(ng_names[1], "NextGen")$n_positive` NextGen models. The p-value counts every arrangement of Y status within strata, `r num(ng_pool$arrangements)` in all. `r ext_list(ng_pool_holds)` show the Y effect inside pancreas (p = `r ext_list(pv(ng_pooled_named[source == "Pooled"][match(ng_pool_holds, symbol), p]))`; BH among the four), with differences of `r ext_list(r2(ng_pooled_named[source == "Pooled"][match(ng_pool_holds, symbol), estimate_chronos]))` Chronos units, and `r ext_list(ng_pool_fails)` does not (p = `r r2(ng_pn(ng_pool_fails[1])$p)`) (Figure 13e). The cell-line half of the test is not independent of the scan that named these genes, because its `r ng_pn(ng_names[1], "Cell lines")[, n_negative + n_positive]` lines were part of that scan. The NextGen half is, and alone it gives p = `r ext_list(f3(ng_pooled_named[source == "NextGen"][match(ng_pool_holds, symbol), p]))` for the three genes, where `r f3(ng_pn(ng_names[1], "NextGen")$floor)` is the smallest value its models can give. The result shows that the effect is present inside pancreas, not that it is specific to pancreas.
+- **A single gene cannot be called genome-wide in pancreas.** With `r ng_pn(ng_names[1])$n_negative` against `r ng_pn(ng_names[1])$n_positive` models, the smallest p-value the exact test can give is `r pv(ng_pool$floor)`, and one discovery among `r num(ng_pool$genes)` genes would need `r pv(ng_pool$bh_critical_p)`. BH could pass genes only if at least `r ceiling(ng_pooled_all$floor[1] * nrow(ng_pooled_all) / 0.05)` of them sat at that smallest value together; `r sum(ng_pooled_all$p <= ng_pooled_all$floor * (1 + 1e-9))` `r if (sum(ng_pooled_all$p <= ng_pooled_all$floor * (1 + 1e-9)) == 1) "gene sits" else "genes sit"` there. The smallest family-wise p over all genes is `r r2(ng_pool$min_family_wise_p)`. The table is a ranking, and no gene is called from it (Figure 13f).
+- **The paired genes inside three more lineages.** A secondary table pools the sources the same way in bowel, oesophagus/stomach and brain, where single sources can already test. All four genes have p below 0.05 in each of the three; the largest is `r f3(ng_weakest$p)`, for `r ng_weakest$symbol` in `r ng_lineage(ng_weakest$type)`. No call rests on that table.
+- **Models screened at both institutes.** Donors that Sanger also screened gave `r nrow(ng_shared)` NextGen models, `r sum(ng_shared$sex == "Male")` of them male, each under the same model name at both institutes. Where both have a Y call, the calls agree for `r sum(ng_shared$calls_agree, na.rm = TRUE)` of `r sum(!is.na(ng_shared$calls_agree))`. The exception is `r ng_disagree$name`: Y-positive at Sanger, with all seven Y genes expressed and chrY kept in DNA, and Y-negative at the Broad, with no Y expression and no chrY in DNA. Y status belongs to the culture, not to the donor or the model name. The dependency profiles of two screens of one model share little (median rank correlation `r r2(ng_comb$shared_donors$profile_median)` against `r r2(ng_comb$shared_donors$unrelated_median)` for unrelated models of the same lineage), though `r ng_comb$shared_donors$above_unrelated_q95` of the `r ng_comb$shared_donors$compared` pairs are above the unrelated 95th percentile. That is one reason why sources are combined through test statistics or ranks within a source, never as raw scores.
+
+## What NextGen adds
+
+```{r ng-power}
+ng_power_tab <- ng_power[, .(Test = sub(" adenocarcinoma$", "", analysis), Source = source, Models = ext_pair(n_negative, n_positive), `Named gene` = r2(named),
+  `Genome-wide` = ifelse(is.na(genome_wide), "not possible", r2(genome_wide)))]
+show(ng_power_tab, align = "lllll",
+  caption = "Best-case effect found 80% of the time, in SD of a gene's spread between models (rank SD for the pooled test), from each fitted design. Models: Y-negative / Y-positive. Named gene: one test at p < 0.05. Genome-wide: one more discovery in the family as tested; in NextGen alone it must also clear the bar from the shuffles. Two sources: cell lines and Sanger organoids, as in the section above.")
+```
+
+- **Three of the four paired genes now hold outside the cell lines.** DDX3X and RPS4X hold in both organoid sources, and EIF1AX in NextGen, its only independent test. ZFX is not confirmed: it is absent in the Sanger organoids and borderline in NextGen.
+- **Pooling three sources adds no vulnerability.** The two extra genes that cross FDR 0.05, `r ext_list(ng_extra$symbol)`, are small shifts that depend on NextGen's unadjusted estimates. `r ng_extra$symbol[1]` is less needed with Y loss, and `r ng_extra$symbol[2]` is not a dependency.
+- **Inside pancreas the paired genes reach significance,** `r length(ng_pool_holds)` of the four, once the cell lines are pooled with NextGen; the cell lines alone had not shown it.
+- **No cancer-type-specific vulnerability appears.** With three sources the effect detectable genome-wide falls from `r r2(ng_pw(ng_oes, "Two sources")$genome_wide)` to `r r2(ng_pw(ng_oes, "Three sources")$genome_wide)` SD in oesophagogastric cancer and from `r r2(ng_pw("All cancer types", "Two sources")$genome_wide)` to `r r2(ng_pw("All cancer types", "Three sources")$genome_wide)` SD for all cancer types together; NextGen alone finds `r r2(ng_pw("All cancer types", "NextGen")$genome_wide)` SD at best. These are best-case figures, and every other cancer type stays where the power analysis left it.
+
+# Driver status inside cancer types
+
+```{r fig14}
+knitr::include_graphics("figures/fig14_driver_type.png")
+```
+
+The context screen tests each driver alteration across all cancer types at once. This section, added on 2026-10-06, asks a finer question: inside one cancer type, does Y loss create a dependency among the lines that carry a given driver alteration, and does that differ from the lines of the same type without it? Its main result is a limit and not a hit. Few such questions can be posed with the lines that exist, and those that can be posed would need large effects. A gene counts as altered in a line with any of a driver-flagged mutation, an amplification or a deep deletion. A split is a gene in a cancer type with at least `r dt_word(dt_gate)` altered lines in each Y group.
+
+The lines, the statuses, the splits and the gene families were frozen before any gene was compared with Y status inside a split, with one exception: a trial run printed three estimates for one paired gene in one split, and nothing was changed because of it. An independent review of the first full run led to four additions, each marked below as added after the review: least-squares p-values beside the test's own, a bar for the difference by driver status in a gene named in advance, a limit for a test on the Chronos scale, and a second way to size a known effect.
+
+```{r dt-overview}
+dt_any <- function(rows) sum(rows$inside_only > 0 | rows$specific > 0)
+dt_overview <- rbind(
+  data.table(Screen = "Cell lines, Y effect among altered lines", Splits = nrow(dt_splits), Tests = num(dt_tests$inside_tests), Passing = ext_count_word(dt_tests$inside_only + dt_tests$calls), Shuffled = dt_shuffled(dt_any(dt_null_cells))),
+  data.table(Screen = "Cell lines, difference by driver status", Splits = nrow(dt_four), Tests = num(dt_tests$interaction_tests), Passing = ext_count_word(dt_tests$calls), Shuffled = dt_shuffled(sum(dt_null_cells$specific > 0))),
+  data.table(Screen = "Cell lines, the four paired genes", Splits = nrow(dt_splits), Tests = num(nrow(dt_paired)), Passing = as.character(sum(dt_paired$shown)), Shuffled = dt_shuffled(sum(dt_null_cells$named_shown > 0))),
+  data.table(Screen = "Sanger organoids, Y effect among altered organoids", Splits = nrow(dt_org_splits), Tests = num(nrow(dt_org)), Passing = ext_count_word(sum(dt_org$specific | dt_org$inside_only)), Shuffled = dt_shuffled(dt_any(dt_null_org))),
+  data.table(Screen = "Sanger organoids, difference by driver status", Splits = dt_org_splits[label == "specificity testable", .N], Tests = num(sum(is.finite(dt_org$interaction_p))), Passing = ext_count_word(sum(dt_org$specific)), Shuffled = dt_shuffled(sum(dt_null_org$specific > 0))),
+  data.table(Screen = "Cell lines and organoids combined", Splits = nrow(dt_pairs), Tests = num(nrow(dt_comb)), Passing = ext_count_word(sum(dt_comb$combined_hit)), Shuffled = "not run")
+)
+show(dt_overview, align = "lrlll",
+  caption = sprintf("The tests of this section, by the rule fixed in advance. A split is a driver gene in a cancer type with %d altered models per Y group. Passing: tests at FDR 0.05 over all tests of the row; the four paired genes are a family named in advance, and a test passes when the gene is seen among the altered lines. Shuffled: runs out of %d with Y status shuffled within driver status that gave at least one passing test.", dt_gate, dt_runs))
+```
+
+## What can be tested
+
+- **Few pairs of a gene and a cancer type have the lines.** Among the `r num(dt_tests$lines)` male lines with a screen, `r num(dt_prep$genes_altered)` genes are altered in at least one. That gives `r num(dt_cells("lineage")$pairs)` pairs of a gene and a lineage with an altered line. Both Y groups are present among the altered lines in `r num(dt_cells("lineage")$both_y_groups)` of them, `r dt_cells("lineage")$at_least_5` have `r dt_word(dt_gate)` altered lines per Y group, and `r dt_cells("lineage")$all_four_cells` also have `r dt_word(dt_gate)` unaltered lines per Y group, which a test of a difference by driver status needs (Figure 14a). At disease level the last two counts are `r dt_cells("disease")$at_least_5` and `r dt_cells("disease")$all_four_cells`, at subtype level `r dt_cells("subtype")$at_least_5` and `r dt_cells("subtype")$all_four_cells`.
+- **The testable splits are small and sit in a few genes.** Over the three levels there are `r nrow(dt_splits)` distinct splits in `r uniqueN(dt_splits$type)` cancer types; a split with the same lines at two levels is counted once. They involve `r uniqueN(dt_splits$gene)` genes (`r ext_list(dt_gene_order)`), and TP53 alone accounts for `r dt_splits[gene == "TP53", .N]`. In `r sum(dt_smaller < 10)` of the `r nrow(dt_splits)` the smaller altered cell has fewer than ten lines (Figure 14b). Many splits share most of their lines: together they hold `r dt_prep$splits$altered_sets` different sets of altered lines, which fall into `r dt_prep$splits$shared_groups` groups once sets that share `r dt_pct(dt_set$shared_lines_fraction)`% of their lines are joined. CDKN2A, CDKN2B and MTAP often mark the same lines, because one deletion removes all three.
+- **A difference by driver status can be tested in `r nrow(dt_four)` splits.** At lineage level these are in `r dt_by_type(dt_four[level == "lineage"])`. KRAS-altered lung is one of them, with `r dt_split("KRAS", "Lung")$neg_alt` Y-negative and `r dt_split("KRAS", "Lung")$pos_alt` Y-positive altered lines.
+- **Screening library takes part of what is left.** Inside a small split, library can follow Y status. Fitted on its altered lines alone, as the context screen fits a context, the worst split (`r dt_worst_alone$gene` in `r dt_name(dt_worst_alone$type)`) keeps `r dt_pct(dt_worst_alone$kept_inside_alone)`% of the information of a plain two-group comparison, and `r dt_prep$splits$kept_alone_below_flag` splits keep under `r dt_pct(dt_set$information_flag)`%. Each split is therefore fitted as one model on all lines of its cancer type, with library, driver status, and a Y effect for the altered and for the unaltered lines. That keeps `r dt_pct(dt_prep$splits$kept_inside_median)`% in the median split and `r dt_pct(dt_prep$splits$kept_inside_min)`% in the worst.
+- **In `r sum(!dt_info$robust_reachable)` splits a result could have been called robust only by luck.** The robustness rule fixed for all added models asks for a permutation p-value below `r dt_set$robust_permutation_p`. In the smallest splits so few arrangements of Y status exist that the shuffles do not, on average, give one even for the most extreme arrangement. No result in those splits passed the rule.
+- **Organoids and NextGen.** The Sanger organoids have `r nrow(dt_org_splits)` splits (`r ext_list(dt_org_splits[, sprintf("%s in %s", gene, dt_name(type))])`), `r dt_org_splits[label == "specificity testable", .N]` of them with the test of a difference. NextGen has none: its closest pair is `r dt_nextgen$gene` in `r dt_name(dt_nextgen$type)`, with `r dt_nextgen$neg_alt` Y-negative and `r dt_nextgen$pos_alt` Y-positive altered models. `r tools::toTitleCase(dt_word(nrow(dt_pairs)))` colorectal splits (`r ext_list(dt_pairs$gene)`) exist in both the cell lines and the organoids and are combined.
+
+## What a split could detect
+
+The limits come from the tests themselves, as in the power analysis of the cancer-type tests. A real selective gene is shifted towards more dependent in the Y-negative altered lines of one split and tested as the one gene added to that split's fit. Shifts are in units of a gene's spread between lines (SD), and a shift counts as detectable when it is found `r dt_pct(dt_target)`% of the time. The stored p-values of all `r dt_power$splits` splits were reproduced exactly before simulating, and real genes sent through the simulation's own path came back with their stored p-values.
+
+These are limits of the layer's test: limma's moderated t on scores ranked over all lines, the test of the context screen. Two of its properties matter here. Ranks cap how far a few lines can move, so detection levels off below `r dt_pct(dt_target)`% in small splits however large the shift. And at these sizes the test takes a gene's variance almost wholly from the other genes: the borrowed information weighs `r round(median(dt_prior_df))` degrees of freedom in the median split, against `r min(dt_info$df_new)` to `r max(dt_info$df_new)` of a split's own.
+
+- **One gene named in advance.** At p < 0.05 every split finds a shift, of `r r2(median(dt_lim("candidate")$limit))` SD in the median split (`r r2(min(dt_lim("candidate")$limit))` in the largest, `r r2(max(dt_lim("candidate")$limit))` in the weakest) (Figure 14c). Normal theory on the design agrees with the simulation here (ratio `r r2(min(dt_ratio("candidate")))` to `r r2(max(dt_ratio("candidate")))`). The four paired genes themselves reach p < 0.05 in `r dt_pct(dt_paired[, mean(inside_p < 0.05 & inside_rank < 0)])`% of their `r nrow(dt_paired)` tests inside splits.
+- **The split searched alone,** over its `r num(dt_tests$selective)` genes: `r dt_reach("split_alone")` of the `r nrow(dt_splits)` splits find a shift, of `r r2(median(dt_lim("split_alone")$limit, na.rm = TRUE))` SD in the median of those.
+- **The whole layer.** One more discovery among the `r num(dt_tests$inside_tests)` tests needs a p-value below `r dt_sci(dt_tests$bars$family_inside)`. `r dt_reach("family")` splits reach that, at `r r2(median(dt_fam$limit, na.rm = TRUE))` SD in the median. The other `r nrow(dt_splits) - dt_reach("family")` do not reach `r dt_pct(dt_target)`% at any shift up to `r dt_largest_shift` SD: at `r dt_largest_shift` SD they find the shift in `r dt_pct(min(dt_fam[reachable == FALSE, ceiling]))`% to `r dt_pct(max(dt_fam[reachable == FALSE, ceiling]))`% of simulations, `r dt_pct(median(dt_fam[reachable == FALSE, ceiling]))`% in the median. None of the `r dt_fam[smaller == dt_gate, .N]` splits with `r dt_word(dt_gate)` lines in the smaller altered cell reaches `r dt_pct(dt_target)`%, and all `r dt_fam[smaller >= 10, .N]` with ten or more do. At sizes like those of known effects a search finds little: a shift of `r dt_sizes[1]` SD is found in `r dt_pct(median(dt_at(dt_sizes[1], "family")))`% of simulations in the median split and one of `r dt_sizes[2]` SD in `r dt_pct(median(dt_at(dt_sizes[2], "family")))`%.
+- **A test on the Chronos scale has no such ceiling** (added after the review). Plain least squares on Chronos scores, each gene with its own variance, reaches the layer's bar in `r dt_raw[, sum(reachable)]` of the `r nrow(dt_raw)` splits, at `r r2(median(dt_raw$limit, na.rm = TRUE))` SD in the median and `r r2(median(dt_raw[smaller == dt_gate, limit], na.rm = TRUE))` SD in the splits with `r dt_word(dt_gate)` lines in the smaller altered cell. That test is not calibrated in cells this small, which is why the layer does not use it: the raw-scale p-values stored beside the Chronos estimates give `r sum(dt_raw_fdr < 0.05)` tests at FDR 0.05, `r sum(dt_raw_fdr < 0.05 & !dt_screen$symbol %in% hit_symbols)` of them outside the paired genes and all of those in splits with at most `r dt_screen[dt_raw_fdr < 0.05 & !symbol %in% hit_symbols, max(pmin(n_neg_in, n_pos_in))]` lines in the smaller cell. So "no shift is enough" describes the rank-based test, and on any scale a search needs shifts of several SD.
+- **A difference by driver status** needs the Y effect to differ from the unaltered lines of the same cancer type. For one gene named in advance, at p < 0.05, `r dt_named_difference[, sum(reachable)]` of the `r nrow(dt_named_difference)` splits that can test it find a difference `r dt_pct(dt_target)`% of the time, of `r r2(median(dt_named_difference$limit, na.rm = TRUE))` SD in the median (`r r2(min(dt_named_difference$limit, na.rm = TRUE))` to `r r2(max(dt_named_difference$limit, na.rm = TRUE))`); this bar was added after the review. In a search, where the layer's rule asks for the effect among altered lines and for the difference, `r ext_count_word(dt_reach("specificity"))` of the `r nrow(dt_four)` splits reaches `r dt_pct(dt_target)`%: at `r dt_largest_shift` SD the best split (`r dt_lim("specificity")[which.max(ceiling), sprintf("%s in %s", gene, dt_name(type))]`) finds the difference in `r dt_pct(max(dt_lim("specificity")$ceiling))`% of simulations and the median split in `r dt_pct(median(dt_lim("specificity")$ceiling))`%.
+
+```{r dt-known}
+dt_known_tab <- rbindlist(lapply(dt_shown_refs, function(ref) {
+  data.table(`Effect as large as` = dt_short(ref), Chronos = r2(dt_ref(ref, "own spread")$effect_chronos),
+    `SD, own spread` = dt_r1(dt_ref(ref, "own spread")$effect_sd), `SD, typical gene` = dt_r1(dt_ref(ref, "typical gene")$effect_sd),
+    `Named: gene itself` = dt_found(ref, "own gene", "candidate"), `Named: typical gene` = dt_found(ref, "typical gene", "candidate"),
+    `Search: gene itself` = dt_found(ref, "own gene", "family"), `Search: typical gene` = dt_found(ref, "typical gene", "family"))
+}))
+show(dt_known_tab[order(-as.numeric(`SD, own spread`))], align = "lrrrrrrr",
+  caption = sprintf("Known effects moved into each split's Y-negative altered lines: the number of splits, out of %d, in which the effect is found %s%% of the time, as a gene named in advance and in a search over the layer. Gene itself: a resampled copy of the gene, with its own spread. Typical gene: the same Chronos shift on an ordinary selective gene (typical spread %s Chronos units). SD: the effect over the gene's own spread, and over the typical spread. DDX3X, EIF1AX, ZFX and RPS4X: their effect in Y-negative lines.",
+    nrow(dt_splits), dt_pct(dt_target), r2(dt_power$host_sd)))
+```
+
+- **How large a known effect is depends on the gene** (the second way of sizing was added after the review). DDX3X's effect is `r r2(dt_ref("DDX3X in Y-negative", "own spread")$effect_chronos)` Chronos units. That is `r dt_r1(dt_ref("DDX3X in Y-negative", "own spread")$effect_sd)` SD of DDX3X's own spread and `r dt_r1(dt_ref("DDX3X in Y-negative", "typical gene")$effect_sd)` SD of a typical selective gene's, because the paired genes vary far more between lines than most genes do. A new vulnerability could be either kind of gene, so the table gives both.
+- **A search would have missed most known effects.** As a copy of the gene itself, an effect like DDX3X's is found by a search over the layer in `r ext_count_word(dt_found("DDX3X in Y-negative", "own gene", "family"))` of the `r nrow(dt_splits)` splits; the same Chronos shift on a typical gene is found in `r dt_found("DDX3X in Y-negative", "typical gene", "family")`. For KRAS dependence in KRAS-driven lines the counts are `r dt_found("KRAS in KRAS-driver", "own gene", "family")` and `r dt_found("KRAS in KRAS-driver", "typical gene", "family")`, and for WRN dependence in MSI lines, the best-known synthetic-lethal pair, `r ext_count_word(dt_found("WRN in MSI", "own gene", "family"))` and `r ext_count_word(dt_found("WRN in MSI", "typical gene", "family"))`.
+
+## Lines needed
+
+How much larger would the collection have to be for the layer's test? Each split's design was copied `r ext_list(dt_multiples[-1])` times, every copy carrying the spread of a different real gene, and the same shifts were tested at the same bars. This keeps the share of Y loss, the mix of libraries and the behaviour of ranks. The bar and the variance prior are held at today's values; a larger collection would also test more splits, so the true requirement is somewhat higher.
+
+```{r dt-needed}
+dt_need_tab <- rbindlist(lapply(sort(unique(dt_needed[convention == "size", effect_sd])), function(size) {
+  layer <- dt_buckets(dt_size(size, "family"))
+  difference <- dt_buckets(dt_size(size, "specificity"))
+  data.table(`Shift (SD)` = formatC(size, format = "g"), Today = layer$today, `Up to 4 times` = layer$within_4, `Up to 16 times` = layer$within_16, `More` = layer$beyond,
+    `Median multiple` = dt_multiple(layer$median, layer$bound), `Difference: median multiple` = dt_multiple(difference$median, difference$bound), `Difference: more` = difference$beyond)
+}))
+show(dt_need_tab, align = "rrrrrrrr",
+  caption = sprintf("Lines needed to find a shift of a given size %s%% of the time at the layer's bar. Today, Up to 4 times, Up to %d times, More: the number of splits, out of %d, that would find it with that multiple of today's lines (cumulative). Median multiple: over the splits; \"at most\" where the median could not be read between two simulated sizes. Difference: the rule that also needs the difference from unaltered lines, over the %d splits that can test it.",
+    dt_pct(dt_target), max(dt_multiples), nrow(dt_splits), nrow(dt_four)))
+```
+
+- **It depends on how variable the gene is.** For a gene as variable as the paired genes, whose effects are `r dt_r1(dt_paired_own[1])` to `r dt_r1(dt_paired_own[2])` SD of their own spread, the median split needs `r dt_multiple(min(dt_paired_multiples("own spread")))` to `r dt_multiple(max(dt_paired_multiples("own spread")))` times today's lines. The same Chronos shifts on a typical gene are `r dt_r1(dt_paired_typical[1])` to `r dt_r1(dt_paired_typical[2])` SD. The median split then needs `r dt_median(dt_known("ZFX in Y-negative", "typical gene"))` times its lines for a shift like ZFX's and `r dt_median(dt_known("DDX3X in Y-negative", "typical gene"))` times for one like DDX3X's, which `r dt_buckets(dt_known("DDX3X in Y-negative", "typical gene"))$today` of the `r nrow(dt_splits)` splits would find today (Figure 14d).
+- **A difference by driver status needs more:** `r dt_median(dt_size(dt_sizes[1], "specificity"))` times for a difference of `r dt_sizes[1]` SD in the median split, against `r dt_median(dt_size(dt_sizes[1], "family"))` for the Y effect among altered lines; for a difference of `r dt_sizes[3]` SD, `r dt_buckets(dt_size(dt_sizes[3], "specificity"))$beyond` of the `r nrow(dt_four)` splits need more than `r max(dt_multiples)` times.
+- **These are multiples of splits that already hold `r dt_word(dt_gate)` lines per cell.** The other `r num(dt_cells("lineage")$pairs - dt_cells("lineage")$at_least_5)` gene-by-lineage pairs start from fewer.
+- **Check on real lines.** If copies stand in for lines, a real split cut to a half and copied twice should find what the whole split finds. The `r dt_cut[fraction == 0.5, uniqueN(split_id)]` largest sets of altered lines were cut `r dt_cut$repeats[1]` times each, and the largest also to a quarter. At the layer's bar the copied split's limit differs from the real split's by `r dt_signed(mean(dt_compared_at("family")$copied_against_real_log2))`% on average (`r dt_signed(min(dt_compared_at("family")$copied_against_real_log2))`% to `r dt_signed(max(dt_compared_at("family")$copied_against_real_log2))`% over `r nrow(dt_compared_at("family"))` comparisons), and for a gene named in advance by `r dt_signed(mean(dt_compared_at("candidate")$copied_against_real_log2))`% (`r dt_signed(min(dt_compared_at("candidate")$copied_against_real_log2))`% to `r dt_signed(max(dt_compared_at("candidate")$copied_against_real_log2))`%). A negative figure means that copies find smaller shifts than real lines do. So copies stand in for lines to within about `r formatC(100 * (2^max(abs(dt_compared$copied_against_real_log2)) - 1), format = "f", digits = 0)`% of a limit, and at the layer's bar the multiples above are, if anything, somewhat too low, on top of the bar being held fixed.
+
+## What the tests show
+
+- **Controls.** Before any Y result was read, known driver dependencies were tested inside single cancer types, on the same lines and statuses, by least squares on Chronos scores. KRAS is more needed in KRAS-altered lines inside lung (`r r2(dt_control("KRAS.*Lung")$estimate)` Chronos units, p = `r pv(dt_control("KRAS.*Lung")$p)`) and inside bowel (`r r2(dt_control("KRAS.*Bowel")$estimate)`, p = `r pv(dt_control("KRAS.*Bowel")$p)`); MDM2 is less needed in TP53-altered lines inside CNS/brain (`r r2(dt_control("MDM2.*CNS")$estimate)`, p = `r pv(dt_control("MDM2.*CNS")$p)`) and lymphoid (`r r2(dt_control("MDM2.*Lymphoid")$estimate)`, p = `r pv(dt_control("MDM2.*Lymphoid")$p)`).
+- **No gene's Y effect differs by driver status inside a cancer type.** Of `r num(dt_tests$inside_tests)` tests of the Y effect among altered lines and `r num(dt_tests$interaction_tests)` tests of its difference from the unaltered lines, `r ext_count_word(dt_tests$inside_only + dt_tests$calls)` passes FDR 0.05. The smallest p-value among altered lines is `r dt_sci(dt_top$inside_p)` (FDR `r r2(dt_top$inside_fdr)`), for `r dt_top$symbol` among `r dt_top$gene`-altered `r dt_name(dt_top$type)` lines; the smallest for a difference is `r dt_sci(dt_top_difference$interaction_p)` (FDR `r r2(dt_top_difference$interaction_fdr)`).
+- **The smallest p-values belong to the four paired genes.** `r nrow(dt_small)` tests are below `r formatC(dt_small_cut, format = "e", digits = 0)`. They are `r nrow(dt_distinct(dt_small))` distinct tests, because two splits at different levels hold the same altered lines, and `r nrow(dt_distinct(dt_small[symbol %in% hit_symbols]))` of those are `r ext_list(hit_symbols)` (Figure 14f). The others are `r ext_list(dt_other[, sprintf("%s among %s-altered %s lines", symbol, gene, dt_name(type))])`; both point towards less dependence with Y loss and neither passes (FDR `r r2(min(dt_other$inside_fdr))` and `r r2(max(dt_other$inside_fdr))`).
+- **By least squares, the layer finds DDX3X and EIF1AX in its largest splits and nothing else** (added after the review). Because the test borrows its variance, it is conservative for a gene with little spread and generous for one with much. With each gene keeping its own variance, on the same ranks, `r nrow(dt_ols)` tests pass FDR 0.05, all of them `r ext_list(sort(unique(dt_ols$symbol)))`, in `r ext_list(unique(dt_name(dt_ols$type)))`; no other gene passes, and no difference by driver status does. Shuffled Y status gives such a test in `r dt_shuffled(sum(dt_null_cells$ols_fdr_hits > 0))` runs. For `r dt_top$symbol` in `r dt_name(dt_ols[order(inside_p_ols)][1, type])` the least-squares p-value is `r dt_sci(min(dt_ols$inside_p_ols))`, and the two genes outside the four fall to `r dt_sci(min(dt_other$inside_p_ols))` and `r dt_sci(max(dt_other$inside_p_ols))`. These p-values describe; the rule fixed in advance makes the calls.
+- **The paired genes behave inside splits as they do everywhere, and show what size costs.** Judged as a family named in advance, they are seen in `r sum(dt_paired$shown)` of `r nrow(dt_paired)` tests: in `r dt_seen(function(n) n == dt_gate)`% of those with `r dt_word(dt_gate)` lines in the smaller altered cell, `r dt_seen(function(n) n %in% 6:7)`% with six or seven, `r dt_seen(function(n) n %in% 8:9)`% with eight or nine and `r dt_seen(function(n) n >= 10)`% with ten or more (Figure 14e). `r dt_paired[symbol == "DDX3X", sum(inside < 0)]` of `r dt_paired[symbol == "DDX3X", .N]` DDX3X estimates are negative. In no split does a paired gene's effect differ by driver status: over the `r nrow(dt_paired_difference)` such tests the smallest p-value is `r f3(min(dt_paired_difference$interaction_p))` (FDR `r r2(min(dt_paired_difference$difference_fdr))`), and these tests could have shown a difference of about `r r2(median(dt_named_difference$limit, na.rm = TRUE))` SD. Of the `r nrow(dt_follow)` tests where a paired gene is seen, `r sum(dt_follow$robust)` pass the robustness rule.
+- **Shuffled Y status.** Over `r dt_runs` shuffles within driver status, `r dt_r1(100 * mean(dt_null_cells$inside_below_0.05))`% of p-values among altered lines are below 0.05 and the inflation factor averages `r r2(mean(dt_null_cells$inside_lambda))`. `r dt_shuffled(sum(dt_null_cells$specific > 0))` runs gave a difference by driver status and `r dt_shuffled(sum(dt_null_cells$inside_only > 0))` a gene among altered lines. The shuffles show that the test is sound on average over genes; they do not check it gene by gene, and they say nothing about confounding.
+- **Organoids and the combination.** None of the `r num(nrow(dt_org))` tests among altered organoids passes, nor any of the `r num(nrow(dt_comb))` combined tests in the `r dt_word(nrow(dt_pairs))` colorectal splits. `r if (dt_org[order(inside_p)][1, symbol] == dt_comb[order(combined_p)][1, symbol]) sprintf("%s is the top gene in both", dt_org[order(inside_p)][1, symbol]) else sprintf("The top genes are %s and %s", dt_org[order(inside_p)][1, symbol], dt_comb[order(combined_p)][1, symbol])` (p = `r dt_sci(min(dt_org$inside_p))` in the organoids and `r dt_sci(min(dt_comb$combined_p))` in the combination), and by least squares `r ext_list(sort(unique(dt_ols_org$symbol)))` passes in `r nrow(dt_ols_org)` organoid splits. From their designs alone, the organoid splits could find `r dt_r1(min(dt_org_best[bar == "family", best_case_sd]))` to `r dt_r1(max(dt_org_best[bar == "family", best_case_sd]))` SD in a search and the combined splits `r dt_r1(min(dt_comb_best[bar == "family", best_case_sd]))` to `r dt_r1(max(dt_comb_best[bar == "family", best_case_sd]))` SD; these are best cases that ignore what ranks cost on few models.
+
+## What this layer shows
+
+- **The question can rarely be posed.** `r dt_cells("lineage")$at_least_5` of `r num(dt_cells("lineage")$pairs)` gene-by-lineage pairs have the lines for a Y effect among altered lines, and `r dt_cells("lineage")$all_four_cells` for a difference by driver status.
+- **Where it can be posed, a gene named in advance can be tested and a search sees only large shifts.** A named gene needs about `r dt_r1(median(dt_lim("candidate")$limit))` SD for the Y effect among altered lines and about `r dt_r1(median(dt_named_difference$limit, na.rm = TRUE))` SD for a difference by driver status. A search needs `r dt_r1(median(dt_fam$limit, na.rm = TRUE))` SD in the `r dt_reach("family")` splits where the layer's test reaches `r dt_pct(dt_target)`% at all, and about `r dt_r1(median(dt_raw$limit, na.rm = TRUE))` SD by a test on the Chronos scale.
+- **The tests agree with the rest of this report.** Nothing passes the rule, and the strongest signals inside the splits are the four paired genes.
+- **More cell lines of the same kind would have to be several times as many.** For effects like the known ones the median split needs `r dt_median(dt_known("DDX3X in Y-negative", "typical gene"))` to `r dt_median(dt_known("ZFX in Y-negative", "typical gene"))` times its lines when the gene is of typical spread, and `r dt_multiple(min(dt_paired_multiples("own spread")))` to `r dt_multiple(max(dt_paired_multiples("own spread")))` times when it is as variable as the paired genes; a difference by driver status needs more.
+
+# Expression
+
+## Which genes' expression goes with each dependency
+
+```{r fig7}
+knitr::include_graphics("figures/fig7_expression_and_dependency.png")
+```
+
+```{r attribution}
+show(paired[match(hit_symbols, dependency), .(Dependency = dependency, `Paired Y gene` = y_gene, `Joint-model p` = pv(joint_p), `p within Y-positive lines` = pv(within_positive_p))],
+  caption = "The paired Y gene for each hit. Joint model: all seven Y genes together, lineage and library adjusted, on every eligible male with CRISPR and RNA.")
+```
+
+- **The paired Y gene is the one that matters.** Whole-Y loss removes all seven genes at once, so the two-group comparison cannot say which gene is responsible. The partial-deletion lines can: with all seven Y genes in one model, the paired gene is the strongest term for each of the four dependencies. Neighbouring Y genes that are lost together with it (for example UTY with DDX3Y, KDM5D with EIF1AY) carry part of the same signal, so this localises each effect to a gene or a short stretch of the Y rather than proving a single gene.
+- **The relationship is graded.** Among lines that still express the Y, lower expression of DDX3Y, EIF1AY and RPS4Y1 goes with stronger dependency on the X partner (p-values in the table); for ZFY the within-group trend is weak.
+- **Beyond Y status there is little.** After adjusting for lineage and Y status, the number of non-Y genes associated with each dependency at FDR 0.05 is `r paste(sprintf("%s %d", hit_symbols, dep_summary[match(hit_symbols, dependency), adjusted_hits_not_y]), collapse = ", ")`, of `r num(dep_summary$genes[1])` expressed genes.
+- **ZFX has a second buffer.** The top non-Y gene for ZFX is `r dep_summary[dependency == "ZFX", top_adjusted]` (partial r = `r r2(dep_summary[dependency == "ZFX", top_adjusted_r])`, and `r r2(dep_summary[dependency == "ZFX", top_within_negative_r])` within Y-negative lines): lines that express more of it depend less on ZFX. ZNF711 is the third member of the ZFX/ZFY zinc-finger family, so this is the same paralog logic acting from the X.
+
+## Expression differences between the groups
+
+```{r fig6}
+knitr::include_graphics("figures/fig6_expression_differences.png")
+```
+
+- **Scope.** limma-voom on `r de_json$y_negative` Y-negative and `r de_json$y_positive` Y-positive lines; `r num(de_json$genes_tested)` genes with a known chromosome outside chrY form the test family. chrY genes define the call, so they are a positive control only.
+- **Result.** `r de_json$de` genes pass FDR 0.05 (`r de_json$de_up` higher, `r de_json$de_down` lower in Y-negative lines); `r de_json$loy_specific` keep their sign and significance after adjustment for genome doubling, TP53 and aneuploidy.
+- **Dosage control.** Expressed pseudoautosomal genes fall by a median of `r r2(abs(dosage[dosage_class == "PAR", median_log_fc]))` log2 units, against `r r2(dosage[dosage_class == "autosomal", median_log_fc])` for autosomal and `r r2(dosage[dosage_class == "chrX non-PAR", median_log_fc])` for X-linked genes outside the PAR. Losing one of two copies predicts 1.0.
+- **The X partners barely compensate.** ZFX is slightly higher in Y-negative lines (log2 `r r2(de[symbol == "ZFX", log_fc])`, FDR `r formatC(de[symbol == "ZFX", fdr], format = "f", digits = 3)`); DDX3X, RPS4X and EIF1AX lean the same way without passing (FDR `r r2(de[symbol == "DDX3X", fdr])`, `r r2(de[symbol == "RPS4X", fdr])`, `r r2(de[symbol == "EIF1AX", fdr])`). These shifts are small next to the loss of the Y copy.
+- **Caution on pathways.** Several Hallmark sets shift (panel c), but whole cytobands are also enriched (`r de_json$positional_fdr` positional sets at FDR 0.05), which is the signature of co-occurring copy-number changes. Pathway shifts here describe the kind of tumour that loses its Y as much as the loss itself.
+- **Overlap with the dependencies.** Testing the differentially expressed gene sets against each dependency's association ranking (Y status accounted for) gives a smallest FDR of `r r2(min(overlap[dependency %in% hit_symbols, fdr]))` across the four hits, so the genes that change with Y loss are not, as a group, the genes that track the dependencies.
+
+# Random forests
+
+```{r fig8}
+knitr::include_graphics("figures/fig8_forests.png")
+```
+
+Forest importance has no false-discovery rate of its own, so each result below comes with two-seed stability and a matched run on shuffled labels.
+
+```{r accuracy}
+acc <- acc_wide[match(c(hit_symbols, "COMPOSITE"), dependency)]
+show(acc[, .(Dependency = dependency, `Lineage + library` = r2(m0), `+ Y status` = r2(m1), `+ seven Y genes` = r2(m2), `+ all expression` = r2(m3))],
+  caption = "Out-of-fold R2 of nested forests (10-fold, 3 repeats, donors kept within folds).")
+```
+
+```{r forest-numbers}
+crispr_forest <- forest_y[dataset == "crispr_effect"]
+stable_genes <- forest_y_genes[stable == TRUE]
+given <- forest_features[strata == "given lineage" & stable == TRUE]
+beyond <- forest_features[strata == "beyond Y status" & stable == TRUE]
+```
+
+- **Predicting the dependencies.** Y status carries most of what can be predicted for DDX3X and EIF1AX. For RPS4X the seven Y genes add far more than the two-group label does (R2 `r r2(acc_wide[dependency == "RPS4X", m1])` to `r r2(acc_wide[dependency == "RPS4X", m2])`): RPS4Y1 is kept in many partial deletions, and its level matters. The rest of the transcriptome adds nothing for DDX3X, EIF1AX or RPS4X, and adds `r r2(acc_wide[dependency == "ZFX", m3 - m2])` for ZFX, in line with the ZNF711 result above. COMPOSITE is the mean of the four hits. The other X partners cannot be predicted at all (R2 near zero).
+- **Which expression features are selected.** With shadows shuffled within lineage, the stable features for the four hits are `r paste(sapply(hit_symbols, function(s) sprintf("%s: %s", s, { g <- given[dependency == s][order(-mean_importance), gene_symbol]; if (length(g) == 0) "none" else paste(head(g, 5), collapse = ", ") })), collapse = "; ")`. When Y status is also given to the forest and shadows are shuffled within lineage and Y status, `r nrow(beyond[dependency %in% hit_symbols])` features remain stable across the four hits`r if (nrow(beyond[dependency %in% hit_symbols]) > 0) paste0(" (", paste(unique(beyond[dependency %in% hit_symbols, paste(dependency, gene_symbol, sep = ": ")]), collapse = "; "), ")") else ""`.
+- **Predicting Y status from dependencies.** A forest on `r num(crispr_forest$features)` selective dependencies separates the groups with an out-of-bag AUC of `r r2(crispr_forest$oob_auc)`, against `r r2(crispr_forest$oob_auc_lineage_only)` from lineage and library alone. `r crispr_forest$stable` genes are stable across both seeds (`r paste(head(stable_genes$symbol, 8), collapse = ", ")`), `r crispr_forest$stable_and_regression_fdr` of them regression hits; runs on shuffled labels confirmed `r gsub(";", ", ", crispr_forest$null_confirmed)` genes.
+- **Predicting Y status from drugs.** In all `r sum(forest_y$dataset != "crispr_effect")` drug datasets the forest does no better than lineage alone, and no compound is stable.
+
+# Checks on the pipeline
+
+- **Known biology through the same code.** With the genotype as the exposure, BRAF-altered lines depend on BRAF (effect `r r2(controls[grepl("BRAF dependency", control), estimate])`, rank 1 of `r num(nrow(genes))`), KRAS-altered lines on KRAS (`r r2(controls[grepl("KRAS dependency", control), estimate])`, rank 1), and TP53-altered lines lose MDM2 dependency (`r r2(controls[grepl("MDM2 dependency", control), estimate])`, rank 1). BRAF-inhibitor sensitivity and MDM2-inhibitor resistance have the expected sign in all six drug datasets that hold such compounds, which confirms that lower means more sensitive on every metric.
+- **Calibration.** With Y status shuffled within lineage, `r r2(100 * controls_json$gene_calibration$mean_fraction_below_0.05)`% of gene tests fall below 0.05 and `r controls_json$gene_calibration$permutations_with_fdr_hits` of `r controls_json$gene_calibration$permutations` shuffles give any FDR hit.
+- **Inputs.** All input files match the collection's recorded checksums and dimensions; every join logs its unmatched identifiers.
+- **Freeze.** Thresholds, calls, cohort and contexts were hashed before any outcome was tested against Y status. One disclosure: during design, provisional calls were checked against the X-Y partner CRISPR columns to confirm the controls were detectable; no threshold was changed afterwards.
+
+# Comparison with the earlier analyses
+
+```{r comparison}
+show(cmp_calls[, .(`Earlier call table` = sub(" \\(.*$", "", source), `Both definite` = both_definite, Agree = agree, `Newly classified here` = newly_classified, `Definite only before` = old_only)],
+  caption = "The new calls against each earlier call table (male lines).")
+```
+
+- **Calls.** Where both are definite, the new calls agree with the reviewed DNA calls in `r cmp_calls[1, agree]` of `r cmp_calls[1, both_definite]` lines, and classify `r cmp_calls[1, newly_classified]` lines that table left unresolved.
+- **Lines.** The first analysis compared `r cmp_genes$old_lines` lines; this one compares `r cmp_genes$new_lines`.
+- **Genes.** The first analysis's hits (`r gsub(";", ", ", cmp_genes$old_hits)`) are all recovered with far smaller FDRs. RPS4X missed FDR 0.05 in that analysis and passed in the two later ones; here it is unambiguous.
+- **Earlier interaction candidates.** The two later analyses prioritised `r sum(grepl("interaction", cmp_candidates$test_type))` drug and gene interactions; `r nrow(earlier)` distinct tests have a counterpart here. None passes FDR within its context class, but `r sum(earlier$same_direction_nominal)` point the same way at a nominal p < 0.05, where chance would give about `r r2(0.025 * nrow(earlier))`: `r paste(sprintf("%s with %s (p = %s)", earlier_examples$name, sub("^.*__", "", earlier_examples$new_context), pv(earlier_examples$new_p)), collapse = "; ")`. ARHGEF2 is also this analysis's one context lead. These are the same cell lines tested again, so this is neither replication nor refutation; most earlier candidates used a continuous MSI score, which this analysis tests as MSI-high against the rest.
+
+# Limits
+
+- **Observational.** Y loss travels with TP53 alteration, genome doubling, aneuploidy and lineage. The four hits survive adjustment for these; a null for everything else is a null given these confounders and this sample size.
+- **RNA-led calls measure Y-gene expression.** The DNA-only analysis gives the same four hits, so the findings do not depend on that choice.
+- **Sex annotation.** A Y-negative line annotated male could be a mislabelled female. `r sum(calls$possible_female)` lines carry both female-like signals (XIST high and two-X copy number). Removing all XIST-high lines leaves the four gene hits unchanged; in PRISM secondary it lets `r drug_by_definition[definition == "xist_high_removed" & dataset == "prism_secondary", hits]` compounds cross FDR 0.05, within the screen-wide shift described above.
+- **Guide cross-reactivity.** Guides against an X gene may also cut its Y partner, and the collection has no guide map to audit this. Cross-cutting would weaken, not create, the differences reported here.
+- **Drug data.** The datasets share cell lines, use different assays and doses, and predate current culture stocks.
+- **Forests.** Importance has no error rate; forest results are support for the regressions, not independent discoveries.
+- **Limits of the cancer-type tests.** The detection limits are properties of the design: sample sizes, line-to-line spread and the rank-based test. They are not observed power computed from the Y results. They assume one new effect confined to one cancer type, shared by all its Y-negative lines. The benchmarks were chosen for being known, so they lean large, and some biomarkers are imperfect (MSI calls for WRN). Levels are nested, so lineage, disease and subtype are three views of the same lines.
+- **Organoids, RNAi and primary AML.** The organoids are two cancer types from one study, so an effect seen there and not in cell lines may be a culture effect. Y-negative organoids have somewhat better screens; the weights and guards reduce that bias and cannot prove it gone. Organoid and Chronos scores are on different scales, so the combination uses test statistics, not effect sizes. RNAi shares most of its lines with CRISPR. In BeatAML2 the exposure is an estimate, and the signal rests on at most `r nrow(ext_aml_high)` patients (`r ext_lead$high_loss` for the one hit). Y loss is commoner with t(8;21) (`r ext_t821(TRUE)` patients with Y loss against `r ext_t821(FALSE)`), which the model adjusts for, and it does not go with age in this cohort. The response is that of a cell mixture, not of the clone without Y. Follow-up checks describe how stable a hit is; they do not confirm it.
+- **DepMap NextGen.** NextGen adds `r nrow(ng_primary)` models, worth about `r round(ng_prep$design$balanced_equivalent)` per Y group once screen format and cancer type are in the model, so alone it finds only large effects. Y status there is tied to screen format, cancer type and genome doubling; the model adjusts for them and cannot separate what the data confound. In oesophagus/stomach all `r ng_n(ng_stomach, 0)` Y-positive models come from treated patients, against `r ng_treated(ng_stomach[y_negative == 1])` of `r ng_n(ng_stomach, 1)` Y-negative ones, and in pancreas all `r ng_n(ng_pancreas, 0)` Y-positive models come from one laboratory. Y-negative screens are noisier, and the weights that deal with this shift influence to fewer models. Shuffled Y status gives a gene at FDR 0.05 in `r formatC(100 * mean(ng_null$pan_fdr_hits > 0), format = "f", digits = 1)`% of runs, so the scan's p-values run small; the common-essential genes carry the excess, as noisier Y-negative screens would make them. The paired genes are therefore judged on permutation p-values, and the bar from the shuffles does not protect a discovery against the quality bias. Y status belongs to the culture: one model is Y-positive at Sanger and Y-negative at the Broad. Sex is the recorded sex. A mislabelled female would count as Y-negative and cannot be detected in these files; all four paired genes keep their sign without the `r sum(ng_primary$possible_female)` Y-negative models whose X copy number is female-like. NextGen uses a Cas12a library and the other sources Cas9, and its Chronos scores come from the manuscript's run, not the 26Q1 release. The pooled pancreas test rests on `r ng_pn(ng_names[1])$n_positive` Y-positive models and assumes that the Y effect is shared between sources in rank units. `r ext_list(ng_extra$symbol)` pass a pooled test, do not pass it once NextGen's model carries the genomic covariates, and are not reported as findings. The permutation p-values of the paired genes and the follow-up of the combined hits were added after results were seen. Each family of tests in the overview table is controlled on its own, with no correction across them, and the three-source combination is a second look at genes already tested with two sources.
+- **Driver status inside cancer types.** Driver status is one yes or no per gene: it joins different alterations of a gene, and a line with a second, unlisted driver counts as unaltered. `r sum(dt_smaller < 10)` of the `r nrow(dt_splits)` splits have fewer than ten lines in a cell, so a null there says little; the limits say how little. The three levels overlap, many splits share most of their lines, and two hold the same altered lines and give the same test twice; the family counts them all. Inside a cancer type, driver status travels with subtype, other drivers, screening library and culture history, and the test of a difference cannot separate them. The test takes a gene's variance almost wholly from the other genes, so it is conservative for a quiet gene and generous for a variable one; the shuffles check it on average only. The detection limits are properties of the designs and of that test, not observed power, and the ceiling on detection in small splits belongs to the ranks. "Lines needed" assumes that added lines would look like the present ones, with the same share of Y loss, spread and libraries; it holds today's bar, and at that bar copies of a design are on average a little kinder than real lines, so it is if anything a low figure, and an order of magnitude, not a design for a screen. How large a known effect counts as depends on the spread of the gene it lands on. Reference effects were estimated in this same cohort, so the largest lean large. Organoid statuses come from the study's own table of driver events, not from the rule used for the cell lines, and the organoid limits are best cases from the designs. Four parts of the section were added after an independent review of the first full run and are marked there.
+- **Unplaced genes.** `r num(de_json$genes_without_location)` genes in the count table have no chromosome in this collection and were left out of the expression test family; several behave like chrY transcripts.
+
+# Files
+
+| Location | Contents |
+|---|---|
+| `derived/loy_reanalysis_v1/final/` | Result tables as CSV and RDS |
+| `derived/loy_reanalysis_v1/y_status_calls.csv` | Y status for every model, with all alternative definitions |
+| `derived/loy_reanalysis_v1/extension/` | Organoid, RNAi, combination and BeatAML2 tables (stages 25 to 30), with their freezes |
+| `raw/studies/sanger_organoid/figshare/`, `raw/drug_response/beataml2/` | Public inputs added on 2026-10-04; checksums in `docs/SHA256SUMS_extension_inputs` |
+| `derived/loy_reanalysis_v1/extension/nextgen_*` | NextGen tables (stages 31 to 33), with their freeze |
+| `derived/loy_reanalysis_v1/extension/driver_type_*` | Tables on driver status inside cancer types (stages 34 to 36), with their freeze |
+| `raw/studies/depmap_nextgen/`, `references/depmap_nextgen/` | NextGen inputs; six files added on 2026-10-05 (four data files, the paper and the figshare archive), checksums in `docs/SHA256SUMS_nextgen_inputs` |
+| `results/loy_reanalysis_v1/figures/` | Figures as PDF, SVG and PNG |
+| `results/loy_reanalysis_v1/figure_source_data/` | The data behind every panel |
+| `scripts/loy_reanalysis_v1/` | Code; `parameters.json` holds every threshold, `extension_parameters.json` those of stages 25 to 36 |
+| `results/loy_reanalysis_v1/progress_ledger.md` | Decisions taken during the run |

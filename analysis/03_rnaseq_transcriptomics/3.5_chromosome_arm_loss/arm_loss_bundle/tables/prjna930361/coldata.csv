@@ -1,0 +1,7 @@
+sample,gsm,runs,expected_reads,layout,organism,title,condition,cell_line,clone,genotype
+ARPE19_Ynull_1,A7123-1,SRR23563060,70494928,PAIRED,Homo sapiens,Human sample from Homo sapiens,Ynull,ARPE19,A7123,chrY_eliminated
+ARPE19_Ynull_2,A7123-2,SRR23563059,58596654,PAIRED,Homo sapiens,Human sample from Homo sapiens,Ynull,ARPE19,A7123,chrY_eliminated
+ARPE19_Ynull_3,A7123-3,SRR23563058,56710379,PAIRED,Homo sapiens,Human sample from Homo sapiens,Ynull,ARPE19,A7123,chrY_eliminated
+ARPE19_WT_1,ARPE19-1,SRR23563063,55202810,PAIRED,Homo sapiens,Human sample from Homo sapiens,WT,ARPE19,parental,parental
+ARPE19_WT_2,ARPE19-2,SRR23563062,66919182,PAIRED,Homo sapiens,Human sample from Homo sapiens,WT,ARPE19,parental,parental
+ARPE19_WT_3,ARPE19-3,SRR23563061,56993272,PAIRED,Homo sapiens,ARPE19_control1,WT,ARPE19,parental,parental

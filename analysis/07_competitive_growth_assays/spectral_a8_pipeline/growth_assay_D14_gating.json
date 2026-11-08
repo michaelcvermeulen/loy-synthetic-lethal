@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "source": "20261029_160937_Export/comp_growth_assay_D14_OCT20 1",
+  "carried_over_from": "spectral/a8_pipeline/growth_assay_D4_gating.json",
+  "decision_date": "2026-10-21",
+  "approval": "TADA2B uses the day-specific unlabelled-cell gate, carried over unchanged from the D4 decision (user, 2026-10-21: \"I guess lets just treat the TADA2B different.\") so that D4 and D14 use the same primary gates.",
+  "unlabelled_gate_primary_backgrounds": ["TADA2B"],
+  "description": "In these backgrounds the primary reporter-negative gate is the day-specific unlabelled-cell gate (mCherry cut at the valley between GFP-negative unlabelled cells and mCherry-positive cells, found on D0 and on this timepoint). All other backgrounds keep the standard gate (eGFP < 6 and mCherry < 6.5). Standard-gate values are retained for every well as a sensitivity."
+}

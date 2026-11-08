@@ -1,0 +1,174 @@
+{
+  "source": "/mnt/h/reference/chm13v2.0.fa.gz",
+  "source_compressed_md5": "eab64eb60815bc25fa73224e03b1b1d8",
+  "masked_reference": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/reanalysis/Y_PAR_masked_20261027/reference/chm13v2.0.YPARmasked.fa",
+  "mask_bed": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/reanalysis/Y_PAR_masked_20261027/reference/chm13v2.0_PAR.bed",
+  "mask_bed_sha256": "9ba7f1ed5dfd88107356ff71965655a40f1d29ead912e7fc926c3f14d54300b3",
+  "masked_intervals_0based": {
+    "chrY": [
+      [
+        0,
+        2458320
+      ],
+      [
+        62122809,
+        62460029
+      ]
+    ]
+  },
+  "masked_span_bases": 2795540,
+  "contigs": {
+    "chr1": {
+      "length": 248387328,
+      "original_sequence_md5": "e469247288ceb332aee524caec92bb22",
+      "masked_sequence_md5": "e469247288ceb332aee524caec92bb22",
+      "changed_bases": 0
+    },
+    "chr2": {
+      "length": 242696752,
+      "original_sequence_md5": "e5ff97665b6025191d4d7dfa2cec4cf0",
+      "masked_sequence_md5": "e5ff97665b6025191d4d7dfa2cec4cf0",
+      "changed_bases": 0
+    },
+    "chr3": {
+      "length": 201105948,
+      "original_sequence_md5": "0012f8a55c07f0b61e199736105e7257",
+      "masked_sequence_md5": "0012f8a55c07f0b61e199736105e7257",
+      "changed_bases": 0
+    },
+    "chr4": {
+      "length": 193574945,
+      "original_sequence_md5": "b7e17a4f043aab5bc45cdfd5cccf9deb",
+      "masked_sequence_md5": "b7e17a4f043aab5bc45cdfd5cccf9deb",
+      "changed_bases": 0
+    },
+    "chr5": {
+      "length": 182045439,
+      "original_sequence_md5": "e069fd69dce480b348767fa9827671b4",
+      "masked_sequence_md5": "e069fd69dce480b348767fa9827671b4",
+      "changed_bases": 0
+    },
+    "chr6": {
+      "length": 172126628,
+      "original_sequence_md5": "ae714983adbd673c7c84b0b1daa91f7e",
+      "masked_sequence_md5": "ae714983adbd673c7c84b0b1daa91f7e",
+      "changed_bases": 0
+    },
+    "chr7": {
+      "length": 160567428,
+      "original_sequence_md5": "3ff4435e65cf8cdd69a3150d09dd649f",
+      "masked_sequence_md5": "3ff4435e65cf8cdd69a3150d09dd649f",
+      "changed_bases": 0
+    },
+    "chr8": {
+      "length": 146259331,
+      "original_sequence_md5": "29aeec58cb54d9132e2283839f9fcc9c",
+      "masked_sequence_md5": "29aeec58cb54d9132e2283839f9fcc9c",
+      "changed_bases": 0
+    },
+    "chr9": {
+      "length": 150617247,
+      "original_sequence_md5": "419dad1fb58ae389ad8828536b5d78cd",
+      "masked_sequence_md5": "419dad1fb58ae389ad8828536b5d78cd",
+      "changed_bases": 0
+    },
+    "chr10": {
+      "length": 134758134,
+      "original_sequence_md5": "fbf3087282695f275d460157fc7864a5",
+      "masked_sequence_md5": "fbf3087282695f275d460157fc7864a5",
+      "changed_bases": 0
+    },
+    "chr11": {
+      "length": 135127769,
+      "original_sequence_md5": "7f144a0b4800c341a4b4f1518838cc59",
+      "masked_sequence_md5": "7f144a0b4800c341a4b4f1518838cc59",
+      "changed_bases": 0
+    },
+    "chr12": {
+      "length": 133324548,
+      "original_sequence_md5": "5086cf368e83b9cefd7bb19ef0f40d3c",
+      "masked_sequence_md5": "5086cf368e83b9cefd7bb19ef0f40d3c",
+      "changed_bases": 0
+    },
+    "chr13": {
+      "length": 113566686,
+      "original_sequence_md5": "6f9949b26d5ece38c6cdefd48a516907",
+      "masked_sequence_md5": "6f9949b26d5ece38c6cdefd48a516907",
+      "changed_bases": 0
+    },
+    "chr14": {
+      "length": 101161492,
+      "original_sequence_md5": "7ad36d43a1ab059e190ab918f27cb5bf",
+      "masked_sequence_md5": "7ad36d43a1ab059e190ab918f27cb5bf",
+      "changed_bases": 0
+    },
+    "chr15": {
+      "length": 99753195,
+      "original_sequence_md5": "914e0733351aaa9a4354ca8efb527401",
+      "masked_sequence_md5": "914e0733351aaa9a4354ca8efb527401",
+      "changed_bases": 0
+    },
+    "chr16": {
+      "length": 96330374,
+      "original_sequence_md5": "fcc04e14d89b12c757d56c177261e248",
+      "masked_sequence_md5": "fcc04e14d89b12c757d56c177261e248",
+      "changed_bases": 0
+    },
+    "chr17": {
+      "length": 84276897,
+      "original_sequence_md5": "8627043bd24255e9f356e0c99ece251f",
+      "masked_sequence_md5": "8627043bd24255e9f356e0c99ece251f",
+      "changed_bases": 0
+    },
+    "chr18": {
+      "length": 80542538,
+      "original_sequence_md5": "b6a85aabc31b2d57f707aa679a8612c5",
+      "masked_sequence_md5": "b6a85aabc31b2d57f707aa679a8612c5",
+      "changed_bases": 0
+    },
+    "chr19": {
+      "length": 61707364,
+      "original_sequence_md5": "c2c74cb0832b34b9e8eebf4b744a88c1",
+      "masked_sequence_md5": "c2c74cb0832b34b9e8eebf4b744a88c1",
+      "changed_bases": 0
+    },
+    "chr20": {
+      "length": 66210255,
+      "original_sequence_md5": "f1a31f30d3da50893470ff47bf0b5a38",
+      "masked_sequence_md5": "f1a31f30d3da50893470ff47bf0b5a38",
+      "changed_bases": 0
+    },
+    "chr21": {
+      "length": 45090682,
+      "original_sequence_md5": "760794bbbe965d4d1e3884bf09d1f306",
+      "masked_sequence_md5": "760794bbbe965d4d1e3884bf09d1f306",
+      "changed_bases": 0
+    },
+    "chr22": {
+      "length": 51324926,
+      "original_sequence_md5": "0068189b6b7c95e860cce0815662293f",
+      "masked_sequence_md5": "0068189b6b7c95e860cce0815662293f",
+      "changed_bases": 0
+    },
+    "chrX": {
+      "length": 154259566,
+      "original_sequence_md5": "1f2616c4cfa30104517e44dd3c426453",
+      "masked_sequence_md5": "1f2616c4cfa30104517e44dd3c426453",
+      "changed_bases": 0
+    },
+    "chrY": {
+      "length": 62460029,
+      "original_sequence_md5": "775564f397e3690ae4e4f0372537ff49",
+      "masked_sequence_md5": "dd7264df17e7e4a4dac5b0f1f19dcfe0",
+      "changed_bases": 2795540
+    },
+    "chrM": {
+      "length": 16569,
+      "original_sequence_md5": "ec493a132ac4823aa696e37109f64972",
+      "masked_sequence_md5": "ec493a132ac4823aa696e37109f64972",
+      "changed_bases": 0
+    }
+  },
+  "BAM_dictionary_names_lengths_match": true,
+  "all_non_Y_sequences_unchanged": true
+}

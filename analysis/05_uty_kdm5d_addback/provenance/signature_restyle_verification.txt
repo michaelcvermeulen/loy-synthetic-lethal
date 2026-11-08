@@ -1,0 +1,3 @@
+PASS: 12 retained fry results, directions and FDR values unchanged.
+Open Sans Regular/SemiBold from the thesis figure skill; SVG exported by svglite, PDF printed from SVG with embedded fonts using headless Chrome.
+Panel D: all FDR values shown; blue=decrease, orange=increase; bold indicates FDR<0.05.

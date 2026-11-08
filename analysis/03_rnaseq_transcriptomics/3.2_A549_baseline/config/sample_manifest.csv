@@ -1,0 +1,12 @@
+sample_key,treatment,batch,sample_index,pairing_status,derivation_status,source_count_file
+A549-CTRL-1,CTRL,AUG_2025,1,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-1.txt
+A549-CTRL-2,CTRL,AUG_2025,2,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-2.txt
+A549-CTRL-3,CTRL,AUG_2025,3,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-3.txt
+A549-CTRL-4,CTRL,AUG_2025,4,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-CTRL-4.txt
+A549-LOY-1,LOY,AUG_2025,1,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-1.txt
+A549-LOY-2,LOY,AUG_2025,2,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-2.txt
+A549-LOY-3,LOY,AUG_2025,3,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-3.txt
+A549-LOY-4,LOY,AUG_2025,4,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-LOY-4.txt
+A549-PARENTAL-1,PARENTAL,AUG_2025,1,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-PARENTAL-1.txt
+A549-PARENTAL-2,PARENTAL,AUG_2025,2,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-PARENTAL-2.txt
+A549-PARENTAL-3,PARENTAL,AUG_2025,3,uncertain_author_2026-09-18,uncertain_author_2026-09-18,A:/Dropbox/LOY_paralogs/projects/RNAseq/counts/STAR_v2_PARfix/AUG_2025_A549_LOY/A549-PARENTAL-3.txt

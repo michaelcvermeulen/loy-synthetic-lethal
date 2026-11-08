@@ -1,0 +1,19 @@
+key,group,path,symbol_col,lfc_col,fdr_col,polarity,upper_case,description
+A549_clones_LOYvROY,A_somatic_LOY,A549_clonal_LOY/DE/clonal_LOY_v_ROY_DESeq2.csv,gene_name,logFC,FDR,1,FALSE,A549 4 LOY vs 4 ROY isogenic clones (DESeq2)
+A549_multiome_pb_LOYvROY,A_somatic_LOY,A549_multiome_pseudobulk/DE/multiome_pb_LOY_v_ROY_DESeq2.csv,gene_name,logFC,FDR,1,FALSE,A549 multiome pseudobulk LOY vs ROY cells (same clones; not independent)
+MB49_cellline_YnegvYpos,A_somatic_LOY,GSE229233/DE/gse229233_cellline_Yneg_v_Ypos_DESeq2.csv,gene_name,log2FoldChange,padj,1,TRUE,Mouse MB49 bladder cancer cell line Y- vs Y+ (naive upper-case symbol match)
+MB49_tumor_YnegvYpos,A_somatic_LOY,GSE229233/DE/gse229233_tumor_Yneg_v_Ypos_DESeq2.csv,gene_name,log2FoldChange,padj,1,TRUE,Mouse MB49 subcutaneous tumour Y- vs Y+ (includes host stroma; naive symbol match)
+GSE313572_HT1080_ctrl_YnegvYpos,A2_single_cell_mosaic,A:/multiome/results/gex_only/tables/de_HT1080_ctrl_loy_partition_pb.csv,gene,logFC,adj.P.Val,1,FALSE,"HT1080 spheroids in 3D collagen (GSE313572 control sample): 1,185 Y- vs 2,142 Y+ cells (zero-count call on 8 Y genes, >= 3,000 features); limma-voom on 4 random cell partitions (pseudo-replicates of one sample; P values anti-conservative)"
+Tahoe_A549_DMSO_YnegvYpos,A2_single_cell_mosaic,../../drug_screen/tahoe/.claude/results/report_a549_s1_dmso_DE.csv,gene,log2FC,q,1,FALSE,"Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). A549 (37% Y-): 2,140 Y- vs 3,503 Y+ cells, 22 wells"
+Tahoe_J82_DMSO_YnegvYpos,A2_single_cell_mosaic,../../drug_screen/tahoe/.claude/results/report_j82_s1_dmso_DE.csv,gene,log2FC,q,1,FALSE,"Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). J82 bladder (8% Y-): 2,094 Y- vs 8,897 Y+ cells, 22 wells"
+Tahoe_SKMEL2_DMSO_YnegvYpos,A2_single_cell_mosaic,../../drug_screen/tahoe/.claude/results/report_skmel2_s1_dmso_DE.csv,gene,log2FC,q,1,FALSE,"Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). SK-MEL-2 melanoma (11% Y-): 1,175 Y- vs 4,075 Y+ cells, 19 wells"
+Tahoe_HCT15_DMSO_YnegvYpos,A2_single_cell_mosaic,../../drug_screen/tahoe/.claude/results/report_hct15_s1_dmso_DE.csv,gene,log2FC,q,1,FALSE,"Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). HCT15 colorectal (15% Y-): 209 Y- vs 793 Y+ cells, 6 wells (underpowered)"
+GSE126712_lymph_XOvXY,B_45X_vs_46XY,GSE126712/DE/gse126712_XO_v_XY_DE.csv,gene_name,logFC,FDR,1,FALSE,Primary lymphocytes 45X vs 46XY
+GSE207112_troph_XOvXY,B_45X_vs_46XY,GSE207112/DE/gse207112_XO_v_XY_DE_blocked.csv,gene_name,logFC,FDR,1,FALSE,Isogenic iPSC trophoblast 45X vs 46XY
+GSE264742_NCC_XOvXY,B_45X_vs_46XY,GSE264742/DE/gse264742_XO_v_XY_DE_blocked.csv,gene_name,logFC,FDR,1,FALSE,Isogenic iPSC neural crest 45X vs 46XY (shares donor with GSE207112)
+ERP156313_fetal_XOvXY,B_45X_vs_46XY,ERP156313/DE/erp156313_consensus_XO_v_XY_DE.csv,gene_name,logFC,FDR,1,FALSE,Fetal tissues 45X vs 46XY (tissue-adjusted consensus)
+PageLab_Fib_X0vXY,B_45X_vs_46XY,PageLab_SCA/DE/trackA_X0_vs_XY_Fib.csv,gene,log2FoldChange,padj,1,FALSE,Fibroblasts 45X vs 46XY
+PageLab_LCL_X0vXY,B_45X_vs_46XY,PageLab_SCA/DE/trackA_X0_vs_XY_LCL.csv,gene,log2FoldChange,padj,1,FALSE,Lymphoblastoid lines 45X vs 46XY
+GSE301297_undiff_UTYKOvWT,C_not_LOY,GSE301297/DE/gse301297_SEES3undiff_UTYKO_v_WT_DE.csv,gene_name,logFC,FDR,1,FALSE,Male hESC UTY knockout vs WT (single Y gene; not LOY)
+GSE301297_undiff_DKOvWT,C_not_LOY,GSE301297/DE/gse301297_SEES3undiff_DKO_v_WT_DE.csv,gene_name,logFC,FDR,1,FALSE,Male hESC UTX/UTY double knockout vs WT (not LOY)
+XYY_integrated_flipped,C_not_LOY,integrated_XYY_XY/DE/integrated_consensus_XYY_v_XY_DE.csv,gene_name,logFC,,-1,FALSE,iPSC+NSC XYY vs XY consensus with sign flipped (+ = lower with fewer Y); Y gain not LOY

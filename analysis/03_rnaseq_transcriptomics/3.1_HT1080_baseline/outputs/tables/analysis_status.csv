@@ -1,0 +1,6 @@
+analysis,status,reason
+"DNA_RNA_coordinate_integration","deferred","D0 WGS specimens cannot be assigned to RNA passages; WGS T2T versus RNA GRCh38 requires compatible mapping"
+"addback_rescue","optional_not_run","Outside confirmed core; intervention replication and matching require separate design verification"
+"ATAC_RNA_integration","optional_not_run","Outside confirmed core; sample and contrast compatibility require separate verification"
+"formal_gene_DE","not_applicable_primary_design","One established population per condition from one generation history; serial passages do not establish population replication"
+"msVIPER","optional_not_run","CollecTRI ULM implemented; combinatorial regulator inference is an optional extension"

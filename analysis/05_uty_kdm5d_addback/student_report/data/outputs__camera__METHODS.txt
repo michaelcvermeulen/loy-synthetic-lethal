@@ -1,0 +1,8 @@
+Competitive gene-set testing used limma::camera on the frozen voom object and its observation-level weights.
+The design was the primary no-intercept six-group model with fixed effects for matched collection occasion.
+The fixed inter-gene correlation was 0.01 and negative correlations were not allowed.
+The gene universe was restricted to one expressed representative row per mapped Entrez gene; for duplicates, the row with the highest mean logCPM was retained.
+MSigDB Hallmark, Reactome and GO Biological Process sets were obtained through the installed msigdbr package and restricted to 10-500 mapped genes.
+The reported primary FDR is Benjamini-Hochberg correction within each contrast and collection. Across-collection and global FDR values are also exported.
+Direction is expression in the first named group relative to the second. CAMERA tests coordinated differential expression relative to genes outside the set; it does not test over-representation in a preselected DE list.
+Because each construct condition represents one established population sampled on three occasions, pathway results are conditional on these populations and do not estimate variability among independently generated transductions.

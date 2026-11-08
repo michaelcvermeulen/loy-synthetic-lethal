@@ -1,0 +1,13 @@
+baseline_filter,response_test,category,n
+"Small, non-significant baseline difference",descriptive,UTY only,105
+"Small, non-significant baseline difference",descriptive,Both,258
+"Small, non-significant baseline difference",descriptive,Combined only,294
+"Small, non-significant baseline difference",TREAT,UTY only,20
+"Small, non-significant baseline difference",TREAT,Both,40
+"Small, non-significant baseline difference",TREAT,Combined only,8
+Baseline 95% CI within +/-0.5,descriptive,UTY only,15
+Baseline 95% CI within +/-0.5,descriptive,Both,38
+Baseline 95% CI within +/-0.5,descriptive,Combined only,38
+Baseline 95% CI within +/-0.5,TREAT,UTY only,2
+Baseline 95% CI within +/-0.5,TREAT,Both,0
+Baseline 95% CI within +/-0.5,TREAT,Combined only,2

@@ -1,0 +1,10 @@
+{
+  "condition": "CTRL",
+  "reads": 81576998,
+  "fragments": 40788499,
+  "samples": [
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/CTRL_11_matched.bam",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/CTRL_12_matched.bam",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/CTRL_21_matched.bam"
+  ]
+}

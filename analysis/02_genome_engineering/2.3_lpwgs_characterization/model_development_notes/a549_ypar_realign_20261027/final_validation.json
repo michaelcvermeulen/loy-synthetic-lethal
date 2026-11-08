@@ -1,0 +1,41 @@
+{
+  "read_content_preserved_both_samples": true,
+  "selected_figure_unchanged": true,
+  "RNA_values_unchanged": true,
+  "Y_bins": 58,
+  "Y_PAR_not_interpreted_as_loss": true,
+  "regions": [
+    {
+      "region": "MSY Yp",
+      "historical_figure_bins": 73,
+      "historical_figure_percent": 2.0105257985709417,
+      "filtered_bins": 7,
+      "old_alignment_filtered_percent": 3.7698755184555734,
+      "masked_alignment_filtered_percent": 3.7702876395216034
+    },
+    {
+      "region": "euchromatic Yq",
+      "historical_figure_bins": 148,
+      "historical_figure_percent": 1.3411543599437443,
+      "filtered_bins": 51,
+      "old_alignment_filtered_percent": 2.623476173556755,
+      "masked_alignment_filtered_percent": 2.727139824257875
+    }
+  ],
+  "combined_PAR_ratios": [
+    {
+      "region": "PAR1",
+      "alignment": "Y_PAR_masked",
+      "control_relative_depth": 0.9323444512728832,
+      "LOY_relative_depth": 0.6284570879313851,
+      "combined_PAR_percent_of_control": 67.40610587357325
+    },
+    {
+      "region": "PAR2",
+      "alignment": "Y_PAR_masked",
+      "control_relative_depth": 0.9813900217889268,
+      "LOY_relative_depth": 0.6208007541729053,
+      "combined_PAR_percent_of_control": 63.25729224771193
+    }
+  ]
+}

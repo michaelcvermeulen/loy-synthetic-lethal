@@ -1,0 +1,163 @@
+14 — Combined RNA + UTY add-back + ATAC master table
+Code
+Show All Code
+Hide All Code
+14 — Combined RNA + UTY add-back + ATAC
+master table
+2026-07-07
+source("a:/multiome/scripts/ChIPseq/ACTIVE_MOTIF_ATAC/config.R")
+source("a:/multiome/scripts/ChIPseq/ACTIVE_MOTIF_ATAC/14_combined_master_table.R")
+comb <- read.csv(file.path(tables_dir, "combined_rna_addback_atac_by_gene.csv"),
+                 stringsAsFactors = FALSE)
+Every gene, joined across all three axes (full outer join — a gene
+present in any source is kept,
+NA
+where a source has no
+measurement):
+RNA LOY vs CTRL
+(
+HT1080_BATCHES
+):
+LOY_log2FC
+,
+LOY_FDR
+(+ = up in LOY)
+RNA UTY add-back
+(
+HT1080_ADDBACK
+DE_UTY_vs_LXHA
+):
+rescue_log2FC
+,
+rescue_FDR
+(+ = up when UTY restored)
+ATAC LOY vs CTRL
+(
+dar_annotated
+):
+per-gene peak summary — best-overall, best-
+open
+(Fold>0, more accessible in LOY) and best-
+closed
+(Fold<0) peak, plus peak counts (+ Fold = open in LOY).
+knitr::kable(data.frame(
+  metric = c("Total genes (any axis)",
+             "Measured in all 3 axes", "Measured in 2 axes", "Measured in 1 axis",
+             "Gene-annotated ATAC peaks (peak-level table)"),
+  n = c(nrow(comb), sum(comb$n_axes_measured == 3),
+        sum(comb$n_axes_measured == 2), sum(comb$n_axes_measured == 1),
+        nrow(read.csv(file.path(tables_dir,
+             "combined_rna_addback_atac_by_peak.csv"))))),
+  col.names = c("", "n"))
+n
+Total genes (any axis)
+30789
+Measured in all 3 axes
+11209
+Measured in 2 axes
+4835
+Measured in 1 axis
+14745
+Gene-annotated ATAC peaks (peak-level table)
+76785
+Files written
+tables/combined_rna_addback_atac_by_gene.csv
+— one row
+per gene (all 30789 genes).
+tables/combined_rna_addback_atac_by_peak.csv
+— one row
+per ATAC peak with its gene’s RNA + rescue values.
+Interactive table (genes measured in all 3 axes)
+The 11209 genes with data on all three axes. Every column filters
+live; scroll for the full set. The complete 30789-gene table (including
+partial-coverage genes) is in the CSV above.
+d <- comb[comb$n_axes_measured == 3, ]
+disp <- d %>% transmute(
+  gene = gene_symbol, chr,
+  LOY_log2FC = round(LOY_log2FC, 3), LOY_FDR = signif(LOY_FDR, 3),
+  rescue_log2FC = round(rescue_log2FC, 3), rescue_FDR = signif(rescue_FDR, 3),
+  atac_best_log2FC = round(atac_best_log2FC, 3),
+  atac_best_FDR = signif(atac_best_FDR, 3),
+  atac_best = atac_best_annotation,
+  n_open = atac_n_open, n_closed = atac_n_closed,
+  atac_open_log2FC = round(atac_open_log2FC, 3),
+  atac_open_FDR = signif(atac_open_FDR, 3),
+  atac_closed_log2FC = round(atac_closed_log2FC, 3),
+  atac_closed_FDR = signif(atac_closed_FDR, 3)
+)
+datatable(
+  disp, filter = "top", rownames = FALSE,
+  extensions = c("Scroller", "Buttons"),
+  options = list(
+    deferRender = TRUE, scrollY = 560, scroller = TRUE, scrollX = TRUE,
+    dom = "Bfrtip", buttons = c("copy", "csv"),
+    order = list(list(3, "asc"))   # LOY_FDR asc
+  )
+) %>%
+  formatStyle("LOY_log2FC",
+    color = styleInterval(0, c("#0072B2", "#D55E00"))) %>%
+  formatStyle("rescue_log2FC",
+    color = styleInterval(0, c("#0072B2", "#D55E00"))) %>%
+  formatStyle("atac_best_log2FC",
+    color = styleInterval(0, c("#0072B2", "#D55E00")))
+Column reference
+column
+meaning
+LOY_log2FC
+/
+LOY_FDR
+RNA, LOY vs CTRL (+ up in LOY)
+rescue_log2FC
+/
+rescue_FDR
+RNA, UTY add-back vs LXHA (+ up when UTY restored)
+atac_best_*
+gene’s single most significant ATAC peak (any direction)
+atac_open_*
+gene’s most significant
+open
+-in-LOY peak (Fold >
+0)
+atac_closed_*
+gene’s most significant
+closed
+-in-LOY peak (Fold
+< 0)
+n_open
+/
+n_closed
+count of open / closed peaks assigned to the gene
+n_axes_measured
+how many of the 3 axes have data for this gene (1–3)
+Colour: orange = up/open in LOY, blue = down/closed in LOY.
+sessionInfo()
+## R version 4.5.1 (2025-06-13 ucrt)
+## Platform: x86_64-w64-mingw32/x64
+## Running under: Windows 11 x64 (build 26200)
+## 
+## Matrix products: default
+##   LAPACK version 3.12.1
+## 
+## locale:
+## [1] LC_COLLATE=English_Canada.utf8  LC_CTYPE=English_Canada.utf8   
+## [3] LC_MONETARY=English_Canada.utf8 LC_NUMERIC=C                   
+## [5] LC_TIME=English_Canada.utf8    
+## 
+## time zone: America/Toronto
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] data.table_1.18.2.1 dplyr_1.2.0         DT_0.34.0          
+## 
+## loaded via a namespace (and not attached):
+##  [1] vctrs_0.7.1       cli_3.6.5         knitr_1.51        rlang_1.1.7      
+##  [5] xfun_0.56         otel_0.2.0        generics_0.1.4    jsonlite_2.0.0   
+##  [9] glue_1.8.0        htmltools_0.5.9   sass_0.4.10       rmarkdown_2.30   
+## [13] crosstalk_1.2.2   evaluate_1.0.5    jquerylib_0.1.4   tibble_3.3.1     
+## [17] fastmap_1.2.0     yaml_2.3.12       lifecycle_1.0.5   compiler_4.5.1   
+## [21] htmlwidgets_1.6.4 pkgconfig_2.0.3   digest_0.6.39     R6_2.6.1         
+## [25] tidyselect_1.2.1  pillar_1.11.1     magrittr_2.0.4    bslib_0.10.0     
+## [29] withr_3.0.2       tools_4.5.1       cachem_1.1.0

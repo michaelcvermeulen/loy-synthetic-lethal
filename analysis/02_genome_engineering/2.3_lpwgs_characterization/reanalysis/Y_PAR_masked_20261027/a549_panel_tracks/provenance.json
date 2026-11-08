@@ -1,0 +1,8 @@
+{
+  "MAPQ_min": 37,
+  "excluded_flags": "0xF04",
+  "bin_size_bp": 100000,
+  "PAR_bins": "X coordinates, anchored at each PAR boundary; final bin may be shorter",
+  "normalization": "Use the existing strict-mask autosomal median depth for each sample.",
+  "interpretation": "X-mapped PAR coverage in these alignments is combined homologous X/Y signal."
+}

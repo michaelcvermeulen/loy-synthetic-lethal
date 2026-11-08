@@ -1,0 +1,8 @@
+sensitivity,k,ARI_vs_primary,best_silhouette
+"jaccard",2,0,0.0352971963340451
+"consistent662",2,1,0.246286223892465
+"leiden_resolution_0.25",1,1,NA
+"leiden_resolution_0.5",1,1,NA
+"leiden_resolution_0.75",1,1,NA
+"leiden_resolution_1",3,0,NA
+"leiden_resolution_1.5",14,0,NA

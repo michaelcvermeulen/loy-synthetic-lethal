@@ -1,0 +1,2676 @@
+{
+  "name": "homer",
+  "id": "58172fc148c116119cc2b2d2",
+  "package_types": [
+    "conda"
+  ],
+  "summary": "Software for motif discovery and next generation sequencing analysis",
+  "description": "",
+  "home": "http://homer.ucsd.edu/homer/index.html",
+  "public": true,
+  "access": "public",
+  "owner": {
+    "company": "",
+    "location": "",
+    "login": "bioconda",
+    "name": "bioconda",
+    "url": "",
+    "description": "Bioconda is a distribution of bioinformatics software realized as a channel for the versatile Conda package manager.",
+    "created_at": "2015-09-11 22:59:20.880000+00:00",
+    "user_type": "org"
+  },
+  "full_name": "bioconda/homer",
+  "url": "http://api.anaconda.org/packages/bioconda/homer",
+  "html_url": "http://anaconda.org/bioconda/homer",
+  "versions": [
+    "4.8",
+    "4.8.3",
+    "4.9.1",
+    "4.10",
+    "4.11",
+    "5.1"
+  ],
+  "latest_version": "5.1",
+  "platforms": {
+    "linux-64": "5.1",
+    "osx-64": "5.1",
+    "linux-aarch64": "5.1",
+    "osx-arm64": "5.1"
+  },
+  "conda_platforms": [
+    "linux-aarch64",
+    "linux-64",
+    "osx-64",
+    "osx-arm64"
+  ],
+  "revision": 18,
+  "license": "GNU General Public v3 (GPLv3)",
+  "license_url": null,
+  "dev_url": null,
+  "doc_url": null,
+  "source_git_url": null,
+  "source_git_tag": null,
+  "app_entry": {},
+  "app_type": {},
+  "app_summary": {},
+  "builds": [
+    "pl5.22.0_1",
+    "pl5262h163da20_0",
+    "pl5.22.0_0",
+    "pl5.22.0_5",
+    "pl526h99015e2_1",
+    "pl5321h1b9dc22_1",
+    "pl526h2d50403_6",
+    "pl5321h7d875b9_6",
+    "pl526hf1ae8f4_2",
+    "pl526h770b8ee_0",
+    "pl5.22.0_4",
+    "pl526h2bce143_2",
+    "pl5321h9f5acd7_7",
+    "pl5262h7d875b9_4",
+    "pl5321hc52dbad_1",
+    "pl5.22.0_2",
+    "pl526hc9558a2_3",
+    "pl5321h80d74f2_1",
+    "pl5321h7a2a629_1",
+    "pl5262h9f5acd7_8",
+    "pl5.22.0_3",
+    "pl526h470a237_6",
+    "pl526hc9558a2_0",
+    "pl5262h7d875b9_5",
+    "pl5262h9948957_0",
+    "pl5262h78569d1_9",
+    "pl5262h4ac6f70_9",
+    "pl526hdb11119_1",
+    "pl526h9a982cc_2"
+  ],
+  "ndownloads": 121780,
+  "releases": [
+    {
+      "version": "4.8",
+      "distributions": [],
+      "full_name": "bioconda/homer/4.8"
+    },
+    {
+      "version": "4.8.3",
+      "distributions": [],
+      "full_name": "bioconda/homer/4.8.3"
+    },
+    {
+      "version": "4.9.1",
+      "distributions": [],
+      "full_name": "bioconda/homer/4.9.1"
+    },
+    {
+      "version": "4.10",
+      "distributions": [],
+      "full_name": "bioconda/homer/4.10"
+    },
+    {
+      "version": "4.11",
+      "distributions": [],
+      "full_name": "bioconda/homer/4.11"
+    },
+    {
+      "version": "5.1",
+      "distributions": [],
+      "full_name": "bioconda/homer/5.1"
+    }
+  ],
+  "watchers": 1,
+  "upvoted": 0,
+  "created_at": "2016-10-31 11:49:21.184000+00:00",
+  "modified_at": "2026-04-23 03:01:07.918000+00:00",
+  "files": [
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.8.3-pl5.22.0_3.tar.bz2",
+      "attrs": {
+        "build_number": 3,
+        "license": "GPLv3",
+        "has_prefix": false,
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_3",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2016-11-13 06:39:56.463000+00:00",
+      "md5": "001fa80aec92934db2cdd368ab701979",
+      "sha256": "",
+      "size": 9925,
+      "full_name": "bioconda/homer/4.8.3/linux-64/homer-4.8.3-pl5.22.0_3.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.8.3/linux-64/homer-4.8.3-pl5.22.0_3.tar.bz2",
+      "type": "conda",
+      "version": "4.8.3",
+      "ndownloads": 1301,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "perl",
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.8-pl5.22.0_1.tar.bz2",
+      "attrs": {
+        "build_number": 1,
+        "license": "GPLv3",
+        "has_prefix": false,
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "perl 5.22.0*"
+        ],
+        "subdir": "linux-64",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "build": "pl5.22.0_1"
+      },
+      "upload_time": "2016-10-31 11:49:21.646000+00:00",
+      "md5": "d9dc74d381041bb2ecd70d79852dd24f",
+      "sha256": "",
+      "size": 13363,
+      "full_name": "bioconda/homer/4.8/linux-64/homer-4.8-pl5.22.0_1.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.8/linux-64/homer-4.8-pl5.22.0_1.tar.bz2",
+      "type": "conda",
+      "version": "4.8",
+      "ndownloads": 1106,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.8-pl5.22.0_1.tar.bz2",
+      "attrs": {
+        "build_number": 1,
+        "license": "GPLv3",
+        "has_prefix": false,
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "perl 5.22.0*"
+        ],
+        "subdir": "osx-64",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "build": "pl5.22.0_1"
+      },
+      "upload_time": "2016-10-31 11:59:38.863000+00:00",
+      "md5": "2051dbbef481994375c17cb6ecf630e5",
+      "sha256": "",
+      "size": 13542,
+      "full_name": "bioconda/homer/4.8/osx-64/homer-4.8-pl5.22.0_1.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.8/osx-64/homer-4.8-pl5.22.0_1.tar.bz2",
+      "type": "conda",
+      "version": "4.8",
+      "ndownloads": 5001,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.8.3-pl5.22.0_3.tar.bz2",
+      "attrs": {
+        "build_number": 3,
+        "license": "GPLv3",
+        "has_prefix": true,
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "subdir": "osx-64",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "build": "pl5.22.0_3"
+      },
+      "upload_time": "2016-11-13 06:51:45.854000+00:00",
+      "md5": "c06707777e62b7e803129df553cbdf18",
+      "sha256": "",
+      "size": 15931432,
+      "full_name": "bioconda/homer/4.8.3/osx-64/homer-4.8.3-pl5.22.0_3.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.8.3/osx-64/homer-4.8.3-pl5.22.0_3.tar.bz2",
+      "type": "conda",
+      "version": "4.8.3",
+      "ndownloads": 4672,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl5.22.0_0.tar.bz2",
+      "attrs": {
+        "build_number": 0,
+        "license": "GPL3",
+        "has_prefix": false,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_0",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2017-06-14 11:38:19.900000+00:00",
+      "md5": "012a28cad8ed33a18cab6c80d308bc4a",
+      "sha256": "",
+      "size": 12601,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_0.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 912,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl5.22.0_0.tar.bz2",
+      "attrs": {
+        "build_number": 0,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_0",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2017-06-14 11:50:23.310000+00:00",
+      "md5": "c82f60910e4b88ea3d080c9752108411",
+      "sha256": "",
+      "size": 23094312,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_0.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 551,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl5.22.0_1.tar.bz2",
+      "attrs": {
+        "build_number": 1,
+        "license": "GPL3",
+        "has_prefix": false,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "subdir": "linux-64",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "build": "pl5.22.0_1"
+      },
+      "upload_time": "2017-06-15 09:48:30.408000+00:00",
+      "md5": "8a268a98b0c4ffb3cf0fea46e9548ae6",
+      "sha256": "",
+      "size": 6538,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_1.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_1.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 994,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl5.22.0_1.tar.bz2",
+      "attrs": {
+        "build_number": 1,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_1",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2017-06-15 10:04:30.998000+00:00",
+      "md5": "1bdcf5304b80f89b8503a0801761eab9",
+      "sha256": "",
+      "size": 23094528,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_1.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_1.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 307,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "blat",
+            "specs": []
+          },
+          {
+            "name": "ghostscript",
+            "specs": []
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ]
+          },
+          {
+            "name": "weblogo",
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl5.22.0_2.tar.bz2",
+      "attrs": {
+        "build_number": 2,
+        "license": "GPL3",
+        "has_prefix": false,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_2",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2017-06-15 13:05:40.777000+00:00",
+      "md5": "8f81e01b2ea553b498537bd4df760002",
+      "sha256": "",
+      "size": 13005,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_2.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_2.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 871,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "blat",
+            "specs": []
+          },
+          {
+            "name": "ghostscript",
+            "specs": []
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ]
+          },
+          {
+            "name": "weblogo",
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl5.22.0_2.tar.bz2",
+      "attrs": {
+        "build_number": 2,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "subdir": "osx-64",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "build": "pl5.22.0_2"
+      },
+      "upload_time": "2017-06-15 13:14:20.447000+00:00",
+      "md5": "f609604a92479d210bd6b281346dac57",
+      "sha256": "",
+      "size": 23101032,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_2.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_2.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 312,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "blat",
+            "specs": []
+          },
+          {
+            "name": "ghostscript",
+            "specs": []
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ]
+          },
+          {
+            "name": "weblogo",
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl5.22.0_3.tar.bz2",
+      "attrs": {
+        "build_number": 3,
+        "license": "GPL3",
+        "has_prefix": false,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_3",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2017-06-15 15:09:12.849000+00:00",
+      "md5": "7fec76d1020b3013a2313ef8d2700bdc",
+      "sha256": "",
+      "size": 13002,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_3.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_3.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 943,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl5.22.0_3.tar.bz2",
+      "attrs": {
+        "build_number": 3,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "subdir": "osx-64",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "build": "pl5.22.0_3"
+      },
+      "upload_time": "2017-06-15 15:47:52.359000+00:00",
+      "md5": "a5fad90072e6ac13c210d46d55beac68",
+      "sha256": "",
+      "size": 23113173,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_3.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_3.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 314,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl5.22.0_4.tar.bz2",
+      "attrs": {
+        "build_number": 4,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "subdir": "linux-64",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "build": "pl5.22.0_4"
+      },
+      "upload_time": "2017-07-12 07:17:14.685000+00:00",
+      "md5": "708e9ac791a625b273028df5135f55e6",
+      "sha256": "",
+      "size": 12767,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_4.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_4.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 875,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "blat"
+          },
+          {
+            "specs": [],
+            "name": "ghostscript"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "2.8.2"
+              ]
+            ],
+            "name": "weblogo"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl5.22.0_4.tar.bz2",
+      "attrs": {
+        "build_number": 4,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "blat",
+          "ghostscript",
+          "perl 5.22.0*",
+          "weblogo ==2.8.2"
+        ],
+        "build": "pl5.22.0_4",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2017-07-12 07:19:51.315000+00:00",
+      "md5": "ef9d80a8850daed36d09d3ffc6ba5629",
+      "sha256": "",
+      "size": 22757031,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_4.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_4.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 313,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "specs": [],
+            "name": "libgcc"
+          },
+          {
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ],
+            "name": "perl"
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl5.22.0_5.tar.bz2",
+      "attrs": {
+        "build_number": 5,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc",
+          "perl 5.22.0*"
+        ],
+        "build": "pl5.22.0_5",
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2017-07-12 08:29:12.377000+00:00",
+      "md5": "6157a40bd4583876e0789db1c9ad6b18",
+      "sha256": "",
+      "size": 24005082,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_5.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl5.22.0_5.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 2844,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "perl",
+            "specs": [
+              [
+                "==",
+                "5.22.0"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl5.22.0_5.tar.bz2",
+      "attrs": {
+        "build_number": 5,
+        "license": "GPL3",
+        "has_prefix": true,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "perl 5.22.0*"
+        ],
+        "build": "pl5.22.0_5",
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2017-07-12 08:32:35.257000+00:00",
+      "md5": "f09c45737c57859a722f836cb64eef0b",
+      "sha256": "",
+      "size": 22758095,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_5.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl5.22.0_5.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 670,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "4.9"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.27.0a0"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.9.1-pl526h2d50403_6.tar.bz2",
+      "attrs": {
+        "build_number": 6,
+        "license": "GPL3",
+        "has_prefix": false,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libstdcxx-ng >=4.9",
+          "perl >=5.26.2,<5.27.0a0"
+        ],
+        "build": "pl526h2d50403_6",
+        "timestamp": 1531470456230,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2018-07-13 08:31:56.190000+00:00",
+      "md5": "b89f7be90234824bd785fb4904a4bdc6",
+      "sha256": "",
+      "size": 47324731,
+      "full_name": "bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl526h2d50403_6.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/linux-64/homer-4.9.1-pl526h2d50403_6.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 5509,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.27.0a0"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.9.1-pl526h470a237_6.tar.bz2",
+      "attrs": {
+        "build_number": 6,
+        "license": "GPL3",
+        "has_prefix": false,
+        "license_family": "GPL",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "perl >=5.26.2,<5.27.0a0"
+        ],
+        "build": "pl526h470a237_6",
+        "timestamp": 1531406074849,
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2018-07-12 14:37:54.960000+00:00",
+      "md5": "d961ab07d794eee88bf7e8b2cc5ef3ba",
+      "sha256": "",
+      "size": 28759229,
+      "full_name": "bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl526h470a237_6.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.9.1/osx-64/homer-4.9.1-pl526h470a237_6.tar.bz2",
+      "type": "conda",
+      "version": "4.9.1",
+      "ndownloads": 5134,
+      "owner": "bioconda",
+      "labels": [
+        "main",
+        "cf201901"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.10-pl526hc9558a2_0.tar.bz2",
+      "attrs": {
+        "build_number": 0,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.3.0",
+          "libstdcxx-ng >=7.3.0",
+          "perl >=5.26.2,<5.26.3.0a0"
+        ],
+        "build": "pl526hc9558a2_0",
+        "timestamp": 1567108389382,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2019-08-29 21:30:48.341000+00:00",
+      "md5": "7271e8b34788840d38a11cdebe94e962",
+      "sha256": "",
+      "size": 48725306,
+      "full_name": "bioconda/homer/4.10/linux-64/homer-4.10-pl526hc9558a2_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.10/linux-64/homer-4.10-pl526hc9558a2_0.tar.bz2",
+      "type": "conda",
+      "version": "4.10",
+      "ndownloads": 4687,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libcxx",
+            "specs": [
+              [
+                ">=",
+                "4.0.1"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.10-pl526h770b8ee_0.tar.bz2",
+      "attrs": {
+        "build_number": 0,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "libcxx >=4.0.1",
+          "perl >=5.26.2,<5.26.3.0a0"
+        ],
+        "build": "pl526h770b8ee_0",
+        "timestamp": 1567109439785,
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2019-08-29 21:30:51.912000+00:00",
+      "md5": "1b7a855f7d134e44d67ab70fda26cfdc",
+      "sha256": "",
+      "size": 29074939,
+      "full_name": "bioconda/homer/4.10/osx-64/homer-4.10-pl526h770b8ee_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.10/osx-64/homer-4.10-pl526h770b8ee_0.tar.bz2",
+      "type": "conda",
+      "version": "4.10",
+      "ndownloads": 7618,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "2.7.* *_cp27mu"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526hc9558a2_0.tar.bz2",
+      "attrs": {
+        "build_number": 0,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.3.0",
+          "libstdcxx-ng >=7.3.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 2.7.* *_cp27mu"
+        ],
+        "build": "pl526hc9558a2_0",
+        "timestamp": 1588199076146,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-05-01 09:33:49.288000+00:00",
+      "md5": "2ddd8e11d3650dba10976d28286ca7f9",
+      "sha256": "",
+      "size": 49023935,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526hc9558a2_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526hc9558a2_0.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 680,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libcxx",
+            "specs": [
+              [
+                ">=",
+                "4.0.1"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "2.7.* *_cp27m"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-4.11-pl526h770b8ee_0.tar.bz2",
+      "attrs": {
+        "build_number": 0,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "osx",
+        "depends": [
+          "libcxx >=4.0.1",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 2.7.* *_cp27m"
+        ],
+        "build": "pl526h770b8ee_0",
+        "timestamp": 1588200134200,
+        "arch": "x86_64",
+        "operatingsystem": "darwin",
+        "target-triplet": "x86_64-any-darwin",
+        "subdir": "osx-64"
+      },
+      "upload_time": "2020-05-01 09:33:52.953000+00:00",
+      "md5": "915b314d97acb4adbcde9127e5739e33",
+      "sha256": "",
+      "size": 29105848,
+      "full_name": "bioconda/homer/4.11/osx-64/homer-4.11-pl526h770b8ee_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/osx-64/homer-4.11-pl526h770b8ee_0.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 4088,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "3.6.* *_cp36m"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526hdb11119_1.tar.bz2",
+      "attrs": {
+        "build_number": 1,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.3.0",
+          "libstdcxx-ng >=7.3.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 3.6.* *_cp36m"
+        ],
+        "build": "pl526hdb11119_1",
+        "timestamp": 1588955097197,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-05-08 16:38:04.442000+00:00",
+      "md5": "58daeb2b56f99f35ae5bc0c1de76e1cf",
+      "sha256": "",
+      "size": 49120327,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526hdb11119_1.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526hdb11119_1.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 779,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "3.7.* *_cp37m"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526h99015e2_1.tar.bz2",
+      "attrs": {
+        "build_number": 1,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.3.0",
+          "libstdcxx-ng >=7.3.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 3.7.* *_cp37m"
+        ],
+        "build": "pl526h99015e2_1",
+        "timestamp": 1588955392559,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-05-08 16:38:09.290000+00:00",
+      "md5": "dd0583e8c3558e894e2fc396fa86ec7b",
+      "sha256": "",
+      "size": 49120223,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526h99015e2_1.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526h99015e2_1.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 1276,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "3.7.* *_cp37m"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526h9a982cc_2.tar.bz2",
+      "attrs": {
+        "build_number": 2,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.5.0",
+          "libstdcxx-ng >=7.5.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 3.7.* *_cp37m"
+        ],
+        "build": "pl526h9a982cc_2",
+        "timestamp": 1594341521340,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-07-10 00:53:42.490000+00:00",
+      "md5": "8722c5dff6a8b4455df554c171839cfb",
+      "sha256": "",
+      "size": 48905812,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526h9a982cc_2.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526h9a982cc_2.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 1447,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "3.6.* *_cp36m"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526hf1ae8f4_2.tar.bz2",
+      "attrs": {
+        "build_number": 2,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.5.0",
+          "libstdcxx-ng >=7.5.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 3.6.* *_cp36m"
+        ],
+        "build": "pl526hf1ae8f4_2",
+        "timestamp": 1594341180028,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-07-10 00:53:45.778000+00:00",
+      "md5": "3e56b5d14ee31757585aa222e2420403",
+      "sha256": "",
+      "size": 48905723,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526hf1ae8f4_2.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526hf1ae8f4_2.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 711,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "python_abi",
+            "specs": [
+              [
+                "==",
+                "2.7.* *_cp27mu"
+              ]
+            ]
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526h2bce143_2.tar.bz2",
+      "attrs": {
+        "build_number": 2,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.5.0",
+          "libstdcxx-ng >=7.5.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "python_abi 2.7.* *_cp27mu"
+        ],
+        "build": "pl526h2bce143_2",
+        "timestamp": 1594341795929,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-07-10 00:53:48.650000+00:00",
+      "md5": "eee2908a9884f6385db0dda2dbf9b88f",
+      "sha256": "",
+      "size": 48907235,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526h2bce143_2.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526h2bce143_2.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 651,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "7.5.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "unzip",
+            "specs": []
+          },
+          {
+            "name": "wget",
+            "specs": []
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl526hc9558a2_3.tar.bz2",
+      "attrs": {
+        "build_number": 3,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=7.5.0",
+          "libstdcxx-ng >=7.5.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "unzip",
+          "wget"
+        ],
+        "build": "pl526hc9558a2_3",
+        "timestamp": 1597303508028,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2020-08-20 20:38:46.458000+00:00",
+      "md5": "38f21be9733ecf37e88c4d136a492e6a",
+      "sha256": "",
+      "size": 49111059,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl526hc9558a2_3.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl526hc9558a2_3.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 7925,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "9.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "9.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "unzip",
+            "specs": []
+          },
+          {
+            "name": "wget",
+            "specs": []
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl5262h7d875b9_4.tar.bz2",
+      "attrs": {
+        "build_number": 4,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=9.3.0",
+          "libstdcxx-ng >=9.3.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "unzip",
+          "wget"
+        ],
+        "build": "pl5262h7d875b9_4",
+        "timestamp": 1616771192301,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2021-03-26 15:12:05.806000+00:00",
+      "md5": "db0d59c14de8508c6172b832470d9ee1",
+      "sha256": "",
+      "size": 53827753,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl5262h7d875b9_4.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl5262h7d875b9_4.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 2120,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "9.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "9.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.26.2,<5.26.3.0a0"
+              ]
+            ]
+          },
+          {
+            "name": "unzip",
+            "specs": []
+          },
+          {
+            "name": "wget",
+            "specs": []
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl5262h7d875b9_5.tar.bz2",
+      "attrs": {
+        "build_number": 5,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=9.3.0",
+          "libstdcxx-ng >=9.3.0",
+          "perl >=5.26.2,<5.26.3.0a0",
+          "unzip",
+          "wget"
+        ],
+        "build": "pl5262h7d875b9_5",
+        "timestamp": 1625585284819,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2021-07-06 18:47:01.553000+00:00",
+      "md5": "2242411da5f9ab2c7cf773d3ac211c3c",
+      "sha256": "",
+      "size": 53847009,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl5262h7d875b9_5.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl5262h7d875b9_5.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 5836,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "9.4.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "9.4.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.32.1,<5.33.0a0 *_perl5"
+              ]
+            ]
+          },
+          {
+            "name": "unzip",
+            "specs": []
+          },
+          {
+            "name": "wget",
+            "specs": []
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl5321h7d875b9_6.tar.bz2",
+      "attrs": {
+        "build_number": 6,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=9.4.0",
+          "libstdcxx-ng >=9.4.0",
+          "perl >=5.32.1,<5.33.0a0 *_perl5",
+          "unzip",
+          "wget"
+        ],
+        "build": "pl5321h7d875b9_6",
+        "timestamp": 1642294133387,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2022-01-16 00:54:51.472000+00:00",
+      "md5": "31d56d71b7941592690b685c7a7fed15",
+      "sha256": "",
+      "size": 53922127,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl5321h7d875b9_6.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl5321h7d875b9_6.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 787,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": {
+        "depends": [
+          {
+            "name": "libgcc-ng",
+            "specs": [
+              [
+                ">=",
+                "10.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "libstdcxx-ng",
+            "specs": [
+              [
+                ">=",
+                "10.3.0"
+              ]
+            ]
+          },
+          {
+            "name": "perl",
+            "specs": [
+              [
+                ">=",
+                "5.32.1,<5.33.0a0 *_perl5"
+              ]
+            ]
+          },
+          {
+            "name": "unzip",
+            "specs": []
+          },
+          {
+            "name": "wget",
+            "specs": []
+          }
+        ]
+      },
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl5321h9f5acd7_7.tar.bz2",
+      "attrs": {
+        "build_number": 7,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=10.3.0",
+          "libstdcxx-ng >=10.3.0",
+          "perl >=5.32.1,<5.33.0a0 *_perl5",
+          "unzip",
+          "wget"
+        ],
+        "build": "pl5321h9f5acd7_7",
+        "timestamp": 1645496768857,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2022-02-22 02:33:18.786000+00:00",
+      "md5": "f003f815053cde73317234dd28bf3a1b",
+      "sha256": "",
+      "size": 52345847,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl5321h9f5acd7_7.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl5321h9f5acd7_7.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 10327,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [],
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl5262h9f5acd7_8.tar.bz2",
+      "attrs": {
+        "build_number": 8,
+        "license": "GNU General Public v3 (GPLv3)",
+        "has_prefix": false,
+        "license_family": "GPL3",
+        "machine": "x86_64",
+        "platform": "linux",
+        "depends": [
+          "libgcc-ng >=12",
+          "libstdcxx-ng >=12",
+          "perl",
+          "unzip",
+          "wget"
+        ],
+        "build": "pl5262h9f5acd7_8",
+        "timestamp": 1680682020350,
+        "arch": "x86_64",
+        "operatingsystem": "linux",
+        "target-triplet": "x86_64-any-linux",
+        "subdir": "linux-64"
+      },
+      "upload_time": "2023-04-05 08:47:59.890000+00:00",
+      "md5": "7b2b44e1e038863230b04265cb941262",
+      "sha256": "",
+      "size": 52419379,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl5262h9f5acd7_8.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl5262h9f5acd7_8.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 6473,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "linux-aarch64/homer-4.11-pl5262h78569d1_9.tar.bz2",
+      "attrs": {
+        "operatingsystem": "linux",
+        "machine": "aarch64",
+        "target-triplet": "aarch64-any-linux",
+        "has_prefix": true,
+        "subdir": "linux-aarch64",
+        "arch": "aarch64",
+        "build": "pl5262h78569d1_9",
+        "build_number": 9,
+        "depends": [
+          "libgcc-ng >=12",
+          "libstdcxx-ng >=12",
+          "perl",
+          "unzip",
+          "wget"
+        ],
+        "license": "GNU General Public v3 (GPLv3)",
+        "license_family": "GPL3",
+        "platform": "linux",
+        "timestamp": 1712837424347
+      },
+      "upload_time": "2024-04-12 04:21:49.581000+00:00",
+      "md5": "a050c6f01fdd764e4fd3dde93c606f0b",
+      "sha256": "c783ad1b771959ac85b188e132b2ed18714153b7bab21c3e664c8f43f3278bd0",
+      "size": 50408920,
+      "full_name": "bioconda/homer/4.11/linux-aarch64/homer-4.11-pl5262h78569d1_9.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-aarch64/homer-4.11-pl5262h78569d1_9.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 316,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-4.11-pl5262h4ac6f70_9.tar.bz2",
+      "attrs": {
+        "operatingsystem": "linux",
+        "machine": "x86_64",
+        "target-triplet": "x86_64-any-linux",
+        "has_prefix": true,
+        "subdir": "linux-64",
+        "arch": "x86_64",
+        "build": "pl5262h4ac6f70_9",
+        "build_number": 9,
+        "depends": [
+          "libgcc-ng >=12",
+          "libstdcxx-ng >=12",
+          "perl",
+          "unzip",
+          "wget"
+        ],
+        "license": "GNU General Public v3 (GPLv3)",
+        "license_family": "GPL3",
+        "platform": "linux",
+        "timestamp": 1712838158716
+      },
+      "upload_time": "2024-04-12 04:23:14.136000+00:00",
+      "md5": "781f1f93f38ac7d08d85b869ea7ccfcd",
+      "sha256": "e32ea8624146d5428567f86bb55aa9bbad389f56c7385efcf1a25ba5e44a21d9",
+      "size": 50855464,
+      "full_name": "bioconda/homer/4.11/linux-64/homer-4.11-pl5262h4ac6f70_9.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/4.11/linux-64/homer-4.11-pl5262h4ac6f70_9.tar.bz2",
+      "type": "conda",
+      "version": "4.11",
+      "ndownloads": 6404,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "linux-aarch64/homer-5.1-pl5262h163da20_0.tar.bz2",
+      "attrs": {
+        "operatingsystem": "linux",
+        "machine": "aarch64",
+        "target-triplet": "aarch64-any-linux",
+        "has_prefix": true,
+        "subdir": "linux-aarch64",
+        "arch": "aarch64",
+        "build": "pl5262h163da20_0",
+        "build_number": 0,
+        "depends": [
+          "libgcc >=13",
+          "libstdcxx >=13",
+          "perl",
+          "unzip",
+          "wget"
+        ],
+        "license": "GNU General Public v3 (GPLv3)",
+        "license_family": "GPL3",
+        "platform": "linux",
+        "timestamp": 1736929933067
+      },
+      "upload_time": "2025-01-15 08:52:43.298000+00:00",
+      "md5": "582a1c6d7dc69d1d0c112c4d6a2def11",
+      "sha256": "927b8682bea7a78e88d30fcc5007f01afe63e48bea0a4ca1909ba530b74f47ba",
+      "size": 50106536,
+      "full_name": "bioconda/homer/5.1/linux-aarch64/homer-5.1-pl5262h163da20_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/5.1/linux-aarch64/homer-5.1-pl5262h163da20_0.tar.bz2",
+      "type": "conda",
+      "version": "5.1",
+      "ndownloads": 457,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-5.1-pl5262h9948957_0.tar.bz2",
+      "attrs": {
+        "operatingsystem": "linux",
+        "machine": "x86_64",
+        "target-triplet": "x86_64-any-linux",
+        "has_prefix": true,
+        "subdir": "linux-64",
+        "arch": "x86_64",
+        "build": "pl5262h9948957_0",
+        "build_number": 0,
+        "depends": [
+          "libgcc >=13",
+          "libstdcxx >=13",
+          "perl",
+          "unzip",
+          "wget"
+        ],
+        "license": "GNU General Public v3 (GPLv3)",
+        "license_family": "GPL3",
+        "platform": "linux",
+        "timestamp": 1736930149771
+      },
+      "upload_time": "2025-01-15 08:52:58.294000+00:00",
+      "md5": "b7b7b02e8cfd42f1ebb201240a6ffbce",
+      "sha256": "58436010bfebe77abc867204b629e93622df09abe51acbe41fe92815468c0570",
+      "size": 50400408,
+      "full_name": "bioconda/homer/5.1/linux-64/homer-5.1-pl5262h9948957_0.tar.bz2",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/5.1/linux-64/homer-5.1-pl5262h9948957_0.tar.bz2",
+      "type": "conda",
+      "version": "5.1",
+      "ndownloads": 11943,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "linux-aarch64/homer-5.1-pl5321h1b9dc22_1.conda",
+      "attrs": {
+        "operatingsystem": "linux",
+        "machine": "aarch64",
+        "target-triplet": "aarch64-any-linux",
+        "has_prefix": true,
+        "subdir": "linux-aarch64",
+        "arch": "aarch64",
+        "build": "pl5321h1b9dc22_1",
+        "build_number": 1,
+        "depends": [
+          "libgcc >=14",
+          "libstdcxx >=14",
+          "perl >=5.32",
+          "perl >=5.32.1,<5.33.0a0 *_perl5",
+          "unzip",
+          "wget"
+        ],
+        "license": "GPL-3.0-or-later",
+        "license_family": "GPL3",
+        "platform": "linux",
+        "timestamp": 1776911167198
+      },
+      "upload_time": "2026-04-23 02:55:03.991000+00:00",
+      "md5": "55d1040dd5abe7be648e05932dff6457",
+      "sha256": "185213d7903958e84cea1410b3a05f7eb9d8cc35691b3a27d7a9a61b4044807f",
+      "size": 24357138,
+      "full_name": "bioconda/homer/5.1/linux-aarch64/homer-5.1-pl5321h1b9dc22_1.conda",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/5.1/linux-aarch64/homer-5.1-pl5321h1b9dc22_1.conda",
+      "type": "conda",
+      "version": "5.1",
+      "ndownloads": 650,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "linux-64/homer-5.1-pl5321hc52dbad_1.conda",
+      "attrs": {
+        "operatingsystem": "linux",
+        "machine": "x86_64",
+        "target-triplet": "x86_64-any-linux",
+        "has_prefix": true,
+        "subdir": "linux-64",
+        "arch": "x86_64",
+        "build": "pl5321hc52dbad_1",
+        "build_number": 1,
+        "depends": [
+          "__glibc >=2.17,<3.0.a0",
+          "libgcc >=14",
+          "libstdcxx >=14",
+          "perl >=5.32",
+          "perl >=5.32.1,<5.33.0a0 *_perl5",
+          "unzip",
+          "wget"
+        ],
+        "license": "GPL-3.0-or-later",
+        "license_family": "GPL3",
+        "platform": "linux",
+        "timestamp": 1776911385966
+      },
+      "upload_time": "2026-04-23 02:55:10.633000+00:00",
+      "md5": "725fd07a8286802fa76ae5b739101218",
+      "sha256": "4630e258837c8959492df7384add4d9238823f09fb8c857b8c1819dbdabba184",
+      "size": 25493252,
+      "full_name": "bioconda/homer/5.1/linux-64/homer-5.1-pl5321hc52dbad_1.conda",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/5.1/linux-64/homer-5.1-pl5321hc52dbad_1.conda",
+      "type": "conda",
+      "version": "5.1",
+      "ndownloads": 13006,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "osx-arm64/homer-5.1-pl5321h7a2a629_1.conda",
+      "attrs": {
+        "operatingsystem": "darwin",
+        "machine": "arm64",
+        "target-triplet": "arm64-any-darwin",
+        "has_prefix": true,
+        "subdir": "osx-arm64",
+        "arch": "arm64",
+        "build": "pl5321h7a2a629_1",
+        "build_number": 1,
+        "depends": [
+          "__osx >=11.0",
+          "libcxx >=19",
+          "perl >=5.32",
+          "perl >=5.32.1,<5.33.0a0 *_perl5",
+          "unzip",
+          "wget"
+        ],
+        "license": "GPL-3.0-or-later",
+        "license_family": "GPL3",
+        "platform": "osx",
+        "timestamp": 1776911028514
+      },
+      "upload_time": "2026-04-23 02:56:57.161000+00:00",
+      "md5": "1d65101041c0af5b5c8fa4da5c429afd",
+      "sha256": "13fe36d4e61d39ad6e4ed7c7f9cc259667ac205a9ced017bd0768c6e83b0903d",
+      "size": 16082144,
+      "full_name": "bioconda/homer/5.1/osx-arm64/homer-5.1-pl5321h7a2a629_1.conda",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/5.1/osx-arm64/homer-5.1-pl5321h7a2a629_1.conda",
+      "type": "conda",
+      "version": "5.1",
+      "ndownloads": 644,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    },
+    {
+      "description": null,
+      "dependencies": [
+        "depends"
+      ],
+      "distribution_type": "conda",
+      "basename": "osx-64/homer-5.1-pl5321h80d74f2_1.conda",
+      "attrs": {
+        "operatingsystem": "darwin",
+        "machine": "x86_64",
+        "target-triplet": "x86_64-any-darwin",
+        "has_prefix": true,
+        "subdir": "osx-64",
+        "arch": "x86_64",
+        "build": "pl5321h80d74f2_1",
+        "build_number": 1,
+        "depends": [
+          "__osx >=10.13",
+          "libcxx >=19",
+          "perl >=5.32",
+          "perl >=5.32.1,<5.33.0a0 *_perl5",
+          "unzip",
+          "wget"
+        ],
+        "license": "GPL-3.0-or-later",
+        "license_family": "GPL3",
+        "platform": "osx",
+        "timestamp": 1776912407799
+      },
+      "upload_time": "2026-04-23 03:01:06.410000+00:00",
+      "md5": "3d6e6fc5b998ed3cf2ae021adebdbe4f",
+      "sha256": "0cc0ca1667c4cdaea5485ef32663f7faf3593493f047db246f9ac83ceac5c5a3",
+      "size": 16411623,
+      "full_name": "bioconda/homer/5.1/osx-64/homer-5.1-pl5321h80d74f2_1.conda",
+      "download_url": "//api.anaconda.org/download/bioconda/homer/5.1/osx-64/homer-5.1-pl5321h80d74f2_1.conda",
+      "type": "conda",
+      "version": "5.1",
+      "ndownloads": 327,
+      "owner": "bioconda",
+      "labels": [
+        "main"
+      ]
+    }
+  ]
+}

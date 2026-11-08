@@ -1,0 +1,3 @@
+sample,autosomal_bins,raw_count_correlation,identical_bins,median_absolute_change,maximum_absolute_change
+HT1080-sgCTRL-D0,21446,0.9999983340984916,21346,0.0,10
+HT1080-LOY-D0,21446,0.9999991957726272,21350,0.0,4

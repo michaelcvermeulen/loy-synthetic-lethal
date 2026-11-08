@@ -1,0 +1,6 @@
+guide_id,guide,exact_chrY_matches,NGG_chrY_matches,reference_url,reference_sha256
+Q53,TCGCCAGGAATTGATGTGAA,28,28,https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chrY.fa.gz,a51b0a5b35dc81cd251e39463800bc988419be62ccc5d8d91b980a4f8685512a
+CN,ATGATAGGTTGAACTCCCGG,46,46,https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chrY.fa.gz,a51b0a5b35dc81cd251e39463800bc988419be62ccc5d8d91b980a4f8685512a
+CP,ACTATCTTCGCATGAGAACC,42,42,https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chrY.fa.gz,a51b0a5b35dc81cd251e39463800bc988419be62ccc5d8d91b980a4f8685512a
+P47,TTCGCGCGCAGTCCCTTAGG,11,11,https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chrY.fa.gz,a51b0a5b35dc81cd251e39463800bc988419be62ccc5d8d91b980a4f8685512a
+P51,ATTAAGGCCCACCTGAGTAA,14,14,https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chrY.fa.gz,a51b0a5b35dc81cd251e39463800bc988419be62ccc5d8d91b980a4f8685512a

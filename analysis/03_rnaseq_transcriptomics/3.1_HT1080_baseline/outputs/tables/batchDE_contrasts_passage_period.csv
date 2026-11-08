@@ -1,0 +1,9 @@
+coefficient,combined,AUG_2025,MAY_2026,MAY_minus_AUG
+"blockAUG_2025__passage_1",0,0,0,0
+"blockAUG_2025__passage_2",0,0,0,0
+"blockAUG_2025__passage_3",0,0,0,0
+"blockMAY_2026__passage_1",0,0,0,0
+"blockMAY_2026__passage_2",0,0,0,0
+"blockMAY_2026__passage_3",0,0,0,0
+"LOY_AUG_2025",0.5,1,0,-1
+"LOY_MAY_2026",0.5,0,1,1

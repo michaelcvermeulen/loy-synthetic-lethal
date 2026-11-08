@@ -1,0 +1,17 @@
+direction,basis,jaccard,nodes,edges,communities,isolates
+DOWN,leading,0.2,209,417,68,36
+DOWN,leading,0.25,209,316,81,47
+DOWN,leading,0.35,209,208,107,64
+DOWN,leading,0.5,209,108,131,91
+DOWN,full,0.2,209,372,73,38
+DOWN,full,0.25,209,272,93,56
+DOWN,full,0.35,209,189,111,72
+DOWN,full,0.5,209,102,130,90
+UP,leading,0.2,11,6,6,3
+UP,leading,0.25,11,5,7,4
+UP,leading,0.35,11,5,7,4
+UP,leading,0.5,11,1,10,9
+UP,full,0.2,11,5,7,4
+UP,full,0.25,11,5,7,4
+UP,full,0.35,11,5,7,4
+UP,full,0.5,11,3,8,6

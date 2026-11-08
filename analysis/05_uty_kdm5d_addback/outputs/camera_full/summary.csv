@@ -1,0 +1,61 @@
+collection,contrast,comparison,sets_tested,significant,up,down
+H,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,50,17,7,10
+C5,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,10197,1176,391,785
+C4,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,966,387,97,290
+C1,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,266,20,7,13
+C2,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,5975,1299,342,957
+C8,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,764,167,107,60
+C7,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,5098,766,95,671
+C6,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,189,41,30,11
+C9,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,62,15,13,2
+C3,DUAL_v_KDM5D,UTY + KDM5D vs KDM5D,3238,284,3,281
+H,DUAL_v_LXHA,UTY + KDM5D vs empty vector,50,18,9,9
+C5,DUAL_v_LXHA,UTY + KDM5D vs empty vector,10197,1372,488,884
+C4,DUAL_v_LXHA,UTY + KDM5D vs empty vector,966,392,104,288
+C2,DUAL_v_LXHA,UTY + KDM5D vs empty vector,5975,1448,422,1026
+C7,DUAL_v_LXHA,UTY + KDM5D vs empty vector,5098,912,131,781
+C8,DUAL_v_LXHA,UTY + KDM5D vs empty vector,764,215,129,86
+C1,DUAL_v_LXHA,UTY + KDM5D vs empty vector,266,15,5,10
+C9,DUAL_v_LXHA,UTY + KDM5D vs empty vector,62,14,13,1
+C6,DUAL_v_LXHA,UTY + KDM5D vs empty vector,189,45,33,12
+C3,DUAL_v_LXHA,UTY + KDM5D vs empty vector,3238,100,8,92
+C2,DUAL_v_UTY,UTY + KDM5D vs UTY,5975,799,124,675
+C5,DUAL_v_UTY,UTY + KDM5D vs UTY,10197,849,308,541
+C4,DUAL_v_UTY,UTY + KDM5D vs UTY,966,208,13,195
+C8,DUAL_v_UTY,UTY + KDM5D vs UTY,764,70,8,62
+C7,DUAL_v_UTY,UTY + KDM5D vs UTY,5098,329,4,325
+H,DUAL_v_UTY,UTY + KDM5D vs UTY,50,7,2,5
+C3,DUAL_v_UTY,UTY + KDM5D vs UTY,3238,29,0,29
+C6,DUAL_v_UTY,UTY + KDM5D vs UTY,189,8,3,5
+C9,DUAL_v_UTY,UTY + KDM5D vs UTY,62,5,1,4
+C1,DUAL_v_UTY,UTY + KDM5D vs UTY,266,3,2,1
+C4,KDM5D_v_LXHA,KDM5D vs empty vector,966,92,27,65
+C8,KDM5D_v_LXHA,KDM5D vs empty vector,764,45,16,29
+C2,KDM5D_v_LXHA,KDM5D vs empty vector,5975,166,77,89
+C5,KDM5D_v_LXHA,KDM5D vs empty vector,10197,104,40,64
+H,KDM5D_v_LXHA,KDM5D vs empty vector,50,6,3,3
+C7,KDM5D_v_LXHA,KDM5D vs empty vector,5098,55,36,19
+C9,KDM5D_v_LXHA,KDM5D vs empty vector,62,3,3,0
+C1,KDM5D_v_LXHA,KDM5D vs empty vector,266,9,7,2
+C3,KDM5D_v_LXHA,KDM5D vs empty vector,3238,287,287,0
+C6,KDM5D_v_LXHA,KDM5D vs empty vector,189,3,2,1
+C4,LOY_v_LXHA,Untransduced LOY vs empty vector,966,359,62,297
+H,LOY_v_LXHA,Untransduced LOY vs empty vector,50,16,4,12
+C5,LOY_v_LXHA,Untransduced LOY vs empty vector,10197,1224,354,870
+C2,LOY_v_LXHA,Untransduced LOY vs empty vector,5975,1401,252,1149
+C8,LOY_v_LXHA,Untransduced LOY vs empty vector,764,208,105,103
+C7,LOY_v_LXHA,Untransduced LOY vs empty vector,5098,1067,110,957
+C1,LOY_v_LXHA,Untransduced LOY vs empty vector,266,36,10,26
+C6,LOY_v_LXHA,Untransduced LOY vs empty vector,189,39,26,13
+C3,LOY_v_LXHA,Untransduced LOY vs empty vector,3238,113,6,107
+C9,LOY_v_LXHA,Untransduced LOY vs empty vector,62,16,13,3
+C8,UTY_v_LXHA,UTY vs empty vector,764,133,92,41
+H,UTY_v_LXHA,UTY vs empty vector,50,15,8,7
+C2,UTY_v_LXHA,UTY vs empty vector,5975,927,343,584
+C4,UTY_v_LXHA,UTY vs empty vector,966,313,91,222
+C1,UTY_v_LXHA,UTY vs empty vector,266,20,5,15
+C7,UTY_v_LXHA,UTY vs empty vector,5098,458,90,368
+C9,UTY_v_LXHA,UTY vs empty vector,62,15,14,1
+C5,UTY_v_LXHA,UTY vs empty vector,10197,590,176,414
+C6,UTY_v_LXHA,UTY vs empty vector,189,34,26,8
+C3,UTY_v_LXHA,UTY vs empty vector,3238,43,13,30

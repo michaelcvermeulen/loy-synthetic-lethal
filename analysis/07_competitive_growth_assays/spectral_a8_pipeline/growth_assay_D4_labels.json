@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "source": "20261020_173018_Export/comp_growth_assay_D4_OCT20",
+  "approved_date": "2026-10-21",
+  "approval": "User approved the reviewed labels: lets go with these labels, and see if they agree with the data. Genotype swap approved 2026-10-21: Yes, apply the row-C same-genotype swap at D4 (C01-C03 = LOY/LOY, C04-C06 = CTRL/CTRL) and regenerate the D4 report and same-genotype checks, keeping the current outputs in history.",
+  "scope": "Accept recorded competition identities. Transfer the replicate permutations to B01-B03 and C01-C03; restore B04-B06 and C04-C06 to 1,2,3. Swap the row-C same-genotype genotypes (C01-C03 LOY, C04-C06 CTRL); replicate numbers stay with the physical well. Preserve raw acquisitions and recorded names.",
+  "genotype_evidence": "Per-cell LDA on size (LightLoss (Violet)-A, SSC (Imaging)-A, Size (FSC), Size (LightLoss (Imaging))) and own-reporter brightness, trained on WT/WT C1 competition cells of known genotype on the same plate, cross-fitted between rows A and B. Estimated LOY content: D0 C01-C03 101-104%, C04-C06 -4-0% (labels confirmed); D4 C01-C03 102-108%, C04-C06 6-9% (labels swapped).",
+  "assignments": [
+    {"original_sample": "B01-LOY_GFP_WT_C1_1_002", "replicate": 2},
+    {"original_sample": "B02-LOY_GFP_WT_C1_2_002", "replicate": 1},
+    {"original_sample": "B03-LOY_GFP_WT_C1_3_002", "replicate": 3},
+    {"original_sample": "B04-LOY_CHERRY_WT_C1_2_002", "replicate": 1},
+    {"original_sample": "B05-LOY_CHERRY_WT_C1_1_001", "replicate": 2},
+    {"original_sample": "B06-LOY_CHERRY_WT_C1_3_002", "replicate": 3},
+    {"original_sample": "C01-CTRL_GFP_CHERRY_1_001", "replicate": 1, "genotype": "LOY"},
+    {"original_sample": "C02-CTRL_GFP_CHERRY_2_001", "replicate": 3, "genotype": "LOY"},
+    {"original_sample": "C03-CTRL_GFP_CHERRY_3_001", "replicate": 2, "genotype": "LOY"},
+    {"original_sample": "C04-LOY_GFP_CHERRY_1_001", "replicate": 1, "genotype": "CTRL"},
+    {"original_sample": "C05-LOY_GFP_CHERRY_3_002", "replicate": 2, "genotype": "CTRL"},
+    {"original_sample": "C06-LOY_GFP_CHERRY_2_001", "replicate": 3, "genotype": "CTRL"}
+  ]
+}

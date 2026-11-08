@@ -1,0 +1,7 @@
+sample	condition	replicate	passage	analysis_unit	bam	index
+CTRL_11	CTRL	1	11	independent_replicate_per_user	../filtered/CTRL_11.bam	../filtered/CTRL_11.bam.bai
+CTRL_12	CTRL	2	12	independent_replicate_per_user	../filtered/CTRL_12.bam	../filtered/CTRL_12.bam.bai
+CTRL_21	CTRL	3	21	independent_replicate_per_user	../filtered/CTRL_21.bam	../filtered/CTRL_21.bam.bai
+LOY_11	LOY	1	11	independent_replicate_per_user	../filtered/LOY_11.bam	../filtered/LOY_11.bam.bai
+LOY_12	LOY	2	12	independent_replicate_per_user	../filtered/LOY_12.bam	../filtered/LOY_12.bam.bai
+LOY_21	LOY	3	21	independent_replicate_per_user	../filtered/LOY_21.bam	../filtered/LOY_21.bam.bai

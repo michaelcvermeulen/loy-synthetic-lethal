@@ -1,0 +1,35 @@
+seed: 42
+study: GSE193885
+source_pmid: 35994477
+scope: independent_source_study_comparison_not_independent_HT1080_validation
+counts: resources/hdac12_external/GSE193885/GSE193885_counts_raw.tsv.gz
+sample_manifest: outputs/tables/HDACEXT_sample_manifest.csv
+contrasts: outputs/tables/HDACEXT_contrast_manifest.csv
+source_annotation: Ensembl_100_GRCh38_gene_ID_and_version_from_count_file
+external_model: edgeR_4.8.2_robust_QL_legacy_FALSE_separate_sample_ID_strata
+replicate_scope: author_reported_biological_triplicates_of_established_cell_lines_not_verified_independent_clones
+strata_rule: 'S47 and S52 derive from source sample IDs, not verified experimental batch annotations. Use only within-stratum controls and fits. Do not pair by replicate suffix.'
+exclude_source_groups: [HAP_MS1, HAP_MS3]
+exclusion_reason: 'MS, MS1 and MS3 all share generic GEO drug metadata. Distinct dose/time meanings for MS1/MS3 are unresolved; retain their six libraries in input/QC records but omit their unverified contrasts.'
+filter_min_count: 10
+filter_min_total: 15
+normalization: TMM_on_expressed_autosomes_and_nonPAR_X_separately_within_each_external_stratum
+prior_count: 2
+signature_FDR_nonzero: 0.05
+signature_min_abs_logFC: 0.5
+signature_cap_per_arm: 250
+signature_rule: 'Select external QL BH<0.05 and absolute logFC>=0.5, separately by direction; cap at top 250 QL F statistics, tie-break stable Ensembl ID. Selection uses external data only, before intersecting with HT1080. BH tests nonzero effect, not the magnitude threshold. Retain complete uncapped qualifying lists as well.'
+gene_join: stable_Ensembl_ID_and_chromosome_to_existing_HT1080_representative_locus_no_symbol_fallback
+common_universe: intersection_of_external_expression_filters_in_both_strata_and_HT1080_primary_representative_loci
+pathway_min_size: 15
+pathway_max_size: 500
+fgsea_nPermSimple: 10000
+fgsea_eps: 0.0000000001
+camera_inter_gene_cor: 0.01
+camera_estimated_correlation_sensitivity: true
+testing_family: 'All eligible external contrast-by-arm top250 sets, per HT1080 contrast and method, in the original common universe. Preserve missing tests in the family size. Separate from the original 23696-set MSigDB analysis.'
+sensitivity_scenarios: [original, omit_IFN_ECM_cycle, omit_HDAC_family, omit_IFN_ECM_cycle_and_HDAC_family]
+HDAC_family_regex: '^HDAC(1|2|3|8)(P[0-9]+)?$'
+sensitivity_rule: 'Remove specified genes from both sets and common ranked/CAMERA background; keep original HT1080 normalization and voom weights. Secondary scenarios report nominal P only. Full-rank correlations and directional fractions are descriptive without gene-independent P values.'
+readout_genes: [PLAC8, PPP2R2B, BEX1, SORL1, CCND2, ANTXR2, MCL1, OSMR]
+scope_limits: 'HAP1 cell context, clonal histories, human alignment of mouse HDAC1/2 cDNAs, generic drug metadata, and serial HT1080 sampling limit mechanistic inference. No HDAC-complex, drug-sensitivity or rescue claim from similarity alone.'

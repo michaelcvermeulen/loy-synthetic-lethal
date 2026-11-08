@@ -1,0 +1,7 @@
+library(QDNAseq)
+cat("Exported classes:\n")
+print(getClasses("package:QDNAseq"))
+cat("\nbinReadCounts args:\n")
+print(args(binReadCounts))
+cat("\nMethods:\n")
+print(showMethods("binReadCounts"))

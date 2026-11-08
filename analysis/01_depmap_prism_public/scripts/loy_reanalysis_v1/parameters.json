@@ -1,0 +1,85 @@
+{
+  "analysis": "loy_reanalysis_v1",
+  "seed": 20261002,
+  "y_genes_core": ["DDX3Y", "EIF1AY", "KDM5D", "RPS4Y1", "USP9Y", "UTY", "ZFY"],
+  "xy_paralogs": {
+    "y_gene": ["DDX3Y", "EIF1AY", "KDM5D", "UTY", "ZFY", "RPS4Y1", "USP9Y", "TMSB4Y", "NLGN4Y", "PRKY", "TBL1Y", "TXLNGY"],
+    "x_partner": ["DDX3X", "EIF1AX", "KDM5C", "KDM6A", "ZFX", "RPS4X", "USP9X", "TMSB4X", "NLGN4X", "PRKX", "TBL1X", "TXLNG"]
+  },
+  "rna_call": {
+    "depleted_mean_max": 1.0,
+    "expressed_mean_min": 2.5,
+    "depleted_max_genes_on": 1,
+    "expressed_min_genes_on": 6,
+    "expected_female_mean_max": 0.993,
+    "expected_male_le_depleted": 330,
+    "expected_male_between": 60,
+    "expected_male_ge_expressed": 515,
+    "tolerance_count": 2
+  },
+  "dna_call": {
+    "loss_ratio_max": 0.03,
+    "retained_ratio_min": 0.20,
+    "wgs_floor_fraction_min": 0.90,
+    "nonpar_start": 2781479,
+    "nonpar_end": 26637000,
+    "bin_size": 1000,
+    "female_mask_fraction": 0.05,
+    "one_copy_min": 0.65,
+    "one_copy_max": 1.35,
+    "gain_copies_min": 1.65,
+    "relative_gain_ratio_min": 0.75
+  },
+  "sex_flags": {
+    "xist_log2tpm_min": 3.0,
+    "x_ratio_two_copy_min": 0.8
+  },
+  "stability_shift": 0.2,
+  "gene_scan": {
+    "min_coverage": 0.9,
+    "fdr": 0.05,
+    "min_effect": 0.10,
+    "dupcor_features": 500,
+    "dependency_probability_cut": 0.5,
+    "selective_min_lines": 5
+  },
+  "drug_scan": {
+    "min_per_group": 10,
+    "fdr": 0.05,
+    "prism_active_lfc": -1.0,
+    "prism_active_min_lines": 5,
+    "moa_min_compounds": 5,
+    "moa_permutations": 2000,
+    "forest_min_completeness": 0.9
+  },
+  "context": {
+    "min_cell": 5,
+    "min_group_continuous": 20,
+    "driver_min_altered": 20,
+    "amp_ratio_min": 2.0,
+    "del_ratio_max": 0.25,
+    "msi_score_min": 20,
+    "amp_genes": ["MYC", "MYCN", "MYCL", "CCND1", "CCNE1", "CDK4", "CDK6", "MDM2", "EGFR", "ERBB2", "MET", "FGFR1", "FGFR2", "KRAS", "PIK3CA", "SOX2", "TERT", "MCL1", "AKT2", "YAP1", "NKX2-1", "AR", "BCL2L1"],
+    "del_genes": ["CDKN2A", "CDKN2B", "MTAP", "PTEN", "RB1", "SMAD4", "NF1", "NF2", "STK11", "ARID1A", "BAP1", "PTPRD", "KDM6A", "TP53", "WWOX", "FHIT"]
+  },
+  "expression": {
+    "predictor_max_dependencies": 60,
+    "variance_filter_genes": 5000
+  },
+  "forest": {
+    "iterations": 100,
+    "trees": 500,
+    "seeds": [101, 202],
+    "null_runs": 3,
+    "cv_folds": 10,
+    "cv_repeats": 3,
+    "prefilter_features": 1000,
+    "boruta_expression_features": 2000,
+    "confounder_subsamples": 30,
+    "confounder_subsample_fraction": 0.8,
+    "confounder_shadows": 5,
+    "confounder_survival_fraction": 0.8,
+    "confounder_null_genes": 200
+  },
+  "calibration_permutations": 200
+}

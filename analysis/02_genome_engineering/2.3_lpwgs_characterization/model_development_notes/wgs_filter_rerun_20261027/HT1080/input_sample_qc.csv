@@ -1,0 +1,3 @@
+"sample","name","total.reads","used.reads","expected.variance","excluded_low_depth"
+"HT1080-sgCTRL-D0","HT1080-sgCTRL-D0",13066925,10600705,0.00213966901257982,FALSE
+"HT1080-LOY-D0","HT1080-LOY-D0",12328020,10023450,0.00226289351470801,FALSE

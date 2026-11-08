@@ -1,0 +1,7 @@
+analysis,status,reason
+"paired_passage_model","primary","Libraries are passage-matched P12/P13/P14 across arms"
+"temporal_repeatability","not_estimable","Only one sampling window (May 2026)"
+"independent_derivation_replication","not_claimed","One edited population per arm; passages are repeated sampling, not independent editing events"
+"DNA_RNA_integration","run_gene_arm_window","Author confirmed RNA LOY population is the 2x population profiled by lpWGS LNCaP-LOY-2X; specimens not matched"
+"ATAC","not_available","No DU145 ATAC-seq"
+"parental_context","not_available","No parental DU145 RNA libraries in this dataset"

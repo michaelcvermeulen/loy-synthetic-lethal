@@ -1,0 +1,462 @@
+---
+title: "LNCaP LOY — Drug Treatment Effects (Panobinostat + KU-55933)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                      fig.width = 9, fig.height = 6)
+library(tidyverse)
+library(ggpubr)
+library(DT)
+```
+
+## Overview
+
+Six experimental conditions testing whether HDAC inhibition (panobinostat)
+and ATM inhibition (KU-55933) affect LOY efficiency in LNCaP cells.
+
+| | +DMSO post | +KU-55933 (ATMi) post |
+|---|---|---|
+| **DMSO pre** | C1 (vehicle) | C2 |
+| **30 nM Pano pre** | C3 | C4 |
+| **75 nM Pano pre** | C5 | C6 |
+
+```{r load-data}
+raw <- read_csv("A:/Dropbox/LOY_paralogs/summary_table_ddPCR_edit.csv",
+                show_col_types = FALSE)
+
+lncap <- raw %>%
+  filter(toupper(cell_line) == "LNCAP") %>%
+  mutate(
+    probe_arm = case_when(
+      TargetName %in% c("AMELY")          ~ "Yp (AMELY/AMELX)",
+      TargetName %in% c("DDX3Y", "KDM5D") ~ "Yq (DDX3Y or KDM5D/RNaseP)",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(probe_arm))
+```
+
+```{r classify-drug}
+# March 25 drug treatment data
+drug <- lncap %>%
+  filter(ddPCR_date == "MARCH_25_2026") %>%
+  mutate(
+    condition_label = case_when(
+      Treatment == "DMSO"              ~ "C1: DMSO/DMSO",
+      Treatment == "KU55933"           ~ "C2: DMSO/KU",
+      Treatment == "Pano_30nM"         ~ "C3: Pano30/DMSO",
+      Treatment == "KU55933+Pano_30nM" ~ "C4: Pano30/KU",
+      Treatment == "Pano_70nM"         ~ "C5: Pano75/DMSO",
+      Treatment == "KU55933+Pano_70nM" ~ "C6: Pano75/KU",
+      name == "LNCaP_sgCTRL"           ~ "sgCTRL",
+      name == "LNCaP_LOY_pass1"        ~ "LOY pass1",
+      TRUE ~ NA_character_
+    ),
+    condition_label = factor(condition_label,
+      levels = c("sgCTRL", "LOY pass1",
+                 "C1: DMSO/DMSO", "C2: DMSO/KU",
+                 "C3: Pano30/DMSO", "C4: Pano30/KU",
+                 "C5: Pano75/DMSO", "C6: Pano75/KU")),
+    pre_treatment  = case_when(
+      Treatment %in% c("DMSO", "KU55933")                         ~ "DMSO",
+      Treatment %in% c("Pano_30nM", "KU55933+Pano_30nM")          ~ "Pano 30 nM",
+      Treatment %in% c("Pano_70nM", "KU55933+Pano_70nM")          ~ "Pano 75 nM",
+      TRUE ~ NA_character_
+    ),
+    post_treatment = case_when(
+      Treatment %in% c("DMSO", "Pano_30nM", "Pano_70nM")          ~ "+DMSO",
+      Treatment %in% c("KU55933", "KU55933+Pano_30nM", "KU55933+Pano_70nM") ~ "+KU-55933",
+      TRUE ~ NA_character_
+    ),
+    pre_treatment  = factor(pre_treatment,  levels = c("DMSO", "Pano 30 nM", "Pano 75 nM")),
+    post_treatment = factor(post_treatment, levels = c("+DMSO", "+KU-55933"))
+  ) %>%
+  filter(!is.na(condition_label))
+
+# Historical LNCAP data (non-drug runs)
+historical <- lncap %>%
+  filter(ddPCR_date != "MARCH_25_2026") %>%
+  mutate(
+    source = case_when(
+      Guides == "None"       ~ "Parental",
+      Guides == "CTRL1"      ~ paste0("CTRL (", Nucelofections, "x nucl)"),
+      Guides == "CP+Q53+P47" ~ paste0("LOY pool (", Nucelofections, "x nucl)")
+    )
+  ) %>%
+  filter(!is.na(source))
+```
+
+---
+
+## Drug Treatment Conditions (C1–C6)
+
+Bars = mean ratio; error bars = ±1 SD; dashed line = 0.5 (normal XY).
+
+```{r drug-barplot, fig.width=10, fig.height=6}
+COND_COLORS <- c(
+  "sgCTRL"          = "#888888",
+  "LOY pass1"       = "#B8B8B8",
+  "C1: DMSO/DMSO"   = "#4DBBD5",
+  "C2: DMSO/KU"     = "#00A087",
+  "C3: Pano30/DMSO" = "#3C5488",
+  "C4: Pano30/KU"   = "#7E6148",
+  "C5: Pano75/DMSO" = "#E64B35",
+  "C6: Pano75/KU"   = "#F39B7F"
+)
+
+pd <- position_dodge(0.7)
+
+p1 <- ggplot(drug, aes(x = condition_label, y = ratio, fill = condition_label)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50", linewidth = 0.5) +
+  stat_summary(fun = mean, geom = "bar", position = pd, width = 0.65,
+               color = "black", linewidth = 0.3) +
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+               geom = "errorbar", position = pd, width = 0.25, linewidth = 0.5) +
+  geom_point(size = 1.8, alpha = 0.6, position = position_jitter(width = 0.15, seed = 42),
+             show.legend = FALSE, color = "black") +
+  facet_wrap(~probe_arm, ncol = 1, scales = "free_y") +
+  scale_fill_manual(values = COND_COLORS, guide = "none") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(x = NULL, y = "Y-linked : Reference Gene Ratio",
+       title = "LOY Ratio by Drug Treatment Condition") +
+  theme_classic(base_size = 12) +
+  theme(
+    strip.text       = element_text(face = "bold", size = 11),
+    strip.background = element_rect(fill = "grey92", color = NA),
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    axis.text.x      = element_text(size = 9, color = "black", angle = 30, hjust = 1),
+    axis.title.y     = element_text(size = 11),
+    plot.title       = element_text(face = "bold", size = 13)
+  )
+
+print(p1)
+
+out1 <- "A:/Dropbox/LOY_paralogs/code/LNCaP_drug_conditions"
+ggsave(paste0(out1, ".pdf"), p1, width = 10, height = 6, device = cairo_pdf)
+ggsave(paste0(out1, ".png"), p1, width = 10, height = 6, dpi = 300)
+```
+
+---
+
+## Pre-treatment × Post-treatment Grid
+
+Faceted by pre-treatment (rows) and post-treatment (columns), matching the experimental design.
+
+```{r grid-plot, fig.width=7, fig.height=7}
+drug_grid <- drug %>% filter(!is.na(pre_treatment), !is.na(post_treatment))
+
+p2 <- ggplot(drug_grid, aes(x = probe_arm, y = ratio, fill = post_treatment)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50", linewidth = 0.4) +
+  stat_summary(fun = mean, geom = "bar",
+               position = position_dodge(0.7), width = 0.6,
+               color = "black", linewidth = 0.3) +
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+               geom = "errorbar",
+               position = position_dodge(0.7), width = 0.2, linewidth = 0.5) +
+  facet_wrap(~pre_treatment, ncol = 1,
+             labeller = labeller(pre_treatment = c(
+               "DMSO"        = "Pre: DMSO (vehicle)",
+               "Pano 30 nM"  = "Pre: Panobinostat 30 nM",
+               "Pano 75 nM"  = "Pre: Panobinostat 75 nM"
+             ))) +
+  scale_fill_manual(values = c("+DMSO" = "#4DBBD5", "+KU-55933" = "#E64B35"),
+                    name = "Post-treatment") +
+  scale_y_continuous(limits = c(0, 0.12), expand = c(0, 0)) +
+  labs(x = NULL, y = "Y-linked : Reference Gene Ratio",
+       title = "Pre-treatment \u00d7 Post-treatment Effect on LOY") +
+  theme_classic(base_size = 12) +
+  theme(
+    strip.text       = element_text(face = "bold", size = 11),
+    strip.background = element_rect(fill = "grey92", color = NA),
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    legend.position  = "bottom",
+    legend.title     = element_text(face = "bold"),
+    axis.text.x      = element_text(size = 10),
+    axis.title.y     = element_text(size = 11),
+    plot.title       = element_text(face = "bold", size = 13)
+  )
+
+print(p2)
+
+out2 <- "A:/Dropbox/LOY_paralogs/code/LNCaP_drug_grid"
+ggsave(paste0(out2, ".pdf"), p2, width = 7, height = 7, device = cairo_pdf)
+ggsave(paste0(out2, ".png"), p2, width = 7, height = 7, dpi = 300)
+```
+
+---
+
+## Comparison to Historical LNCaP Data
+
+Drug-treated samples (March 2026) shown alongside previous LOY pool, CTRL, and Parental measurements.
+
+```{r comparison-plot, fig.width=11, fig.height=6}
+# Combine drug data + historical into one frame
+drug_for_cmp <- drug %>%
+  filter(condition_label %in% c("C1: DMSO/DMSO", "C3: Pano30/DMSO",
+                                 "C5: Pano75/DMSO", "C4: Pano30/KU",
+                                 "C6: Pano75/KU", "C2: DMSO/KU",
+                                 "sgCTRL", "LOY pass1")) %>%
+  mutate(source = as.character(condition_label))
+
+hist_for_cmp <- historical %>%
+  select(Sample, cell_line, name, ratio, TargetName, probe_arm, source)
+
+cmp <- bind_rows(
+  drug_for_cmp %>% select(Sample, cell_line, name, ratio, TargetName, probe_arm, source),
+  hist_for_cmp
+) %>%
+  mutate(source = factor(source, levels = c(
+    "Parental",
+    "CTRL (1x nucl)", "CTRL (2x nucl)",
+    "LOY pool (1x nucl)", "LOY pool (2x nucl)",
+    "sgCTRL", "LOY pass1",
+    "C1: DMSO/DMSO", "C2: DMSO/KU",
+    "C3: Pano30/DMSO", "C4: Pano30/KU",
+    "C5: Pano75/DMSO", "C6: Pano75/KU"
+  )))
+
+CMP_COLORS <- c(
+  "Parental"            = "#00A087",
+  "CTRL (1x nucl)"      = "#91D1C2",
+  "CTRL (2x nucl)"      = "#4DBBD5",
+  "LOY pool (1x nucl)"  = "#F39B7F",
+  "LOY pool (2x nucl)"  = "#E64B35",
+  "sgCTRL"              = "#888888",
+  "LOY pass1"           = "#B8B8B8",
+  "C1: DMSO/DMSO"       = "#3C5488",
+  "C2: DMSO/KU"         = "#8491B4",
+  "C3: Pano30/DMSO"     = "#7E6148",
+  "C4: Pano30/KU"       = "#B09C85",
+  "C5: Pano75/DMSO"     = "#DC0000",
+  "C6: Pano75/KU"       = "#FF7F7F"
+)
+
+p3 <- ggplot(cmp, aes(x = source, y = ratio, fill = source)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50", linewidth = 0.5) +
+  stat_summary(fun = mean, geom = "bar", width = 0.7,
+               color = "black", linewidth = 0.3) +
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+               geom = "errorbar", width = 0.25, linewidth = 0.5) +
+  geom_point(size = 1.5, alpha = 0.6,
+             position = position_jitter(width = 0.12, seed = 42),
+             show.legend = FALSE, color = "black") +
+  facet_wrap(~probe_arm, ncol = 1, scales = "free_y") +
+  scale_fill_manual(values = CMP_COLORS, guide = "none") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  geom_vline(xintercept = 5.5, linetype = "dotted", color = "grey60") +
+  annotate("text", x = 3,  y = Inf, label = "Previous runs", vjust = 1.5,
+           size = 3.5, fontface = "italic", color = "grey40") +
+  annotate("text", x = 10, y = Inf, label = "March 2026 drug treatment", vjust = 1.5,
+           size = 3.5, fontface = "italic", color = "grey40") +
+  labs(x = NULL, y = "Y-linked : Reference Gene Ratio",
+       title = "LNCaP LOY — Historical vs Drug Treatment Comparison") +
+  theme_classic(base_size = 12) +
+  theme(
+    strip.text       = element_text(face = "bold", size = 11),
+    strip.background = element_rect(fill = "grey92", color = NA),
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    axis.text.x      = element_text(size = 8, color = "black", angle = 40, hjust = 1),
+    axis.title.y     = element_text(size = 11),
+    plot.title       = element_text(face = "bold", size = 13)
+  )
+
+print(p3)
+
+out3 <- "A:/Dropbox/LOY_paralogs/code/LNCaP_historical_vs_drug"
+ggsave(paste0(out3, ".pdf"), p3, width = 11, height = 6, device = cairo_pdf)
+ggsave(paste0(out3, ".png"), p3, width = 11, height = 6, dpi = 300)
+```
+
+---
+
+## % Y Chromosome Reduction vs sgCTRL
+
+Baseline = mean of all LNCAP sgCTRL/CTRL1 data (March 2026 sgCTRL + historical CTRL1 runs combined).
+
+```{r reduction-plot, fig.width=10, fig.height=5}
+# Pool ALL LNCAP control data as baseline (sgCTRL + historical CTRL1)
+all_ctrl <- lncap %>%
+  filter(Guides == "CTRL1" | name == "LNCaP_sgCTRL") %>%
+  group_by(probe_arm) %>%
+  summarise(ctrl_mean = mean(ratio, na.rm = TRUE), .groups = "drop")
+
+cat("sgCTRL baseline (all LNCAP controls combined):\n")
+print(all_ctrl)
+
+# Mean ratio per condition (exclude sgCTRL itself)
+cond_means <- drug %>%
+  filter(condition_label != "sgCTRL") %>%
+  group_by(condition_label, probe_arm) %>%
+  summarise(mean_ratio = mean(ratio, na.rm = TRUE), .groups = "drop")
+
+# Compute % reduction
+reduction <- cond_means %>%
+  left_join(all_ctrl, by = "probe_arm") %>%
+  mutate(pct_reduction = pmax((ctrl_mean - mean_ratio) / ctrl_mean * 100, 0))
+
+ARM_COLORS <- c("Yp (AMELY/AMELX)"           = "#E64B35",
+                "Yq (DDX3Y or KDM5D/RNaseP)" = "#3C5488")
+
+p4 <- ggplot(reduction, aes(x = condition_label, y = pct_reduction, fill = probe_arm)) +
+  geom_col(position = position_dodge(0.75), width = 0.60,
+           color = "black", linewidth = 0.3) +
+  geom_text(aes(label = paste0(round(pct_reduction, 1), "%"),
+                y     = pct_reduction + 1.5),
+            position = position_dodge(0.75),
+            vjust = 0, size = 3.2, fontface = "bold") +
+  scale_fill_manual(values = ARM_COLORS, name = "Probe Locus") +
+  scale_y_continuous(limits = c(0, 110), breaks = seq(0, 100, 25),
+                     expand = c(0, 0)) +
+  labs(x = NULL, y = "% Reduction vs sgCTRL",
+       title = "% Y Chromosome Reduction — LNCaP Drug Treatment Conditions") +
+  theme_classic(base_size = 12) +
+  theme(
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    legend.position  = "bottom",
+    legend.title     = element_text(face = "bold", size = 10),
+    axis.text.x      = element_text(size = 9, color = "black", angle = 30, hjust = 1),
+    axis.text.y      = element_text(size = 10),
+    axis.title.y     = element_text(size = 11),
+    plot.title       = element_text(face = "bold", size = 13)
+  )
+
+print(p4)
+
+out4 <- "A:/Dropbox/LOY_paralogs/code/LNCaP_drug_reduction"
+ggsave(paste0(out4, ".pdf"), p4, width = 10, height = 5, device = cairo_pdf)
+ggsave(paste0(out4, ".png"), p4, width = 10, height = 5, dpi = 300)
+```
+
+---
+
+## Differential % Reduction vs LOY pass1
+
+Each condition's % reduction (vs sgCTRL) minus the LOY pass1 % reduction. Positive = more Y loss than untreated LOY; negative = less.
+
+```{r differential-plot, fig.width=9, fig.height=5}
+# Get LOY pass1 baseline from the reduction data
+pass1_baseline <- reduction %>%
+  filter(condition_label == "LOY pass1") %>%
+  select(probe_arm, pass1_pct = pct_reduction)
+
+# Subtract LOY pass1 from each other condition
+diff_reduction <- reduction %>%
+  filter(!condition_label %in% c("LOY pass1", "sgCTRL")) %>%
+  left_join(pass1_baseline, by = "probe_arm") %>%
+  mutate(diff_pct = pct_reduction - pass1_pct)
+
+p6 <- ggplot(diff_reduction, aes(x = condition_label, y = diff_pct, fill = probe_arm)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.5) +
+  geom_col(position = position_dodge(0.75), width = 0.60,
+           color = "black", linewidth = 0.3) +
+  geom_text(aes(label = paste0(ifelse(diff_pct >= 0, "+", ""), round(diff_pct, 1), "%"),
+                y     = ifelse(diff_pct >= 0, diff_pct + 0.8, diff_pct - 0.8)),
+            position = position_dodge(0.75),
+            vjust = ifelse(diff_reduction$diff_pct >= 0, 0, 1),
+            size = 3.2, fontface = "bold") +
+  scale_fill_manual(values = ARM_COLORS, name = "Probe Locus") +
+  scale_y_continuous(breaks = seq(-10, 15, 5), expand = expansion(mult = 0.15)) +
+  labs(x = NULL, y = "pp difference vs LOY pass1",
+       title = "Drug Treatment Effect Beyond Untreated LOY (% reduction vs sgCTRL)") +
+  theme_classic(base_size = 12) +
+  theme(
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    legend.position  = "bottom",
+    legend.title     = element_text(face = "bold", size = 10),
+    axis.text.x      = element_text(size = 9, color = "black", angle = 30, hjust = 1),
+    axis.text.y      = element_text(size = 10),
+    axis.title.y     = element_text(size = 11),
+    plot.title       = element_text(face = "bold", size = 13)
+  )
+
+print(p6)
+
+out6 <- "A:/Dropbox/LOY_paralogs/code/LNCaP_drug_differential"
+ggsave(paste0(out6, ".pdf"), p6, width = 9, height = 5, device = cairo_pdf)
+ggsave(paste0(out6, ".png"), p6, width = 9, height = 5, dpi = 300)
+```
+
+---
+
+## % Reduction vs DMSO Vehicle (C1)
+
+How much additional Y loss do the drug treatments cause beyond the DMSO vehicle control?
+
+```{r reduction-vs-dmso, fig.width=9, fig.height=5}
+# DMSO baseline (C1) per probe arm
+dmso_baseline <- drug %>%
+  filter(condition_label == "C1: DMSO/DMSO") %>%
+  group_by(probe_arm) %>%
+  summarise(dmso_mean = mean(ratio, na.rm = TRUE), .groups = "drop")
+
+# Mean ratio per treatment condition (exclude sgCTRL and DMSO itself)
+treat_means <- drug %>%
+  filter(!condition_label %in% c("sgCTRL", "C1: DMSO/DMSO")) %>%
+  group_by(condition_label, probe_arm) %>%
+  summarise(mean_ratio = mean(ratio, na.rm = TRUE), .groups = "drop")
+
+reduction_dmso <- treat_means %>%
+  left_join(dmso_baseline, by = "probe_arm") %>%
+  mutate(pct_reduction = pmax((dmso_mean - mean_ratio) / dmso_mean * 100, 0))
+
+p5 <- ggplot(reduction_dmso, aes(x = condition_label, y = pct_reduction, fill = probe_arm)) +
+  geom_col(position = position_dodge(0.75), width = 0.60,
+           color = "black", linewidth = 0.3) +
+  geom_text(aes(label = paste0(round(pct_reduction, 1), "%"),
+                y     = pct_reduction + 1.5),
+            position = position_dodge(0.75),
+            vjust = 0, size = 3.2, fontface = "bold") +
+  scale_fill_manual(values = ARM_COLORS, name = "Probe Locus") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 25),
+                     expand = c(0, 0)) +
+  labs(x = NULL, y = "% Reduction vs DMSO (C1)",
+       title = "Additional Y Loss — Drug Treatments vs DMSO Vehicle") +
+  theme_classic(base_size = 12) +
+  theme(
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    legend.position  = "bottom",
+    legend.title     = element_text(face = "bold", size = 10),
+    axis.text.x      = element_text(size = 9, color = "black", angle = 30, hjust = 1),
+    axis.text.y      = element_text(size = 10),
+    axis.title.y     = element_text(size = 11),
+    plot.title       = element_text(face = "bold", size = 13)
+  )
+
+print(p5)
+
+out5 <- "A:/Dropbox/LOY_paralogs/code/LNCaP_drug_reduction_vs_DMSO"
+ggsave(paste0(out5, ".pdf"), p5, width = 9, height = 5, device = cairo_pdf)
+ggsave(paste0(out5, ".png"), p5, width = 9, height = 5, dpi = 300)
+```
+
+---
+
+## Summary Table
+
+```{r summary-table}
+drug %>%
+  group_by(condition_label, probe_arm) %>%
+  summarise(
+    n          = n(),
+    mean_ratio = round(mean(ratio, na.rm = TRUE), 4),
+    sd_ratio   = round(sd(ratio,   na.rm = TRUE), 4),
+    .groups    = "drop"
+  ) %>%
+  rename(
+    `Condition`  = condition_label,
+    `Probe Arm`  = probe_arm,
+    `n`          = n,
+    `Mean Ratio` = mean_ratio,
+    `SD`         = sd_ratio
+  ) %>%
+  DT::datatable(rownames = FALSE,
+                options  = list(pageLength = 30, dom = "t"),
+                class    = "compact")
+```

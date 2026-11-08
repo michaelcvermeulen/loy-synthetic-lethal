@@ -1,0 +1,30 @@
+{
+  "annotation": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\research\\model_development\\wgs_filter_rerun_20261027\\bin_annotation.csv",
+    "sha256": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60"
+  },
+  "cytobands": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\WGS\\chm13v2.0_cytobands_allchrs.bed",
+    "sha256": "09c7fa3ca3e222ebaabbecedc3086aa2543999824c0966f96b0c3f31c1126ea2"
+  },
+  "original_arm_summary": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\source_data\\du145_arm_recurrence\\arm_DNA_vs_RNA.csv",
+    "sha256": "021c84092a98ea0eda1814821a9d75e3652b7d962d67426e0b413f1b35b9f19a"
+  },
+  "original_bins": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\WGS\\figures\\DU145_recurrence_2026-09-30\\wgs_bins.csv",
+    "sha256": "7bd75a4478f781480bb339015d246d4e78d86746c871582f034aed0dd2d5ac07"
+  },
+  "corrected_bins": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\research\\model_development\\wgs_filter_rerun_20261027\\DU145\\corrected_bins.csv",
+    "sha256": "286c071e49c2b69902a8035c0896b9782aee31750f8ecb5a281d3fb8fe6c12b0"
+  },
+  "raw_count_object": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\research\\model_development\\wgs_filter_rerun_20261027\\inputs\\DU145_cached_raw_counts.rds",
+    "sha256": "d21af386216a6a0df521fbd41a0a281b6a0cdbebba046b0d395498aa1cd6bd89"
+  },
+  "counts_export": {
+    "path": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\research\\model_development\\acrocentric_arm_audit_20261027\\DU145_raw_read_counts.csv",
+    "sha256": "d99d37a36e4664ed0d5948587c6a5a3c49eb7c7197e8d01f9c2da546447c1bbc"
+  }
+}

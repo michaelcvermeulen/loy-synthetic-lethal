@@ -1,0 +1,8 @@
+RNA source unchanged: HT1080_BATCHES DESeq2 batch + treatment LOY/CTRL.
+TF transcript annotation retains Y-linked genes; chromosome and Y-linkage flags are recorded. The original primary gene-overlap universe is unchanged.
+Present RNA genes with nonfinite statistics are retained and flagged; they are not mislabeled as absent genes.
+The selected RNA table contains decreased ZFY RNA, but the JASPAR2024 set has no motif named ZFY. A motif-label coverage gap is not a result about specific TF occupancy.
+TF motif labels are joined to unique RNA gene symbols. Exact and case-insensitive candidate matches are labeled; no orthology database was applied.
+Dimer motifs retain one link per member; ambiguous and absent symbols are retained as unresolved.
+RNA transcript effects do not establish TF protein activity or require concordant motif accessibility direction.
+The RNA expression comparison is across groups, not directly matched samples.

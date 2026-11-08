@@ -1,0 +1,43 @@
+Scientific checks passed: original integer counts; same 25526 genes and 12 samples; full-rank designs; positive voom weights; finite P/FDR; BH verified; equal-period contrast verified; original inputs unchanged.
+                                        model      contrast genes residual_df
+passage_period__combined       passage_period      combined 25526           4
+passage_period__AUG_2025       passage_period      AUG_2025 25526           4
+passage_period__MAY_2026       passage_period      MAY_2026 25526           4
+passage_period__MAY_minus_AUG  passage_period MAY_minus_AUG 25526           4
+batch_condition__combined     batch_condition      combined 25526           9
+                              FDR_below_0_05 higher lower        min_P
+passage_period__combined                4674   2214  2460 1.020630e-20
+passage_period__AUG_2025                1743    814   929 5.170160e-15
+passage_period__MAY_2026                3555   1647  1908 1.240632e-20
+passage_period__MAY_minus_AUG            451    244   207 1.289131e-11
+batch_condition__combined               1003    397   606 7.082493e-11
+                                   min_FDR
+passage_period__combined      1.935992e-16
+passage_period__AUG_2025      1.098635e-10
+passage_period__MAY_2026      3.166837e-16
+passage_period__MAY_minus_AUG 3.290637e-07
+batch_condition__combined     1.807877e-06
+R version 4.5.2 (2025-10-31 ucrt)
+Platform: x86_64-w64-mingw32/x64
+Running under: Windows 11 x64 (build 26200)
+
+Matrix products: default
+  LAPACK version 3.12.1
+
+locale:
+[1] C
+system code page: 65001
+
+time zone: America/Toronto
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] edgeR_4.8.2  limma_3.66.0
+
+loaded via a namespace (and not attached):
+[1] compiler_4.5.2      grid_4.5.2          locfit_1.5-9.12    
+[4] data.table_1.18.2.1 jsonlite_2.0.0      digest_0.6.39      
+[7] lattice_0.22-9      statmod_1.5.1      

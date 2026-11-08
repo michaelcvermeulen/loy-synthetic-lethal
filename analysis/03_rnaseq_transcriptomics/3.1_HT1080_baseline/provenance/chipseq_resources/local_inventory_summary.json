@@ -1,0 +1,20 @@
+{
+  "audited_utc": "2026-09-14T19:34:12.556354+00:00",
+  "source": "A:\\multiome\\results\\ChIPseq",
+  "files": 581,
+  "bytes": 1406042138,
+  "extensions": {
+    ".html": 37,
+    ".zip": 1,
+    ".pdf": 194,
+    ".png": 191,
+    ".log": 2,
+    ".rds": 19,
+    ".gz": 2,
+    ".csv": 131,
+    ".txt": 2,
+    ".bed": 2
+  },
+  "reports_extracted": 16,
+  "source_modified": false
+}

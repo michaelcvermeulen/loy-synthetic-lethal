@@ -1,0 +1,358 @@
+HT1080 LOY vs CTRL bulk ATAC — highlights (nf-core/atacseq)
+Code
+Show All Code
+Hide All Code
+HT1080 LOY vs CTRL bulk ATAC — highlights
+(nf-core/atacseq)
+2026-05-14
+Overview
+Bulk ATAC-seq, 6 libraries (3 LOY × 3 CTRL HT1080), reprocessed
+through
+nf-core/atacseq
+and re-analysed with the same
+downstream DiffBind → ChIPseeker → ATAC×RNA → motif → CNV → off-to-on
+chain as the Active Motif variant. This page consolidates the headline
+findings; click through to the per-step reports for full detail.
+Per-step reports
+01 — Consensus peaks
+02 — Differential accessibility
+(DiffBind)
+03 — Peak annotation
+(ChIPseeker)
+04 — ATAC × RNA
+integration
+05 — Motif enrichment (chromVAR +
+JASPAR2022)
+06 — Quadrant follow-ups
+(cross-val, ORA, H3K27me3)
+07 — CNV check (1 Mb binned
+coverage)
+08 — chr18q21 candidate
+neighborhoods
+09 — Off-to-on / on-to-off
+switches
+11 — GSEA on DARs (fgsea + ORA,
+MSigDB)
+12 — csaw peak-free DA (orthogonal
+validation)
+Pipeline thresholds
+data.frame(
+  parameter = c("FDR threshold", "|log2FC| threshold (DAR)",
+                "Promoter window (± bp from TSS)",
+                "Per-condition peak retention",
+                "Sign convention"),
+  value     = c(fdr_thresh, lfc_thresh, promoter_window,
+                paste0(">=", peak_min_in_condition, "/3 replicates"),
+                "Positive Fold = gained accessibility in LOY")
+)
+1. Sample QC
+peaks_per_chrom <- read_if_exists(tbl("consensus_peaks_per_chrom.csv"))
+dar_full        <- read_if_exists(tbl("dar_loy_vs_ctrl.csv"))
+dar_sig         <- read_if_exists(tbl("dar_significant.csv"))
+chry            <- read_if_exists(tbl("dar_chrY_sanity.csv"))
+
+summary_row <- function(label, value) data.frame(metric = label, count = value)
+rbind(
+  summary_row("Consensus peaks (chr1-22, X, Y; blacklist-removed)",
+              if (!is.null(dar_full)) nrow(dar_full) else NA),
+  summary_row(sprintf("Significant DARs (FDR<%g, |log2FC|>%g)",
+                       fdr_thresh, lfc_thresh),
+              if (!is.null(dar_sig)) nrow(dar_sig) else NA),
+  summary_row("Gained in LOY",
+              if (!is.null(dar_sig)) sum(dar_sig$Fold > 0) else NA),
+  summary_row("Lost in LOY",
+              if (!is.null(dar_sig)) sum(dar_sig$Fold < 0) else NA)
+)
+chrY positive control
+LOY is defined biologically as loss of chromosome Y. ATAC signal on
+non-PAR chrY should collapse in LOY. This is the cleanest internal
+sanity check available without an external truth set.
+chry
+PCA + sample correlation
+2. Differential accessibility (LOY vs CTRL)
+MA + volcano
+Per-chromosome DAR distribution
+Top 15 DARs by FDR
+if (!is.null(dar_sig)) {
+  dar_sig <- dar_sig[order(dar_sig$FDR), ]
+  cols <- intersect(c("seqnames","start","end","Fold","FDR"), names(dar_sig))
+  head(dar_sig[, cols], 15)
+}
+3. Peak annotation (genomic features)
+read_if_exists(tbl("dar_annotation_summary.csv"))
+4. ATAC × RNA integration
+Concordance between LOY-vs-CTRL chromatin opening and matched HT1080
+limma-voom RNA-seq DE. Quadrants:
+UP-OPEN
+(orange) — canonical activation, ATAC and
+RNA both up in LOY
+DOWN-CLOSED
+(blue) — canonical repression, both
+down
+UP-CLOSED / DOWN-OPEN
+— anti-correlated
+read_if_exists(tbl("atac_rna_correlation.csv"))
+Quadrant scatter
+Top 15 both-significant gene-peak pairs
+both <- read_if_exists(tbl("atac_rna_integrated_significant.csv"))
+if (!is.null(both)) {
+  both <- both[order(both$ATAC_FDR + both$RNA_FDR), ]
+  cols <- intersect(
+    c("gene_symbol","SYMBOL","seqnames","Fold","ATAC_FDR",
+      "logFC","RNA_FDR","quadrant","annotation"),
+    names(both))
+  head(both[, cols], 15)
+}
+5. Motif enrichment — TFAP2 family dominates the LOY-lost set
+Going in we predicted NF-κB / IRF / STAT to dominate the LOY-lost set
+(immune-evasion narrative). The actual result:
+TFAP2 family
+sweeps the top hits at padj ≈ 1e-23 to 1e-35
+. AP-2
+transcription factors regulate mesenchymal / neural-crest /
+fibroblast-lineage programs — consistent with matrisome / EMT signal in
+step 06’s DOWN-CLOSED ORA. Mechanistic working story:
+loss of
+fibrosarcoma lineage identity
+rather than immune evasion (at
+least in HT1080).
+Top motifs enriched in LOY-LOST DARs (all peaks)
+The lost side is far more trustworthy than gained: gained DARs are
+dominated by chr18q CNV-bearing peaks (see step 7), so gained-side motif
+signal may be sequence-content artefact of chr18 gene density.
+lost_all <- read_if_exists(tbl("motif_enrichment_all_lost_FDR0.10_LFC0.5.csv"))
+if (!is.null(lost_all)) {
+  cols <- intersect(c("motif_id","motif_label","fg_with","bg_with",
+                      "log2_OR","pvalue","padj"), names(lost_all))
+  head(lost_all[, cols], 20)
+}
+Bar plot — all-DAR motif enrichment
+6. Quadrant follow-ups — pathway ORA on UP-OPEN / DOWN-CLOSED
+ora_up <- read_if_exists(tbl("ora_UP_OPEN.csv"))
+if (!is.null(ora_up)) {
+  cat("**Top 15 enriched in UP-OPEN (canonical LOY activation)**\n\n")
+  cols <- intersect(c("pathway","pval","padj","foldEnrichment","overlap","size"),
+                    names(ora_up))
+  head(ora_up[, cols], 15)
+}
+## **Top 15 enriched in UP-OPEN (canonical LOY activation)**
+ora_dn <- read_if_exists(tbl("ora_DOWN_CLOSED.csv"))
+if (!is.null(ora_dn)) {
+  cat("**Top 15 enriched in DOWN-CLOSED (canonical LOY repression)**\n\n")
+  cols <- intersect(c("pathway","pval","padj","foldEnrichment","overlap","size"),
+                    names(ora_dn))
+  head(ora_dn[, cols], 15)
+}
+## **Top 15 enriched in DOWN-CLOSED (canonical LOY repression)**
+H3K27me3 overlap with gained / lost DARs
+read_if_exists(tbl("h3k27me3_enrichment.csv"))
+7. CNV check — chr18q clonal gain in LOY
+LOY HT1080 carries a clonal
+chr18q copy gain
+that
+confounds the gained-side signal. Step 7 quantifies the shift across 1
+Mb bins of ATAC coverage.
+chr18 whole-chromosome mean log2(LOY/CTRL): 0.294
+chr18q21 (46-60 Mb) mean log2(LOY/CTRL):    0.432
+chr18 outside q21 mean log2(LOY/CTRL):      0.265
+chrY mean (expected highly negative for LOY): -1.388
+
+VERDICT: ambiguous — chr18q21 differs from rest-of-chr18 mean by 0.10–0.20 log2 units. Worth a deeper look but not a clear CNV.
+Genome-wide per-chromosome distribution
+chr18 high-resolution view (250 kb bins, double-hits labelled)
+chr18q21 double-hits (FDR<0.10 in both modalities)
+q21 <- read_if_exists(tbl("cnv_chr18q21_DEGs_DARs.csv"))
+if (!is.null(q21)) {
+  q21 <- q21[order(pmin(q21$FDR_RNA, q21$FDR_DAR, na.rm = TRUE)), ]
+  cols <- intersect(c("gene_symbol","gene_pos_Mb","logFC","FDR_RNA",
+                      "Fold","FDR_DAR","n_sig_DARs","annotation",
+                      "is_DEG","has_sig_DAR","direction"),
+                    names(q21))
+  q21[, cols]
+}
+8. chr18q21 candidates — DCC, SMAD2, ONECUT2, NEDD4L
+For each candidate: gene-body ATAC, promoter ATAC, and matched RNA
+log2(LOY/CTRL) benchmarked against its ±2 Mb chr18q neighborhood. Dashed
+orange line = chr18q CNV baseline (+0.34). Bars
+above
+the baseline on at least one ATAC metric AND on RNA = LOY-specific
+activation beyond CNV.
+cands <- read_if_exists(tbl("chr18q_candidate_neighborhoods.csv"))
+if (!is.null(cands)) {
+  is_cand <- cands$is_candidate
+  if (is.null(is_cand)) is_cand <- TRUE
+  show <- cands[is_cand, intersect(
+    c("gene_symbol","tss_pos_Mb",
+      "body_log2_LOY_CTRL","delta_above_baseline_body",
+      "prom_log2_LOY_CTRL","delta_above_baseline_prom",
+      "rna_log2_LOY_CTRL"),
+    names(cands))]
+  for (j in setdiff(names(show), c("gene_symbol")))
+    if (is.numeric(show[[j]])) show[[j]] <- round(show[[j]], 3)
+  show
+}
+All four candidates side-by-side
+9. Off-to-on / on-to-off gene switches
+filterByExpr
+in limma-voom systematically drops genes
+that flip from silent in one condition to expressed in the other. Step 9
+sweeps for these directly in the lcpm matrix. ST8SIA3 is the motivating
+example (silent in CTRL, expressed in LOY, never reached the DEG
+list).
+sw <- read_if_exists(tbl("off_to_on_switch_with_atac.csv"))
+cls <- read_if_exists(tbl("off_to_on_switch_classification.csv"))
+if (!is.null(cls)) as.data.frame(table(class = cls$class))
+if (!is.null(sw)) {
+  data.frame(
+    metric = c("Total switch genes",
+               sprintf("With >=1 significant DAR (FDR<%g, |Fold|>%g)",
+                        fdr_thresh, lfc_thresh),
+               "Captured in atac_rna_integrated.csv"),
+    count  = c(nrow(sw),
+               sum(sw$n_sig_DARs > 0, na.rm = TRUE),
+               sum(sw$in_integrated_table, na.rm = TRUE)),
+    fraction = c("100%",
+                 sprintf("%.0f%%", 100 * mean(sw$n_sig_DARs > 0,    na.rm = TRUE)),
+                 sprintf("%.0f%%", 100 * mean(sw$in_integrated_table, na.rm = TRUE))))
+}
+Lcpm scatter (all genes; switches highlighted)
+Top off-to-on switches with ATAC support
+if (!is.null(sw)) {
+  off2on <- sw[sw$class == "off_to_on", ]
+  off2on <- off2on[order(-off2on$loy_jump), ]
+  cols <- intersect(c("gene_symbol","chr","tss_pos_Mb","loy_jump",
+                      "ctrl_mean","loy_mean",
+                      "body_log2_LOY_CTRL","prom_log2_LOY_CTRL",
+                      "best_DAR_Fold","best_DAR_FDR","n_sig_DARs",
+                      "in_integrated_table"),
+                    names(off2on))
+  head(off2on[, cols], 20)
+}
+10. GSEA on DARs (ATAC-only pathway view)
+ATAC-only pathway enrichment from
+step
+11
+. Complements step 06’s quadrant ORA (which requires both ATAC and
+RNA significance) by asking what pathways the DARs alone implicate. Both
+fgsea
+(signed-rank, threshold-free) and
+ORA
+(hypergeometric on significant gained / lost) are
+run across Hallmarks, GO BP, C2/CP, and full MSigDB; the highlights
+below show Hallmarks only.
+Top Hallmarks — fgsea
+fg <- read_if_exists(tbl("gsea_dars_hallmarks_fgsea.csv"))
+if (!is.null(fg) && nrow(fg) > 0) {
+  fg <- fg[order(fg$padj, fg$pval), ]
+  fg_up   <- head(subset(fg, !is.na(NES) & NES > 0), 10)
+  fg_down <- head(subset(fg, !is.na(NES) & NES < 0), 10)
+  out <- rbind(transform(fg_up,   direction = "Gained in LOY"),
+               transform(fg_down, direction = "Lost in LOY"))
+  cols <- intersect(c("direction","pathway","NES","pval","padj","size"),
+                    names(out))
+  out[, cols]
+}
+Hallmarks bar plot
+Top Hallmarks ORA — gained vs lost gene sets
+og <- read_if_exists(tbl("gsea_dars_hallmarks_ora_gained.csv"))
+ol <- read_if_exists(tbl("gsea_dars_hallmarks_ora_lost.csv"))
+if (!is.null(og) && nrow(og) > 0) {
+  cat("**Gained-in-LOY DAR gene set**\n\n")
+  cols <- intersect(c("pathway","pval","padj","overlap","size","foldEnrichment"),
+                    names(og))
+  print(head(og[, cols], 10))
+}
+## **Gained-in-LOY DAR gene set**
+## 
+##                                       pathway      pval padj overlap size
+## 1                    HALLMARK_SPERMATOGENESIS 0.1140636    1       1   98
+## 2              HALLMARK_FATTY_ACID_METABOLISM 0.1463839    1       1  128
+## 3                  HALLMARK_KRAS_SIGNALING_DN 0.1693557    1       1  150
+## 4                   HALLMARK_MTORC1_SIGNALING 0.1836608    1       1  164
+## 5             HALLMARK_ESTROGEN_RESPONSE_LATE 0.1917275    1       1  172
+## 6              HALLMARK_INFLAMMATORY_RESPONSE 0.1927304    1       1  173
+## 7  HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION 0.2007103    1       1  181
+## 8                       HALLMARK_ADIPOGENESIS 1.0000000    1       0  163
+## 9                HALLMARK_ALLOGRAFT_REJECTION 1.0000000    1       0  145
+## 10                 HALLMARK_ANDROGEN_RESPONSE 1.0000000    1       0   87
+##    foldEnrichment
+## 1        8.277056
+## 2        6.337121
+## 3        5.407677
+## 4        4.946046
+## 5        4.715997
+## 6        4.688737
+## 7        4.481500
+## 8        0.000000
+## 9        0.000000
+## 10       0.000000
+if (!is.null(ol) && nrow(ol) > 0) {
+  cat("\n**Lost-in-LOY DAR gene set**\n\n")
+  cols <- intersect(c("pathway","pval","padj","overlap","size","foldEnrichment"),
+                    names(ol))
+  print(head(ol[, cols], 10))
+}
+## 
+## **Lost-in-LOY DAR gene set**
+## 
+##                                       pathway      pval padj overlap size
+## 1            HALLMARK_TNFA_SIGNALING_VIA_NFKB 0.1334077    1       6  177
+## 2                HALLMARK_PANCREAS_BETA_CELLS 0.4125633    1       1   27
+## 3          HALLMARK_INTERFERON_ALPHA_RESPONSE 0.4178943    1       2   73
+## 4  HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION 0.4712494    1       4  181
+## 5            HALLMARK_PI3K_AKT_MTOR_SIGNALING 0.4895933    1       2   84
+## 6                     HALLMARK_APICAL_SURFACE 0.4982818    1       1   35
+## 7    HALLMARK_REACTIVE_OXYGEN_SPECIES_PATHWAY 0.5363380    1       1   39
+## 8                HALLMARK_ALLOGRAFT_REJECTION 0.5395590    1       3  145
+## 9          HALLMARK_INTERFERON_GAMMA_RESPONSE 0.5488232    1       3  147
+## 10         HALLMARK_UNFOLDED_PROTEIN_RESPONSE 0.5555000    1       2   95
+##    foldEnrichment
+## 1        1.738295
+## 2        1.899248
+## 3        1.404923
+## 4        1.133253
+## 5        1.220945
+## 6        1.465134
+## 7        1.314864
+## 8        1.060959
+## 9        1.046524
+## 10       1.079572
+11. csaw orthogonal validation
+Peak-free differential accessibility via 150 bp sliding windows +
+edgeR (see
+step 12
+). Same
+library-size-only normalization as DiffBind, so the LOY global
+heterochromatinization shift is preserved.
+ov <- read_if_exists(tbl("csaw_vs_diffbind_overlap.csv"))
+if (!is.null(ov)) ov
+chrY sanity (orthogonal positive control)
+read_if_exists(tbl("csaw_chrY_sanity.csv"))
+csaw vs DiffBind set overlap
+Per-DiffBind-DAR Fold concordance
+Session info
+## R version 4.5.2 (2025-10-31 ucrt)
+## Platform: x86_64-w64-mingw32/x64
+## Running under: Windows 11 x64 (build 26200)
+## 
+## Matrix products: default
+##   LAPACK version 3.12.1
+## 
+## locale:
+## [1] LC_COLLATE=English_Canada.utf8  LC_CTYPE=English_Canada.utf8   
+## [3] LC_MONETARY=English_Canada.utf8 LC_NUMERIC=C                   
+## [5] LC_TIME=English_Canada.utf8    
+## 
+## time zone: America/Toronto
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## loaded via a namespace (and not attached):
+##  [1] digest_0.6.39   R6_2.6.1        fastmap_1.2.0   xfun_0.56      
+##  [5] cachem_1.1.0    knitr_1.51      htmltools_0.5.9 png_0.1-8      
+##  [9] rmarkdown_2.30  lifecycle_1.0.5 cli_3.6.5       vctrs_0.7.1    
+## [13] sass_0.4.10     jquerylib_0.1.4 compiler_4.5.2  tools_4.5.2    
+## [17] evaluate_1.0.5  bslib_0.10.0    yaml_2.3.12     otel_0.2.0     
+## [21] rlang_1.1.7     jsonlite_2.0.0

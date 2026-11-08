@@ -1,0 +1,5 @@
+arm,direction,tested,significant_FDR005
+passage_TMM,gained,879,23
+passage_TMM,lost,879,127
+primary_TMM,gained,879,1
+primary_TMM,lost,879,31

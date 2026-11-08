@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "input_hashes_checked": 14,
+  "primary_ES_and_leading_edge_checks": 20,
+  "all_BH_BY_and_pooled_BH_reproduced": true,
+  "fgsea_rows": 360,
+  "camera_rows": 320,
+  "gene_identity_and_size_checks": true,
+  "unestimable_fgsea_sensitivity_tests": 2,
+  "original_statistics_unchanged": true
+}

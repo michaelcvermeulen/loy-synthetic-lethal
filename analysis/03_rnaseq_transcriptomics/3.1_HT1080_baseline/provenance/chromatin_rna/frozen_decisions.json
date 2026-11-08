@@ -1,0 +1,28 @@
+{
+  "frozen_utc": ["2026-09-14 20:44:31 UTC"],
+  "config_sha256": ["ba4f9b667b010e561ec485b0ea4118cda96da8e97defb782e6f68fa0f0481a54"],
+  "decisions": {
+    "seed": [42],
+    "primary_scenario": ["window_2000"],
+    "primary_contrast": ["combined"],
+    "primary_universe": ["original_25461_representative_RNA_genes"],
+    "minimum_set_size": [15],
+    "maximum_set_size_rule": ["universe_size_minus_one; preserve complete membership; require a nonempty complement"],
+    "fgsea_eps": [1e-10],
+    "fgsea_nPermSimple": [10000],
+    "fgsea_retry_nPermSimple": [100000],
+    "fgsea_gseaParam": [1],
+    "fgsea_scoreType": ["std"],
+    "camera_modes": ["fixed_0.01", "estimated_nonnegative"],
+    "multiple_testing": ["BH across 20 frozen custom sets per method, contrast and scenario, including ineligible/failed sets as unrejected; BY also exported; combined primary, periods and all other scenarios sensitivity; original MSigDB global BH unchanged"],
+    "promoter_sensitivities": ["window_1000", "window_2500", "relaxed_q_primary_window", "any_annotated_TSS"],
+    "body_sets_in_promoter_sensitivities": ["retain primary body definition unchanged"],
+    "background_sensitivity": ["exclude 467 unevaluable primary promoters; preserve original voom weights and normalization exposures"],
+    "effect_sensitivities": ["prior025_mean_difference", "RLE_mean_difference", "six_leave_one_matched_passage_out", "residualized_abundance_length", "residualized_abundance_length_arm"],
+    "residualization": ["descriptive regression on all primary ranked genes: ns(mean_logCPM, df=4) + ns(log10(feature_length_bp), df=4), optionally factor(arm); rank residuals without interpreting regression p-values; no claim of copy-number correction"],
+    "sensitivity_multiplicity": ["report per-scenario BH and BY plus pooled sensitivity BH across all scenarios and contrasts within each method; primary family stays separate"],
+    "main_curve_panels": ["H3K27me3_PROMOTER", "H3K4me3_H3K27me3_COMARKED_PROMOTER", "H3K27me3_H2AK119ub1_JOINT_PROMOTER", "H3K4me3_H3K27ac_JOINT_PROMOTER", "H3K9me3_H4K20me3_JOINT_PROMOTER", "LaminB1_LaminB2_JOINT_PROMOTER"],
+    "unavailable_sensitivities": ["CpG content not available in the frozen gene covariates; sample-relevant copy-number correction remains unresolved; independent ChIP and own ATAC are later steps"],
+    "interpretation": ["conditional RNA associations with measured baseline reference chromatin; serial passages of one established population per condition, not independent LOY-generation replication; no histone-change or enzyme-activity measurement"]
+  }
+}

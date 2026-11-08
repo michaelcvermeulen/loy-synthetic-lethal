@@ -1,0 +1,22 @@
+{
+  "seed": 42,
+  "raw_counts": "analysis/A549/count_matrix/A549_counts_raw.csv",
+  "gtf": "annotation/gencode.v49.primary_assembly.annotation.gtf.gz",
+  "sample_manifest": "config/sample_manifest.csv",
+  "prior_count": 2,
+  "filter_min_count": 10,
+  "filter_min_total": 15,
+  "effect_threshold": 0.5,
+  "pathway_min_size": 15,
+  "pathway_max_size": 500,
+  "fgsea_eps": 1e-10,
+  "fgsea_nPermSimple": 10000,
+  "camera_inter_gene_cor": 0.01,
+  "tf_min_targets": 5,
+  "normalization": "TMM_expressed_autosomes_nonPAR_X",
+  "primary_inference": "descriptive_unpaired_population_difference",
+  "pairing": "uncertain_do_not_pair",
+  "independent_derivation": "uncertain_do_not_claim_replication",
+  "count_unit": "reads",
+  "msigdb_version": "2026.1.Hs"
+}

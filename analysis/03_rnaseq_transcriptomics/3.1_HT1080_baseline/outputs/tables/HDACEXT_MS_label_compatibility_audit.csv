@@ -1,0 +1,4 @@
+source_group,stratum,genes,pearson,spearman,interpretation,method
+"HAP_MS","S52",18980,0.458876089150055,0.299395820517895,"numerical_compatibility_only_not_a_verified_treatment_assignment","mean_logCPM_difference; diagnostic_TMM_all_36_S52_libraries; original_S52_expression_filter"
+"HAP_MS1","S52",18980,0.894560258957052,0.839302057511446,"numerical_compatibility_only_not_a_verified_treatment_assignment","mean_logCPM_difference; diagnostic_TMM_all_36_S52_libraries; original_S52_expression_filter"
+"HAP_MS3","S52",18980,0.971165896870473,0.964528350375437,"numerical_compatibility_only_not_a_verified_treatment_assignment","mean_logCPM_difference; diagnostic_TMM_all_36_S52_libraries; original_S52_expression_filter"

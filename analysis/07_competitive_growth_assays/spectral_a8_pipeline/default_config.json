@@ -1,0 +1,45 @@
+{
+  "input_root": "A:\\flow_jo_AUG28",
+  "matrix_name": "mcherry_GFP_matrix",
+  "reporter_parameters": {
+    "gfp": "eGFP-A",
+    "mcherry": "mCherry-A",
+    "autofluorescence": "Autofluorescence_001-A"
+  },
+  "time_qc": {
+    "minimum_events_per_bin": 200,
+    "robust_z_limit": 3.5
+  },
+  "cell_gate": {
+    "x": "FSC-A",
+    "y": "SSC (Violet)-A",
+    "polygon_raw": [
+      [3548133.892335753, 630957.344480193],
+      [6309573.44480193, 2238721.138568338],
+      [17782794.100389227, 5623413.251903491],
+      [562341325.1903491, 35481338.92335753],
+      [602559586.0743569, 177827941.00389227],
+      [31622776.60168379, 177827941.00389227],
+      [6309573.44480193, 35481338.92335753],
+      [3548133.892335753, 6309573.44480193]
+    ],
+    "sensitivity_scales": [0.95, 1.0, 1.05]
+  },
+  "singlets": {
+    "primary_mad_limit": 3.5,
+    "sensitivity_mad_limits": [3.0, 3.5, 4.0]
+  },
+  "reporters": {
+    "cofactor": 10000.0,
+    "sensitivity_cofactors": [5000.0, 10000.0, 20000.0],
+    "seed": 20260828,
+    "initializations": 8,
+    "minimum_component_weight": 0.01,
+    "minimum_separation": 2.0,
+    "threshold_shift_fraction": 0.1
+  },
+  "images": {
+    "seed": 20260828,
+    "maximum_per_population": 50
+  }
+}

@@ -1,0 +1,6 @@
+analysis,status,reason
+"paired_models","not_run","Author states pairing is uncertain; numerical labels are not passage pairs"
+"temporal_repeatability","not_estimable","Only one sampling batch available"
+"independent_derivation_replication","unconfirmed","Author states derivation history is uncertain"
+"DNA_RNA_coordinate_integration","deferred","T2T DNA versus GRCh38 RNA and specimen correspondence require a verified mapping"
+"HT1080_specific_HDACS_addbacks","not_transferred","Cell-specific follow-ups are not part of the A549 baseline reprocessing"

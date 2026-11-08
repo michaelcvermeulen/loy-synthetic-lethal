@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source": "20261020_173018_Export/comp_growth_assay_D4_OCT20",
+  "approved_date": "2026-10-21",
+  "approval": "User decision after reviewing the all-arm gate comparison: I guess lets just treat the TADA2B different.",
+  "unlabelled_gate_primary_backgrounds": ["TADA2B"],
+  "description": "In these backgrounds the primary reporter-negative gate is the day-specific unlabelled-cell gate from growth_assay_unlabelled_gate (mCherry cut at the valley between GFP-negative unlabelled cells and mCherry-positive cells on each day). All other backgrounds keep the standard gate (eGFP < 6 and mCherry < 6.5). Standard-gate values are retained for every well as a sensitivity."
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "TOBIAS",
+  "pooled_conditions": [
+    "LOY",
+    "CTRL"
+  ],
+  "sample_level_inference": false,
+  "predicted_occupancy": true
+}

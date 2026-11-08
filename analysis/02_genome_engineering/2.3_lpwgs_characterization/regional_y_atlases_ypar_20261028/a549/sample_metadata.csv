@@ -1,0 +1,9 @@
+sample,batch,condition,sample_index,library_size_all_genes,source_file
+A549-CTRL-1,August 2025,sgCTRL,1,53182934,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-CTRL-1.txt
+A549-CTRL-2,August 2025,sgCTRL,2,58712273,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-CTRL-2.txt
+A549-CTRL-3,August 2025,sgCTRL,3,62727788,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-CTRL-3.txt
+A549-CTRL-4,August 2025,sgCTRL,4,62829583,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-CTRL-4.txt
+A549-LOY-1,August 2025,LOY,1,57639092,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-LOY-1.txt
+A549-LOY-2,August 2025,LOY,2,63186329,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-LOY-2.txt
+A549-LOY-3,August 2025,LOY,3,60272879,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-LOY-3.txt
+A549-LOY-4,August 2025,LOY,4,54090406,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\AUG_2025_A549_LOY\A549-LOY-4.txt

@@ -1,0 +1,14 @@
+{
+  "completed_at": "2026-09-14T16:29:20.139216+00:00",
+  "curves": 12,
+  "composite_figures": 2,
+  "individual_exports": 36,
+  "composite_exports": 6,
+  "original_ES_and_leading_edges_reproduced": true,
+  "original_NES_and_global_BH_preserved": true,
+  "prior_figure_exports_unchanged": 51,
+  "total_composite_figures": 19,
+  "total_source_panels": 74,
+  "all_review_statuses_recorded": true,
+  "output_hashes": 72
+}

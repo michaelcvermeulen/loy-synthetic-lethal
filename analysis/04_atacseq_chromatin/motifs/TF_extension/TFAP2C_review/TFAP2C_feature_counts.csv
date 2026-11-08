@@ -1,0 +1,10 @@
+annotation,DA_status,N
+gene_body,other,8802
+promoter,other,6647
+intergenic,other,4545
+intergenic,lost_FDR005_LFC1,75
+promoter,lost_FDR005_LFC1,57
+gene_body,lost_FDR005_LFC1,166
+intergenic,gained_FDR005_LFC1,5
+promoter,gained_FDR005_LFC1,4
+gene_body,gained_FDR005_LFC1,5

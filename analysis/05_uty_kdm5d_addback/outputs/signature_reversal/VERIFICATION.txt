@@ -1,0 +1,5 @@
+PASS rescored May libraries reproduce frozen_signature_scores.csv (max abs diff 4.7e-16)
+PASS 50 up + 50 down signature genes ranked among 23903 background genes
+PASS unmoderated lm group differences reproduce stored UTY-vs-vector score difference
+PASS 200000 simulation draws per outcome; residual df 10
+Genes passing May filter used for gene-level summaries: 75

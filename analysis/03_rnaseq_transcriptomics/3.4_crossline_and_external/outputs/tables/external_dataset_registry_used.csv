@@ -1,0 +1,22 @@
+dataset,group,description,genes_tested
+"HT1080","in_house","HT1080 thesis reanalysis, primary genes",25461
+"A549","in_house","A549 thesis reanalysis, primary genes",22739
+"DU145","in_house","DU145 thesis reanalysis, primary genes",18760
+"A549_clones_LOYvROY","A_somatic_LOY","A549 4 LOY vs 4 ROY isogenic clones (DESeq2)",13552
+"A549_multiome_pb_LOYvROY","A_somatic_LOY","A549 multiome pseudobulk LOY vs ROY cells (same clones; not independent)",20882
+"MB49_cellline_YnegvYpos","A_somatic_LOY","Mouse MB49 bladder cancer cell line Y- vs Y+ (naive upper-case symbol match)",13876
+"MB49_tumor_YnegvYpos","A_somatic_LOY","Mouse MB49 subcutaneous tumour Y- vs Y+ (includes host stroma; naive symbol match)",16191
+"GSE313572_HT1080_ctrl_YnegvYpos","A2_single_cell_mosaic","HT1080 spheroids in 3D collagen (GSE313572 control sample): 1,185 Y- vs 2,142 Y+ cells (zero-count call on 8 Y genes, >= 3,000 features); limma-voom on 10 random cell partitions (pseudo-replicates of one sample; P values anti-conservative)",16931
+"Tahoe_A549_DMSO_YnegvYpos","A2_single_cell_mosaic","Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). A549 (37% Y-): 2,140 Y- vs 3,503 Y+ cells, 22 wells",10068
+"Tahoe_J82_DMSO_YnegvYpos","A2_single_cell_mosaic","Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). J82 bladder (8% Y-): 2,094 Y- vs 8,897 Y+ cells, 22 wells",12359
+"Tahoe_SKMEL2_DMSO_YnegvYpos","A2_single_cell_mosaic","Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). SK-MEL-2 melanoma (11% Y-): 1,175 Y- vs 4,075 Y+ cells, 19 wells",11795
+"Tahoe_HCT15_DMSO_YnegvYpos","A2_single_cell_mosaic","Tahoe-100M naturally Y-mosaic line, DMSO wells, well-paired pseudobulk (depth >= 3000, strict labels). HCT15 colorectal (15% Y-): 209 Y- vs 793 Y+ cells, 6 wells (underpowered)",9348
+"GSE126712_lymph_XOvXY","B_45X_vs_46XY","Primary lymphocytes 45X vs 46XY",14390
+"GSE207112_troph_XOvXY","B_45X_vs_46XY","Isogenic iPSC trophoblast 45X vs 46XY",17120
+"GSE264742_NCC_XOvXY","B_45X_vs_46XY","Isogenic iPSC neural crest 45X vs 46XY (shares donor with GSE207112)",16623
+"ERP156313_fetal_XOvXY","B_45X_vs_46XY","Fetal tissues 45X vs 46XY (tissue-adjusted consensus)",19251
+"PageLab_Fib_X0vXY","B_45X_vs_46XY","Fibroblasts 45X vs 46XY",12426
+"PageLab_LCL_X0vXY","B_45X_vs_46XY","Lymphoblastoid lines 45X vs 46XY",11420
+"GSE301297_undiff_UTYKOvWT","C_not_LOY","Male hESC UTY knockout vs WT (single Y gene; not LOY)",12003
+"GSE301297_undiff_DKOvWT","C_not_LOY","Male hESC UTX/UTY double knockout vs WT (not LOY)",12003
+"XYY_integrated_flipped","C_not_LOY","iPSC+NSC XYY vs XY consensus with sign flipped (+ = lower with fewer Y); Y gain not LOY",14784

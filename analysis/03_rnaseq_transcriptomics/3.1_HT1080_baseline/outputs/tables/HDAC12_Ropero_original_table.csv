@@ -1,0 +1,122 @@
+source_accession,source_symbol,source_process_annotation
+NM_015831.1,ACHE,DNA replication
+AI638420,ADD3,ion transport
+NM_003916.1,AP1S2,intracellular protein transport
+U48437.1,APLP1,cell adhesion
+NM_001643.1,APOA2,regulation of cytokine production
+NM_030882.1,APOL2,lipid metabolism
+U34846.1,AQP4,transport
+AV760769,B4GALT6,carbohydrate metabolism
+NM_024696.1,BAHCC1,---
+NM_022161.1,BIRC7,DNA fragmentation during apoptosis
+AF060922.1,BNIP3L,apoptosis
+AF073483.1,C11orf68,dicarboxylic acid transport
+AC004770,C11orf9,---
+AC005034,C2orf3,transcription
+NM_006848.1,CCDC85B,---
+NM_003607.1,CDC42BPA,protein amino acid phosphorylation
+AI123527,CEP57,"protein import into nucleus, translocation"
+NM_012110.1,CHIC2,---
+NM_001825.1,CKMT2,generation of precursor metabolites and energy
+NM_000095.1,COMP,cell adhesion
+NM_014325,CORO1C,signal transduction
+BF939649,CORO2B,actin cytoskeleton organization and biogenesis
+X07618.1,CYP2D6,electron transport
+AK027254.1,DDEF1,regulation of GTPase activity
+AA631156,DGCR6L,---
+NM_007337.1,DLEC1,negative regulation of cell proliferation
+AL162056.1,DOPEY1,endoplasmic reticulum organization and biogenesis
+AK026768.1,DPY19L1P1,---
+NM_001960.1,EEF1D,protein biosynthesis
+AI613383,EEF1D,protein biosynthesis
+AB044548.1,EIF4EBP1,regulation of translation
+NM_001425.1,EMP3,development
+NM_004431.1,EPHA2,transmembrane receptor protein tyrosine kinase signaling pathway
+NM_021922.1,FANCE,DNA repair
+D87858.1,FCAR,immune response
+NM_004115.1,FGF14,signal transduction
+NM_004214.3,FIBP,Cellular comunication
+BE619220,FLJ14803,---
+U27329.1,FUT5,carbohydrate metabolism
+NM_004123.1,GIP,signal transduction
+M85276,GNLY,xenobiotic metabolism
+BF222483,GP2,---
+NM_000178.1,GSS,amino acid metabolism
+J03189.1,GZMB,proteolysis
+U43328.1,HAPLN1,cell adhesion
+NM_001553.1,IGFBP7,regulation of cell growth
+NM_000207.1,INS,carbohydrate metabolism /
+U24660.1,KCNJ6,ion transport
+NM_002246.1,KCNK3,ion transport
+AI373854,KIAA0415,---
+AF070587.1,KIAA1509,---
+AL050220.1,KLK13,proteolysis /// proteolysis
+AA583336,LOC157562,---
+AK023081.1,LOC399818,carbohydrate metabolism
+AF113008.1,LOC440992,protein biosynthesis
+AL022313,LOC646756,---
+AK000645.1,LOC93432,carbohydrate metabolism
+AK023285.1,MACF1,cell cycle arrest
+AK023406.1,MACF1,cell cycle arrest
+X98405.1,MAG,cell adhesion
+AF201370.1,MDM2,regulation of progression through cell cycle
+AW129021,MGC87042,electron transport
+NM_022564.1,MMP16,peptidoglycan metabolism
+NM_002433.1,MOG,synaptic transmission
+AL050328,MOG,synaptic transmission
+NM_024848.1,MORN1,mRNA metabolism
+AI239732,NADK,metabolism
+NM_005437,NCOA4,Protein metabolism
+Z25434.1,NEK3,protein amino acid phosphorylation
+U32500.1,NPY2R,signal transduction
+AJ003145.1,OR1F2,signal transduction
+AF070547.1,PART1,---
+BE397715,PBX2,regulation of transcription
+AF152516.1,PCDHGA9,cell adhesion
+NM_014801.1,PCNXL2,---
+U50157.1,PDE4D,signal transduction
+U35632.1,PDX-1,regulation of transcription
+gb:AF255793.1,PLA2G5,phospholipid metabolism
+NM_000309.1,PPOX,electron transport
+AF163473.1,PPP2R1B,regulation of progression through cell cycle
+AW009884,PPP2R1B,regulation of progression through cell cycle
+X86428,PPP2R4,Regulation of cell cycle progression
+NM_017947.1,PTHLH,cell-cell signaling
+NM_005833.1,RABEPK,receptor mediated endocytosis
+AF125950.1,RAD52,DNA repair
+AW149379,RBM9,RNA metabolism
+NM_006867.1,RBPMS,RNA processing
+D43968.1,RUNX1,"regulation of transcription, DNA-dependent"
+AL035122.1,SAC,cAMP biosynthesis
+AB020335.1,SEL1L,Notch signaling pathway
+D50918.1,SEPT6,cytokinesis
+NM_012139.1,SERGEF,signal transduction
+NM_030974.1,SHARPIN,---
+AJ271205.1,SLC22A6,ion transport
+BC000563.1,SLC6A2,neurotransmitter transport
+NM_018042.1,SLFN12,---
+AI628464,SMAD6,transcription
+NM_003082.1,SNAPC1,"regulation of transcription, DNA-dependent"
+NM_006946.1,SPTBN2,vesicle-mediated transport
+AK026820.1,ST3GAL1,protein amino acid glycosylation
+AI718418,STCH,---
+NM_007029.1,STMN2,intracellular signaling cascade
+BC001172.1,TADA2L,regulation of progression through cell cycle
+U28049,TBX2,transcription
+AF195820.1,TCL6,---
+NM_006068.1,TLR6,signal transduction
+NM_023003.1,TM6SF1,---
+NM_006291.1,TNFAIP2,angiogenesis
+X71923.1,TNXB,cell adhesion
+M13231.1,TRGC2,cellular defense response
+U58766,TSTA3,protein amino acid glycosylation
+NM_006472.1,TXNIP,keratinocyte differentiation
+AB019695.1,TXNRD2,response to oxygen radical
+NM_017481.1,UBQLN3,ubiquitin cycle
+NM_006002.1,UCHL3,ubiquitin-dependent protein catabolism
+AI191771,WNT6,cell-cell signaling
+NM_014150.1,ZCCHC4,DNA methylation
+AI375002,ZNF447,"regulation of transcription, DNA-dependent"
+AF255793.1,---,---
+NM_003163.1,---,intracellular protein transport
+NM_018517.1,---,---

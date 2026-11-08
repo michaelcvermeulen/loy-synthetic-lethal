@@ -1,0 +1,117 @@
+{
+  "status": "complete",
+  "completed_utc": "2026-09-14T21:59:17.131057+00:00",
+  "scientific_validation": {
+    "status": "passed",
+    "input_hashes_checked": 14,
+    "primary_ES_and_leading_edge_checks": 20,
+    "all_BH_BY_and_pooled_BH_reproduced": true,
+    "fgsea_rows": 360,
+    "camera_rows": 320,
+    "gene_identity_and_size_checks": true,
+    "unestimable_fgsea_sensitivity_tests": 2,
+    "original_statistics_unchanged": true
+  },
+  "camera_validation": {
+    "status": "passed",
+    "independent_design_reconstruction": true,
+    "CAMERA_gene_ID_index_and_explicit_weight_checks": 120
+  },
+  "publication_figures": 4,
+  "local_report_links_checked": 30,
+  "visual_review": "passed",
+  "artifacts": [
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_all_sets.pdf",
+      "sha256": "2b5b8d5ea1ea07df09cf15731b18bcad9033af907c37358bd66609fcaa5ea98c"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_all_sets.svg",
+      "sha256": "81d57e353d471b13e0fe4e39b5647e8cd45ac336d92b368586636b5c7e8c7cb4"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_all_sets.png",
+      "sha256": "145b9f6b5b73071340d04f56cd5a211e4e64e70155d8a0f228bfe0ff3041fd6c"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_GSEA_curves.pdf",
+      "sha256": "dc37de107ffa412c4ff1322a990de8a6e46a08a0ea53d12621524145941e64f2"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_GSEA_curves.svg",
+      "sha256": "374e6df93aefb88e200b1eaf041c89689ec17fff0887154d37f04ed885e34304"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_GSEA_curves.png",
+      "sha256": "8f64f5f4689c09559bcc9fd7e2723f1e11ff80ce0c84f2188907520cabc265fb"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_effect_distributions.pdf",
+      "sha256": "666d9a86308d1de75e4019ac488060b63bdb3895d80a509a6d128555c550cea5"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_effect_distributions.svg",
+      "sha256": "25ca92b6cd385993e43e2c583b9a66231cd5acec5ad0fc7909804017cab9bfa1"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_effect_distributions.png",
+      "sha256": "2a393650322a2ed691b3eb7087728edd4c52ae03065a125f586e73bf17a390b6"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_sensitivity.pdf",
+      "sha256": "c2227268361ba25839a9e402a54e424cdc7d8e814c223a5f3d195770c1dca8da"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_sensitivity.svg",
+      "sha256": "9b861ba6dd016c0917f23f494b8eab66dd9ae71b40ae0b7fe6a3f48835ea3c1a"
+    },
+    {
+      "path": "outputs\\figures\\chromatin_rna\\HT1080_chromatin_RNA_sensitivity.png",
+      "sha256": "34433b050c358f8f097b219f3388a7614952b2f5e9a5506bc427c47ada71334c"
+    },
+    {
+      "path": "CHROMATIN_RNA_ENRICHMENT.md",
+      "sha256": "98dc9ee1ae5943a75ecea651d383d8270149f05637d94424cc17fb78ceced4fa"
+    },
+    {
+      "path": "outputs\\report\\chromatin_rna_enrichment.html",
+      "sha256": "6b2e17874fafda2ddb905e35da9a5cc8ca22c167cccd744b21c744cb790197c5"
+    },
+    {
+      "path": "outputs\\captions\\chromatin_rna.md",
+      "sha256": "ea2b66cee92cf3ce7a38ee04b4157a046fc25021e06d5ef12cfadb1fa5d7d15f"
+    }
+  ],
+  "scripts": [
+    {
+      "path": "run_chromatin_rna.R",
+      "sha256": "c077c8a155d107b4e31314ef4736ad8709d8bc82ff163bbe5c1404b2b88065b9"
+    },
+    {
+      "path": "run_chromatin_rna.py",
+      "sha256": "96a3c01e016ab42ee558f75ef846a043b9984811f6bf99f35aecfd49d2734281"
+    },
+    {
+      "path": "summarize_chromatin_rna.py",
+      "sha256": "1e0689b2aafce5680da7d4aeb3ef242cf1fe7a50e4a30da944a2fe0a860ff447"
+    },
+    {
+      "path": "plot_chromatin_rna.py",
+      "sha256": "8d7daf6f596431fc718136ae64e822f29c2cd95ff7b7a01c63a4bd5fb2367c90"
+    },
+    {
+      "path": "validate_chromatin_rna.R",
+      "sha256": "2aab26033c6042a9f782abcfc12f2ba4c9f0d5ab28bdf7fc9ef0fd8b37df8b5a"
+    },
+    {
+      "path": "complete_chromatin_rna.py",
+      "sha256": "50468d5ef927d26675a781afad33a18f6fb0a072d05124533b658ab8dce070aa"
+    }
+  ],
+  "python_environment": {
+    "python": "3.13.5",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3",
+    "matplotlib": "3.10.0"
+  }
+}

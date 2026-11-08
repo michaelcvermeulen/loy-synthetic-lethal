@@ -1,0 +1,708 @@
+---
+title: "ddPCR Analysis Report"
+author: "LOY Paralogs"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+params:
+  run_dir: "A:/Dropbox/LOY_paralogs/data/ddPCR/AMELX Craig_FEB_10_2026_2026-02-10-16-54"
+  date_label: "2026-02-10"
+  y_target: "AMELX"
+  x_target: "AMELX_2"
+  y_label: "AMELY"
+  x_label: "AMELX"
+  summary_csv: "A:/Dropbox/LOY_paralogs/data/ddPCR/summary_table_ddPCR.csv"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                      fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(data.table)
+library(ggpubr)
+library(reshape2)
+library(stringr)
+```
+
+# Run: `r params$date_label`
+
+**Directory:** `r params$run_dir`
+
+## Data Loading
+
+```{r load-plate}
+# Find the plate config CSV (starts with "ddplate" on line 1)
+all_csvs <- list.files(params$run_dir, pattern = "\\.csv$", full.names = TRUE)
+plate_csv <- NULL
+for (f in all_csvs) {
+  first_line <- readLines(f, n = 1, warn = FALSE)
+  if (grepl("^ddplate", first_line)) {
+    plate_csv <- f
+    break
+  }
+}
+
+if (!is.null(plate_csv)) {
+  plate <- data.table::fread(plate_csv, skip = 4)
+  plate <- plate %>% dplyr::distinct(Well, .keep_all = TRUE)
+} else {
+  # Fallback: look for plate.csv
+  plate_path <- file.path(params$run_dir, "plate.csv")
+  if (file.exists(plate_path)) {
+    plate <- data.table::fread(plate_path, skip = 4)
+    plate <- plate %>% dplyr::distinct(Well, .keep_all = TRUE)
+  } else {
+    stop("No plate metadata CSV found in run directory.")
+  }
+}
+```
+
+```{r load-amplitude}
+files <- list.files(params$run_dir, pattern = "_Amplitude\\.csv$", full.names = TRUE)
+
+# Read all amplitude files
+amp_list <- lapply(files, function(y) {
+  df <- data.table::fread(y, skip = 4)
+  df <- df[, 1:4, with = FALSE]
+  # Explicitly name columns (fread may auto-name as V1-V4)
+  names(df) <- c("Ch1Amplitude", "Ch2Amplitude", params$y_target, params$x_target)
+  # Force numeric
+  df$Ch1Amplitude <- as.numeric(df$Ch1Amplitude)
+  df$Ch2Amplitude <- as.numeric(df$Ch2Amplitude)
+  df[[3]] <- as.numeric(df[[3]])
+  df[[4]] <- as.numeric(df[[4]])
+  return(df)
+})
+names(amp_list) <- basename(files)
+
+# Process: rename targets to canonical Y/X, extract well, classify droplets
+amp_list <- lapply(seq_along(amp_list), function(x) {
+  df <- amp_list[[x]]
+
+  # Skip empty wells (no droplet data)
+  if (nrow(df) == 0) return(NULL)
+
+  # Rename target columns to canonical Y and X
+  y_col <- which(names(df) == params$y_target)
+  x_col <- which(names(df) == params$x_target)
+  if (length(y_col) == 1) names(df)[y_col] <- "Y"
+  if (length(x_col) == 1) names(df)[x_col] <- "X"
+
+  # Classify droplets
+  df$call <- ifelse(df$X == 0 & df$Y == 1, "Y+",
+             ifelse(df$X == 1 & df$Y == 0, "Y-",
+             ifelse(df$X == 1 & df$Y == 1, "X+Y", "empty")))
+
+  # Extract well ID dynamically (find element matching well pattern)
+  parts <- str_split(basename(files)[x], "_", simplify = TRUE)
+  well_idx <- which(grepl("^[A-H][0-9]{2}$", parts))
+  if (length(well_idx) > 0) {
+    df$well <- parts[well_idx[length(well_idx)]]  # take last match (closest to _Amplitude)
+  } else {
+    df$well <- paste0("W", x)
+  }
+
+  return(df)
+})
+
+# Remove NULL (empty wells) and bind
+amp_list <- amp_list[!sapply(amp_list, is.null)]
+l <- data.table::rbindlist(amp_list)
+l <- l %>% tidyr::drop_na(call)
+
+# Ensure numeric types
+l$Ch1Amplitude <- as.numeric(l$Ch1Amplitude)
+l$Ch2Amplitude <- as.numeric(l$Ch2Amplitude)
+l$Y <- as.numeric(l$Y)
+l$X <- as.numeric(l$X)
+
+cat(sprintf("Loaded %d droplets across %d wells\n", nrow(l), length(unique(l$well))))
+cat(sprintf("Ch1 class: %s | Ch2 class: %s\n", class(l$Ch1Amplitude), class(l$Ch2Amplitude)))
+cat(sprintf("Ch1 range: %.1f - %.1f | Ch2 range: %.1f - %.1f\n",
+    min(l$Ch1Amplitude, na.rm = TRUE), max(l$Ch1Amplitude, na.rm = TRUE),
+    min(l$Ch2Amplitude, na.rm = TRUE), max(l$Ch2Amplitude, na.rm = TRUE)))
+cat(sprintf("Ch1 NAs: %d | Ch2 NAs: %d\n", sum(is.na(l$Ch1Amplitude)), sum(is.na(l$Ch2Amplitude))))
+cat(sprintf("Call distribution: %s\n", paste(names(table(l$call)), table(l$call), sep = "=", collapse = ", ")))
+```
+
+```{r join-plate}
+# Join with plate metadata
+l <- dplyr::left_join(l,
+  plate %>% dplyr::select(Well, `Sample description 1`, TargetName),
+  by = c("well" = "Well")
+)
+
+# Remove NTC samples
+l <- l %>% dplyr::filter(!(`Sample description 1` %in% c("NTC")))
+
+# Create sample name
+l$name <- paste0(l$well, "_", l$`Sample description 1`)
+```
+
+```{r check-data_table}
+# Check for data_table.csv
+dt_path <- file.path(params$run_dir, "data_table.csv")
+has_dt <- file.exists(dt_path)
+if (has_dt) {
+  dt <- data.table::fread(dt_path)
+  dt$name <- paste0(dt$Well, "_", dt$`Sample description 1`)
+}
+```
+
+**Samples in this run:**
+
+```{r sample-table}
+plate %>%
+  dplyr::filter(`Sample description 1` != "" & !is.na(`Sample description 1`)) %>%
+  dplyr::select(Well, `Sample description 1`, TargetName) %>%
+  dplyr::distinct() %>%
+  knitr::kable()
+```
+
+## Droplet Classification & Ratios
+
+```{r classify}
+# Aggregate droplet counts per well/sample
+counts <- l %>%
+  dplyr::group_by(name, `Sample description 1`, call, TargetName) %>%
+  dplyr::summarise(n = dplyr::n(), .groups = "drop") %>%
+  reshape2::dcast(name + TargetName ~ call, value.var = "n")
+counts[is.na(counts)] <- 0
+
+# Ensure all call columns exist
+for (col in c("Y+", "Y-", "X+Y", "empty")) {
+  if (!(col %in% names(counts))) counts[[col]] <- 0
+}
+
+# Extract well and sample description from name (format: "WELL_SAMPLEDESC")
+counts$well <- str_split(counts$name, "_", simplify = TRUE)[, 1]
+counts$sample_desc <- sub("^[A-H][0-9]{2}_", "", counts$name)
+
+# Extract cell line (first part of sample description before _)
+first_field <- str_split(counts$sample_desc, "_", simplify = TRUE)[, 1]
+counts$cell_line <- ifelse(grepl("^(P[1-4]|D0)", first_field),
+                           "HT1080", first_field)
+
+# Calculate ratios
+counts <- counts %>%
+  dplyr::mutate(
+    ratio      = (`Y+` + `X+Y`) / (`Y-` + `X+Y`),
+    total      = `Y+` + `Y-` + `X+Y` + empty,
+    empty_rate = empty / total,
+    double_rate = `X+Y` / total
+  )
+
+counts$date <- params$date_label
+```
+
+```{r ratio-table}
+counts %>%
+  dplyr::select(name, cell_line, TargetName, ratio, empty_rate, double_rate, total) %>%
+  dplyr::mutate(across(where(is.numeric), ~round(., 4))) %>%
+  knitr::kable(caption = "Droplet-count ratios and QC metrics per well")
+```
+
+### Pooled Replicates
+
+Technical replicate wells are pooled by summing raw droplet counts before computing ratios (weighted by droplet count per well).
+
+```{r pool-replicates}
+# Pool replicate wells: sum droplet counts by sample_desc (e.g., LNCAP_LOY)
+pooled <- counts %>%
+  dplyr::group_by(sample_desc, cell_line) %>%
+  dplyr::summarise(
+    n_wells  = dplyr::n(),
+    wells    = paste(well, collapse = "+"),
+    `Y+`     = sum(`Y+`),
+    `Y-`     = sum(`Y-`),
+    `X+Y`    = sum(`X+Y`),
+    empty    = sum(empty),
+    .groups  = "drop"
+  ) %>%
+  dplyr::mutate(
+    total       = `Y+` + `Y-` + `X+Y` + empty,
+    ratio       = (`Y+` + `X+Y`) / (`Y-` + `X+Y`),
+    empty_rate  = empty / total,
+    double_rate = `X+Y` / total
+  )
+
+# Extract condition — remap LOY to LOYx2 (2nd nucleofection)
+pooled$condition <- sub("^[^_]+_", "", pooled$sample_desc)
+pooled$condition <- ifelse(pooled$condition == "LOY", "LOYx2", pooled$condition)
+
+pooled %>%
+  dplyr::select(sample_desc, wells, n_wells, cell_line, ratio, empty_rate, double_rate, total) %>%
+  dplyr::mutate(across(where(is.numeric), ~round(., 4))) %>%
+  knitr::kable(caption = "Pooled replicate ratios (raw droplet counts summed across wells)")
+```
+
+## Ratio Bar Plot
+
+```{r ratio-barplot, fig.height=5, fig.width=6}
+# Extract condition (LOYx2/sgCTRL) from sample description
+plot_data <- counts
+plot_data$condition <- sub("^[^_]+_", "", plot_data$sample_desc)
+plot_data$condition <- ifelse(plot_data$condition == "LOY", "LOYx2", plot_data$condition)
+plot_data$sample_label <- paste0(plot_data$sample_desc, " (", plot_data$well, ")")
+
+# Per-well plot (all samples)
+ggpubr::ggbarplot(
+  data = plot_data, x = "sample_label", y = "ratio",
+  fill = "condition", add = "mean_se",
+  palette = c("LOYx2" = "#E64B35", "sgCTRL" = "#4DBBD5"),
+  position = position_dodge()
+) %>%
+  ggpubr::ggpar(
+    legend.title = "Condition",
+    x.text.angle = 45,
+    font.x = c(8),
+    ylim = c(0, 1.05),
+    ylab = paste0(params$y_label, " / ", params$x_label, " Ratio"),
+    xlab = "Sample",
+    title = paste("ddPCR Ratios per Well —", params$date_label)
+  )
+```
+
+## LOY vs Control by Cell Line (Pooled Replicates)
+
+```{r loy-vs-ctrl, fig.height=5, fig.width=5}
+pooled$condition <- factor(pooled$condition, levels = c("sgCTRL", "LOYx2"))
+
+ggpubr::ggbarplot(
+  data = pooled, x = "cell_line", y = "ratio",
+  fill = "condition",
+  palette = c("sgCTRL" = "#4DBBD5", "LOYx2" = "#E64B35"),
+  position = position_dodge(0.8),
+  width = 0.7
+) %>%
+  ggpubr::ggpar(
+    legend.title = "Condition",
+    font.x = c(10),
+    ylim = c(0, 1.05),
+    ylab = paste0(params$y_label, " / ", params$x_label, " Ratio"),
+    xlab = "Cell Line",
+    title = paste("Y Chromosome Loss (Pooled) —", params$date_label)
+  ) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey40")
+```
+
+## 2D Amplitude Scatter
+
+```{r scatter-2d, fig.height=8, fig.width=10}
+# Color palette for droplet calls
+call_colors <- c("Y+" = "#E64B35", "Y-" = "#4DBBD5", "X+Y" = "#00A087", "empty" = "grey70")
+
+# Convert to data.frame to avoid data.table/ggplot2 issues
+scatter_df <- as.data.frame(l)
+cat(sprintf("Plotting %d droplets across %d wells\n", nrow(scatter_df), length(unique(scatter_df$well))))
+
+ggplot(scatter_df, aes(x = Ch1Amplitude, y = Ch2Amplitude, color = call)) +
+  geom_point(size = 0.5, alpha = 0.5) +
+  scale_color_manual(values = call_colors, name = "Droplet Call") +
+  facet_wrap(~ name) +
+  coord_cartesian(xlim = c(0, 12000), ylim = c(0, 5500)) +
+  labs(
+    title = paste("Droplet Amplitude —", params$date_label),
+    x = paste0("Ch1 (", params$y_label, ")"),
+    y = paste0("Ch2 (", params$x_label, ")")
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_text(size = 8),
+    legend.position = "bottom"
+  )
+```
+
+## QC Metrics
+
+```{r qc-metrics, fig.height=5, fig.width=10}
+qc_long <- counts %>%
+  dplyr::select(name, cell_line, empty_rate, double_rate, total) %>%
+  dplyr::distinct()
+
+# Panel 1: rates
+qc_rates <- qc_long %>%
+  tidyr::pivot_longer(cols = c(empty_rate, double_rate),
+                      names_to = "metric", values_to = "value") %>%
+  dplyr::mutate(metric = ifelse(metric == "empty_rate", "Empty Rate", "Double Rate"))
+
+p1 <- ggbarplot(qc_rates, x = "name", y = "value", fill = "metric",
+                position = position_dodge(), palette = c("#3C5488", "#E64B35")) %>%
+  ggpar(x.text.angle = 45, font.x = c(7), ylab = "Rate", xlab = "",
+        title = "Empty & Double Rates", legend.title = "Metric")
+
+# Panel 2: total droplets
+p2 <- ggbarplot(qc_long, x = "name", y = "total", fill = "cell_line",
+                palette = "aaas") %>%
+  ggpar(x.text.angle = 45, font.x = c(7), ylab = "Accepted Droplets", xlab = "",
+        title = "Total Droplets per Well", legend.title = "Cell line")
+
+ggarrange(p1, p2, nrow = 1, widths = c(1, 1))
+```
+
+```{r concentration, eval=has_dt, results='asis'}
+cat("\n## Concentration Ratio\n\n")
+```
+
+```{r concentration-calc, eval=has_dt}
+# Pivot concentration data
+dt_conc <- dt %>%
+  dplyr::select(name, Target, `Conc(copies/µL)`, PoissonConfMax, PoissonConfMin)
+
+conc_wide <- reshape2::dcast(dt_conc, name ~ Target, value.var = "Conc(copies/µL)")
+ci_max <- reshape2::dcast(dt_conc, name ~ Target, value.var = "PoissonConfMax")
+ci_min <- reshape2::dcast(dt_conc, name ~ Target, value.var = "PoissonConfMin")
+
+# Rename dynamically
+targets <- setdiff(names(conc_wide), "name")
+names(conc_wide)[-1] <- paste0(targets, "_Conc")
+names(ci_max)[-1] <- paste0(targets, "_PoissonConfMax")
+names(ci_min)[-1] <- paste0(targets, "_PoissonConfMin")
+
+conc_all <- dplyr::left_join(conc_wide, ci_max, by = "name") %>%
+  dplyr::left_join(ci_min, by = "name")
+
+# Make numeric
+for (col in names(conc_all)[-1]) {
+  conc_all[[col]] <- as.numeric(conc_all[[col]])
+}
+
+# Determine which target pairs exist and compute ratios
+# Y-linked target conc / X-linked target conc
+y_conc_col <- paste0(params$y_target, "_Conc")
+x_conc_col <- paste0(params$x_target, "_Conc")
+
+if (all(c(y_conc_col, x_conc_col) %in% names(conc_all))) {
+  conc_all$Conc_ratio <- conc_all[[y_conc_col]] / conc_all[[x_conc_col]]
+  conc_all$CI_max <- conc_all[[paste0(params$y_target, "_PoissonConfMax")]] /
+                     conc_all[[x_conc_col]]
+  conc_all$CI_min <- conc_all[[paste0(params$y_target, "_PoissonConfMin")]] /
+                     conc_all[[x_conc_col]]
+}
+
+# Also check for DDX3Y/RNaseP
+if (all(c("DDX3Y_Conc", "RNaseP_Conc") %in% names(conc_all))) {
+  conc_all$DDX3Y_ratio <- conc_all$DDX3Y_Conc / conc_all$RNaseP_Conc
+}
+
+# Join concentration data to counts
+counts <- dplyr::left_join(counts, conc_all, by = "name")
+```
+
+```{r concentration-plot, eval=has_dt, fig.height=5, fig.width=6}
+if ("Conc_ratio" %in% names(conc_all)) {
+  conc_plot <- conc_all %>% dplyr::filter(!is.na(Conc_ratio) & is.finite(Conc_ratio))
+
+  if (nrow(conc_plot) > 0) {
+    # Add sample metadata
+    conc_plot$well <- str_split(conc_plot$name, "_", simplify = TRUE)[, 1]
+    conc_plot$sample_desc <- sub("^[A-H][0-9]{2}_", "", conc_plot$name)
+    conc_plot$condition <- sub("^[^_]+_", "", conc_plot$sample_desc)
+    conc_plot$condition <- ifelse(conc_plot$condition == "LOY", "LOYx2", conc_plot$condition)
+    conc_plot$cell_line <- str_split(conc_plot$sample_desc, "_", simplify = TRUE)[, 1]
+    conc_plot$sample_label <- paste0(conc_plot$sample_desc, " (", conc_plot$well, ")")
+
+    # Per-well plot
+    ggplot(conc_plot, aes(x = sample_label, y = Conc_ratio, fill = condition)) +
+      geom_col(width = 0.6) +
+      geom_errorbar(aes(ymin = CI_min, ymax = CI_max), width = 0.2) +
+      geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey40") +
+      scale_fill_manual(values = c("LOYx2" = "#E64B35", "sgCTRL" = "#4DBBD5")) +
+      labs(
+        title = paste("Concentration Ratio per Well —", params$date_label),
+        subtitle = paste0(params$y_label, " / ", params$x_label, " (copies/\u00b5L)"),
+        y = "Concentration Ratio", x = "", fill = "Condition"
+      ) +
+      coord_cartesian(ylim = c(0, max(conc_plot$CI_max, 1.05, na.rm = TRUE))) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+  }
+}
+```
+
+```{r concentration-loy-vs-ctrl, eval=has_dt, fig.height=5, fig.width=5}
+if ("Conc_ratio" %in% names(conc_all)) {
+  conc_plot <- conc_all %>% dplyr::filter(!is.na(Conc_ratio) & is.finite(Conc_ratio))
+
+  if (nrow(conc_plot) > 0) {
+    conc_plot$sample_desc <- sub("^[A-H][0-9]{2}_", "", conc_plot$name)
+    conc_plot$condition <- sub("^[^_]+_", "", conc_plot$sample_desc)
+    conc_plot$condition <- ifelse(conc_plot$condition == "LOY", "LOYx2", conc_plot$condition)
+    conc_plot$condition <- factor(conc_plot$condition, levels = c("sgCTRL", "LOYx2"))
+    conc_plot$cell_line <- str_split(conc_plot$sample_desc, "_", simplify = TRUE)[, 1]
+
+    # Average concentration across replicate wells
+    conc_pooled <- conc_plot %>%
+      dplyr::group_by(sample_desc, cell_line, condition) %>%
+      dplyr::summarise(
+        Conc_ratio = mean(Conc_ratio, na.rm = TRUE),
+        CI_min = mean(CI_min, na.rm = TRUE),
+        CI_max = mean(CI_max, na.rm = TRUE),
+        n_wells = dplyr::n(),
+        .groups = "drop"
+      )
+
+    ggpubr::ggbarplot(
+      data = conc_pooled, x = "cell_line", y = "Conc_ratio",
+      fill = "condition",
+      palette = c("sgCTRL" = "#4DBBD5", "LOYx2" = "#E64B35"),
+      position = position_dodge(0.8),
+      width = 0.7
+    ) %>%
+      ggpubr::ggpar(
+        legend.title = "Condition",
+        font.x = c(10),
+        ylim = c(0, 1.05),
+        ylab = paste0(params$y_label, " / ", params$x_label, " Conc Ratio"),
+        xlab = "Cell Line",
+        title = paste("Y Chromosome Loss — Concentration (Pooled) —", params$date_label)
+      ) +
+      geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey40")
+  }
+}
+```
+
+```{r concentration-table, eval=has_dt}
+conc_display <- conc_all %>%
+  dplyr::select(name, any_of(c(y_conc_col, x_conc_col, "Conc_ratio",
+                                "DDX3Y_Conc", "RNaseP_Conc", "DDX3Y_ratio")))
+
+conc_display %>%
+  dplyr::mutate(across(where(is.numeric), ~round(., 3))) %>%
+  knitr::kable(caption = "Concentration data and ratios")
+```
+
+## Historical Comparison
+
+```{r historical, fig.height=7, fig.width=10}
+if (file.exists(params$summary_csv)) {
+  hist_data <- data.table::fread(params$summary_csv)
+
+  # Cell lines in current run
+  current_cell_lines <- unique(counts$cell_line)
+
+  # Filter historical to matching cell lines
+  hist_filtered <- hist_data %>%
+    dplyr::filter(cell_line %in% current_cell_lines)
+
+  if (nrow(hist_filtered) > 0) {
+    # Standardize TargetName for historical data
+    hist_filtered$target_pair <- ifelse(hist_filtered$TargetName == "AMELY", "AMELY/AMELX",
+                                 ifelse(hist_filtered$TargetName == "DDX3Y", "DDX3Y/RNaseP",
+                                        hist_filtered$TargetName))
+
+    # Prepare historical data for plot
+    hist_for_plot <- hist_filtered %>%
+      dplyr::select(name, cell_line, ratio, target_pair, ddPCR_date) %>%
+      dplyr::mutate(source = "Historical")
+
+    # Prepare current run data (use pooled replicates)
+    current_for_hist <- pooled %>%
+      dplyr::mutate(
+        target_pair = "AMELY/AMELX",
+        ddPCR_date = params$date_label,
+        source = "Current Run"
+      ) %>%
+      dplyr::select(name = sample_desc, cell_line, ratio, target_pair, ddPCR_date, source)
+
+    combined <- dplyr::bind_rows(hist_for_plot, current_for_hist)
+
+    # Create sample label (name + date)
+    combined$label <- paste0(combined$name, "\n(", combined$ddPCR_date, ")")
+
+    # Plot all cell lines in current run, faceted by target pair and cell line
+    ggplot(combined, aes(x = reorder(label, -ratio), y = ratio, fill = source)) +
+      geom_col(width = 0.6, position = position_dodge(0.7)) +
+      facet_grid(target_pair ~ cell_line, scales = "free_x", space = "free_x") +
+      scale_fill_manual(values = c("Current Run" = "#E64B35", "Historical" = "#4DBBD5")) +
+      geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey40") +
+      labs(
+        title = "Historical Comparison of Y/X Ratio",
+        y = "Ratio", x = "", fill = ""
+      ) +
+      coord_cartesian(ylim = c(0, 1.1)) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+        strip.text = element_text(size = 9),
+        legend.position = "bottom"
+      )
+  } else {
+    cat("No historical data found for cell lines in this run:",
+        paste(current_cell_lines, collapse = ", "))
+  }
+} else {
+  cat("Summary CSV not found at:", params$summary_csv)
+}
+```
+
+### LNCaP Historical Detail
+
+```{r historical-lncap, fig.height=6, fig.width=9}
+if (file.exists(params$summary_csv)) {
+  hist_data <- data.table::fread(params$summary_csv)
+
+  # All LNCaP entries from summary
+  hist_lncap <- hist_data %>%
+    dplyr::filter(grepl("LNCAP", cell_line, ignore.case = TRUE))
+
+  if (nrow(hist_lncap) > 0) {
+    hist_lncap$target_pair <- ifelse(hist_lncap$TargetName == "AMELY", "AMELY/AMELX",
+                              ifelse(hist_lncap$TargetName == "DDX3Y", "DDX3Y/RNaseP",
+                                     hist_lncap$TargetName))
+
+    # Standardize condition names for historical data
+    # CP+Q53+P47 = LOYx1 (first nucleofection)
+    # CTRL1 / LNCAP_CTRL = sgCTRL
+    # Parental = Parental
+    hist_lncap$condition <- dplyr::case_when(
+      grepl("CP\\+Q53\\+P47", hist_lncap$name) ~ "LOYx1",
+      grepl("CTRL", hist_lncap$name, ignore.case = TRUE) ~ "sgCTRL",
+      grepl("Parental", hist_lncap$name, ignore.case = TRUE) ~ "Parental",
+      TRUE ~ hist_lncap$name
+    )
+
+    hist_lncap_plot <- hist_lncap %>%
+      dplyr::select(name, ratio, target_pair, ddPCR_date, condition) %>%
+      dplyr::mutate(source = "Historical")
+
+    # Current LNCaP data (use pooled replicates)
+    # LNCAP_LOY in Feb 2026 = LOYx2 (second nucleofection)
+    current_lncap <- pooled %>%
+      dplyr::filter(grepl("LNCAP", cell_line, ignore.case = TRUE)) %>%
+      dplyr::mutate(
+        target_pair = "AMELY/AMELX",
+        ddPCR_date = params$date_label,
+        source = "Current Run",
+        condition = dplyr::case_when(
+          grepl("LOY", sample_desc, ignore.case = TRUE) ~ "LOYx2",
+          grepl("sgCTRL|CTRL", sample_desc, ignore.case = TRUE) ~ "sgCTRL",
+          TRUE ~ sample_desc
+        )
+      ) %>%
+      dplyr::select(name = sample_desc, ratio, target_pair, ddPCR_date, condition, source)
+
+    lncap_combined <- dplyr::bind_rows(hist_lncap_plot, current_lncap)
+
+    # Order conditions logically: Parental > sgCTRL > LOYx1 > LOYx2
+    lncap_combined$condition <- factor(lncap_combined$condition,
+      levels = c("Parental", "sgCTRL", "LOYx1", "LOYx2"))
+
+    lncap_combined$label <- paste0(lncap_combined$condition, "\n(", lncap_combined$ddPCR_date, ")")
+
+    # Bar plot: condition on x-axis, colored by date, faceted by target pair
+    ggplot(lncap_combined, aes(x = condition, y = ratio, fill = ddPCR_date)) +
+      geom_col(width = 0.6, position = position_dodge2(preserve = "single", padding = 0.1)) +
+      facet_wrap(~ target_pair, scales = "free_x") +
+      geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey40") +
+      scale_fill_brewer(palette = "Set2") +
+      labs(
+        title = "LNCaP — Y Chromosome Loss Across Runs",
+        subtitle = "Parental \u2192 sgCTRL \u2192 LOYx1 (1st nucleofection) \u2192 LOYx2 (2nd nucleofection)",
+        y = "Ratio", x = "Condition", fill = "ddPCR Date"
+      ) +
+      coord_cartesian(ylim = c(0, 1.1)) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(size = 9),
+        strip.text = element_text(size = 10),
+        legend.position = "bottom"
+      )
+  } else {
+    cat("No LNCaP historical data found in summary CSV.")
+  }
+} else {
+  cat("Summary CSV not found at:", params$summary_csv)
+}
+```
+
+### Nucleofection Efficacy — Fold Change vs sgCTRL
+
+```{r fold-change, fig.height=5, fig.width=7}
+if (exists("lncap_combined")) {
+  # Average ratio per condition x target_pair (collapse across dates)
+  fc_data <- lncap_combined %>%
+    dplyr::filter(!is.na(condition)) %>%
+    dplyr::group_by(condition, target_pair) %>%
+    dplyr::summarise(mean_ratio = mean(ratio, na.rm = TRUE), .groups = "drop")
+
+  # Compute fold change relative to sgCTRL for each target pair
+  fc_table <- fc_data %>%
+    dplyr::group_by(target_pair) %>%
+    dplyr::mutate(
+      sgCTRL_ratio = mean_ratio[condition == "sgCTRL"],
+      fold_vs_ctrl = mean_ratio / sgCTRL_ratio,
+      pct_reduction = (1 - fold_vs_ctrl) * 100
+    ) %>%
+    dplyr::ungroup()
+
+  # Also compute LOYx2 vs LOYx1 improvement where both exist
+  fc_table <- fc_table %>%
+    dplyr::group_by(target_pair) %>%
+    dplyr::mutate(
+      LOYx1_ratio = ifelse(any(condition == "LOYx1"), mean_ratio[condition == "LOYx1"], NA_real_),
+      fold_x2_vs_x1 = ifelse(condition == "LOYx2" & !is.na(LOYx1_ratio),
+                              mean_ratio / LOYx1_ratio, NA_real_),
+      pct_further_reduction = ifelse(condition == "LOYx2" & !is.na(LOYx1_ratio),
+                                     (1 - fold_x2_vs_x1) * 100, NA_real_)
+    ) %>%
+    dplyr::ungroup()
+
+  # Display table
+  fc_table %>%
+    dplyr::select(target_pair, condition, mean_ratio, sgCTRL_ratio,
+                  fold_vs_ctrl, pct_reduction, fold_x2_vs_x1, pct_further_reduction) %>%
+    dplyr::mutate(across(where(is.numeric), ~round(., 3))) %>%
+    knitr::kable(
+      caption = "Fold change relative to sgCTRL and LOYx2 vs LOYx1 improvement",
+      col.names = c("Target Pair", "Condition", "Mean Ratio", "sgCTRL Ratio",
+                     "Fold vs sgCTRL", "% Reduction vs sgCTRL",
+                     "Fold LOYx2/LOYx1", "% Further Reduction")
+    )
+}
+```
+
+```{r fold-change-plot, fig.height=4, fig.width=6}
+if (exists("fc_table")) {
+  fc_plot <- fc_table %>%
+    dplyr::filter(condition %in% c("LOYx1", "LOYx2"))
+
+  if (nrow(fc_plot) > 0) {
+    fc_plot$condition <- factor(fc_plot$condition, levels = c("LOYx1", "LOYx2"))
+
+    ggplot(fc_plot, aes(x = condition, y = pct_reduction, fill = condition)) +
+      geom_col(width = 0.5, position = position_dodge2(preserve = "single", padding = 0.1)) +
+      geom_text(aes(label = paste0(round(pct_reduction, 1), "%")),
+                vjust = -0.5, size = 4) +
+      facet_wrap(~ target_pair) +
+      scale_fill_manual(values = c("LOYx1" = "#F39B7F", "LOYx2" = "#E64B35")) +
+      labs(
+        title = "LNCaP — Y Chromosome Reduction vs sgCTRL",
+        subtitle = "% reduction in AMELY/AMELX ratio after each nucleofection",
+        y = "% Reduction vs sgCTRL", x = "Condition", fill = ""
+      ) +
+      coord_cartesian(ylim = c(0, 110)) +
+      theme_minimal() +
+      theme(legend.position = "none",
+            strip.text = element_text(size = 10))
+  }
+}
+```
+
+## Output
+
+```{r save-outputs}
+# Save INFO_TABLE.csv
+data.table::fwrite(counts, file.path(params$run_dir, "INFO_TABLE.csv"))
+
+# Save DATA.RDS
+saveRDS(l, file.path(params$run_dir, "DATA.RDS"))
+```
+
+**Saved:**
+
+- `INFO_TABLE.csv` → `r file.path(params$run_dir, "INFO_TABLE.csv")`
+- `DATA.RDS` → `r file.path(params$run_dir, "DATA.RDS")`

@@ -1,0 +1,7 @@
+"sample","condition","replicate","passage","analysis_unit","bam","index","PC1","PC2","PC3","PC4","PC5","PC6"
+"CTRL_11","CTRL",1,"11","independent_replicate_per_user","../filtered/CTRL_11.bam","../filtered/CTRL_11.bam.bai",-41.5364812104102,40.2220076663569,49.8540395590254,36.1952962160753,27.4576761273175,6.02014807260878e-13
+"CTRL_12","CTRL",2,"12","independent_replicate_per_user","../filtered/CTRL_12.bam","../filtered/CTRL_12.bam.bai",-116.420093431033,2.03966322149827,-21.6539817787933,-38.2153451108821,6.2834783256864,3.03226397441701e-13
+"CTRL_21","CTRL",3,"21","independent_replicate_per_user","../filtered/CTRL_21.bam","../filtered/CTRL_21.bam.bai",24.2857732951444,79.6528947999432,-26.7660773419853,9.15825508012638,-39.3164543539362,1.98439550043255e-13
+"LOY_11","LOY",1,"11","independent_replicate_per_user","../filtered/LOY_11.bam","../filtered/LOY_11.bam.bai",45.4499777843054,-40.9778401326711,67.6402565534326,-25.0206257637457,-21.1762074784638,6.73961822223075e-14
+"LOY_12","LOY",2,"12","independent_replicate_per_user","../filtered/LOY_12.bam","../filtered/LOY_12.bam.bai",-12.1383856530291,-88.5253948015969,-36.070329597626,34.0051955857023,-9.81840468982775,-4.52544641707129e-13
+"LOY_21","LOY",3,"21","independent_replicate_per_user","../filtered/LOY_21.bam","../filtered/LOY_21.bam.bai",100.35920921502,7.58866924647141,-33.0039073940528,-16.1227760072772,36.5699120692235,-6.75814263796962e-13

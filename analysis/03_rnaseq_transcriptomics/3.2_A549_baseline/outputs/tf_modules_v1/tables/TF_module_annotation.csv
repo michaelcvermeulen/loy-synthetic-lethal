@@ -1,0 +1,3 @@
+module,reference,drivers,reference_in_background,overlap,overlap_genes,p,BH_within_module
+1,"line_consistent_set",14,52,9,"CDH1;HNF1A;MMP7;SHH;FGL1;SOX9;SLC23A1;SERPINA6;SLCO1B3",0.000336701500751162,0.000673403001502325
+1,"HT1080_module1_drivers",14,4,0,"",1,1

@@ -1,0 +1,5 @@
+TOBIAS 0.17.5 ATACorrect -> ScoreBigwig -> BINDetect. JASPAR2024 CORE vertebrates; motif site P=5e-5.
+Unshifted, filtered proper-pair BAMs were sampled consistently by read name to approximately equal depth per replicate, then pooled by condition. Actual retained counts are recorded. No second duplicate removal or manual Tn5 shift was applied.
+Bias correction uses internal +4/-5 shifts and the verified LF-format hg38 genome; chrY/mitochondrial chromosomes are excluded. Footprint regions are the tested consensus excluding chrY/PAR. Default signal normalizations are retained.
+BINDetect compares LOY first with CTRL second. Its score and pooled-site P-values are retained; BH is added across finite motif comparisons. These P-values are not replicate-aware biological differential tests, and native highlighted flags are not FDR calls.
+Footprints predict occupancy; a motif-family signal does not identify a unique TF paralog or establish binding experimentally.

@@ -1,0 +1,8 @@
+chromVAR 1.32.0 on unnormalized integer fragment counts over tested non-Y/PAR peaks without N bases.
+JASPAR2024 CORE vertebrate nonredundant motifs; motifmatchr p.cutoff=5e-5. Seed 20260908; 50 background iterations.
+Scores are chromVAR background-standardized deviations, not z-scores standardized across the six samples.
+Archetypes use the union of member motif-positive peaks. Exact JASPAR ID mapping is preferred; unique accession mappings across versions are labeled explicitly. Ambiguous/unmapped motifs remain separate.
+Limma compares sample-level z-scores, with BH within each motif/archetype analysis arm. Effect is a z-score difference, not log2 fold change.
+Independent-replicate and passage-adjusted models are reported separately. Technical batch metadata remain unconfirmed.
+Welch t-tests are additional sensitivity results. Heatmaps rank by limma FDR; displayed rows are not necessarily significant.
+Motif accessibility and RNA expression directions need not agree; these statistics do not prove TF binding.

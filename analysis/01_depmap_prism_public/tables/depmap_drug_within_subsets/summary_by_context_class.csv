@@ -1,0 +1,9 @@
+class,subsets,tests,fdr_hits
+amplification,16,60531,0
+deletion,7,30252,0
+disease,12,47843,1
+driver,50,193774,0
+genomic,2,11851,0
+lineage,13,57225,0
+molecular_subtype,13,67885,0
+subtype,8,25718,0

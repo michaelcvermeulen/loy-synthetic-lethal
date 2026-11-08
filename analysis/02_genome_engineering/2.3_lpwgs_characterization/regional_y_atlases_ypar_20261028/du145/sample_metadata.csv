@@ -1,0 +1,7 @@
+sample,batch,condition,sample_index,library_size_all_genes,source_file
+LNCaP-LOY-P12,May 2026,LOY,12,54463293,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\MAY_2026_LNCAP_LOY\LNCaP-LOY-P12.txt
+LNCaP-LOY-P13,May 2026,LOY,13,46683130,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\MAY_2026_LNCAP_LOY\LNCaP-LOY-P13.txt
+LNCaP-LOY-P14,May 2026,LOY,14,46059059,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\MAY_2026_LNCAP_LOY\LNCaP-LOY-P14.txt
+LNCaP-sgCTRL-P12,May 2026,sgCTRL,12,56205597,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\MAY_2026_LNCAP_LOY\LNCaP-sgCTRL-P12.txt
+LNCaP-sgCTRL-P13,May 2026,sgCTRL,13,53921634,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\MAY_2026_LNCAP_LOY\LNCaP-sgCTRL-P13.txt
+LNCaP-sgCTRL-P14,May 2026,sgCTRL,14,36489174,A:\Dropbox\LOY_paralogs\projects\RNAseq\counts\STAR_v2_PARfix\MAY_2026_LNCAP_LOY\LNCaP-sgCTRL-P14.txt

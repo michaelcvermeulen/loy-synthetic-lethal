@@ -1,0 +1,7 @@
+criterion	value	threshold	hard	status
+male donors	1	>= 4	TRUE	FAIL
+median nCount (male cells >=500 UMI)	32320	>= 3000	FALSE	PASS
+female null pct_chrY0 @3000UMI		>= 95	FALSE	SKIP
+male chrY detection @3000UMI (100-%chrY0, no female null)	99.6	>= 40	FALSE	PASS
+male donors with >=50 LOY cells @3000UMI	1	>= 2	FALSE	FAIL
+male depth ratio across groups		<= 2	FALSE	SKIP

@@ -1,0 +1,8 @@
+{
+  "completed_UTC": "2026-09-08T22:33:01.804796+00:00",
+  "report": "report/TFAP2C_review.html",
+  "data_checks": "passed",
+  "primary_design": "independent replicates",
+  "technical_batch": "unconfirmed",
+  "copy_number_adjustment": false
+}

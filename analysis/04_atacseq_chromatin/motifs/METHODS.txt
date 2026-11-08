@@ -1,0 +1,7 @@
+JASPAR2022 human CORE motifs; installed database version and R packages are recorded.
+Fixed 501 bp peaks. Query: primary FDR<0.05 gained/lost; controls: primary FDR>=0.2.
+One-to-one sampling within 5 percentage-point GC bins and baseline logCPM deciles; seed 20260908.
+Strata lacking enough controls are subsampled on both sides; unmatched query counts are reported.
+N-containing sequences excluded. motifmatchr P cutoff=5e-5, subject sequence background.
+One-sided Cochran-Mantel-Haenszel enrichment stratified by matching bins; BH across both directions and all motifs.
+Sequence enrichment does not demonstrate TF binding or TF activity.

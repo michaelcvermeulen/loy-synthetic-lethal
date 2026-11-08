@@ -1,0 +1,2 @@
+threshold,permutations,genes_large_in_all_three,null_large_mean,null_large_2.5,null_large_97.5,empirical_P_large_cooccurrence,same_sign_all_three,null_same_sign_mean,fraction_same_sign_given_large,expected_fraction_independent_signs,binomial_P_sign_agreement,binomial_CI_low,binomial_CI_high
+0.5,1000,90,13.476,7,21,0.000999000999000999,14,3.391,0.155555555555556,0.25,0.038406128767236,0.0877358646161824,0.247202580145516

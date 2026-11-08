@@ -1,0 +1,24 @@
+{
+  "seed": 42,
+  "string_version": "12.0",
+  "association_score": 700,
+  "physical_score": 700,
+  "mcode": {
+    "degree_cutoff": 2,
+    "node_score_cutoff": 0.2,
+    "k_core": 2,
+    "haircut": true,
+    "fluff": false,
+    "max_depth": 100
+  },
+  "annotation_collections": ["GO:BP", "CP:REACTOME"],
+  "annotation_min_size": 10,
+  "annotation_max_size": 1000,
+  "main_modules_per_direction": 8,
+  "atlas_modules_per_page": 8,
+  "figure_width_mm": 183,
+  "figure_height_mm": 235,
+  "png_dpi": 600,
+  "selection": "Existing descriptive_candidate flag after the frozen unique-symbol representative mapping; split by sign of mean_difference. No gene-level P-value threshold.",
+  "annotation_scope": "Exploratory one-sided hypergeometric annotation; BH across every module-by-term test in both directions, separately for expressed STRING-mapped and direction-candidate STRING-mapped backgrounds. Network ascertainment and annotation knowledge overlap."
+}

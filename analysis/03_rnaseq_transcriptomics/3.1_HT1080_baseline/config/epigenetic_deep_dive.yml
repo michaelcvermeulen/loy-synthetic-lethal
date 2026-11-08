@@ -1,0 +1,32 @@
+seed: 42
+scope: post_hoc_interpretation_of_original_GSEA_with_descriptive_gene_program_diagnostics
+screen_pattern: 'PRC[12]|POLYCOMB|SUZ12|EZH[12]|(^|_)EED(_|$)|BMI1|MEL18|H3K[0-9]|H327ME3|H4K[0-9]|HISTONE|CHROMATIN|CHROMOSOME_ORGANIZATION|DNA_METHYL|DNMT|METHYLCYT|TET[123]_|5_AZA|AZACYT|DECITAB|SMARC|SWI_SNF|ARID[12]|KDM[156]|JARID|JMJD3|UTX_|UTY_|ZMYND|RACK7|HDAC|EP300|CREBBP|BRD[234]|BET_INHIB'
+focus_patterns:
+  - '^PRC2_(EED|EZH2|SUZ12)_'
+  - '^(BMI1_DN|MEL18_DN|PRC1_BMI_UP)'
+  - '^PASINI_SUZ12_TARGETS_'
+  - '^BENPORATH_(EED|SUZ12|PRC2)_TARGETS$'
+  - '^(MIKKELSEN|MEISSNER)_.*(H3K|H327)'
+  - '^ACEVEDO_LIVER_CANCER_WITH_H3K(27|9)ME3_'
+  - '^KONDO_.*(EZH2|H3K27)'
+  - '^SENESE_HDAC'
+  - '^HELLER_HDAC_TARGETS'
+  - '^WANG_SMARCE1_TARGETS_'
+  - '^SCIBETTA_KDM5B_TARGETS_'
+  - '^JACKSON_DNMT1_TARGETS_'
+  - '^FOSTER_KDM1A_TARGETS_'
+  - '^REACTOME_(PRC2_METHYLATES_HISTONES_AND_DNA|HDACS_DEACETYLATE_HISTONES|HDMS_DEMETHYLATE_HISTONES|CHROMATIN_ORGANIZATION|DNA_METHYLATION)$'
+  - '^GOBP_DNA_METHYLATION$'
+prc2_pairs: [PRC2_EED_DN.V1, PRC2_EZH2_UP.V1, PRC2_SUZ12_UP.V1]
+paired_comparators: [PASINI_SUZ12_TARGETS, BMI1_DN.V1, MEL18_DN.V1, BMI1_DN_MEL18_DN.V1, PRC1_BMI_UP.V1, WANG_SMARCE1_TARGETS, SCIBETTA_KDM5B_TARGETS, JACKSON_DNMT1_TARGETS, FOSTER_KDM1A_TARGETS]
+primary_program: PRC2_EED_DN.V1_UP
+mark_comparison: [MIKKELSEN_MEF_HCP_WITH_H3K27ME3, MIKKELSEN_MCV6_HCP_WITH_H3K27ME3]
+descriptive_masks: [original, omit_IFN_ECM_cycle, omit_nucleosome, omit_top_5, omit_top_10, retain_CPM_at_least_5]
+nucleosome_reference: GOCC_NUCLEOSOME
+gene_influence_rule: 'Rank each complete represented set by absolute combined log2 effect, then exact gene ID; freeze removals across contrasts. Recompute means on retained genes, retaining counts and absolute-effect fractions.'
+readout_rule: 'For EED-only and mark-only partitions separately, retain mean CPM>=2, absolute combined effect>=0.5, same sign in both periods and all six leave-one-match-out estimates, and same sign under prior-count 0.25 and RLE sensitivity. Select up to three genes in each direction per partition by absolute combined effect then exact ID. Include oppositely responding genes; explicitly label post hoc. No selected readouts define any score or testing family.'
+score_background: unchanged_25461_HT1080_representative_genes
+score_rule: 'Per-sample count percentile ranks with average ties, 100*(rank-1)/(N-1); complete represented memberships, no leading-edge restriction. Paired signed scores exclude within-pair UP/DN conflicts from both arms.'
+statistics: 'Reuse original 23696-set global BH separately by method and contrast. No new enrichment P values or smaller-family BH. New partitions, exclusions, gene influence and scores are descriptive; no gene-independent tests or intervals.'
+replication: one_established_population_per_condition_shared_generation_history_repeated_passages
+regulators: [EED, EZH1, EZH2, SUZ12, RBBP4, RBBP7, JARID2, AEBP2, MTF2, PHF1, PHF19, EPOP, PALI1, LCOR, BMI1, PCGF1, PCGF2, PCGF3, PCGF5, PCGF6, RNF2, RING1, CBX2, CBX4, CBX7, CBX8, KDM6A, KDM6B, UTY, KDM5A, KDM5B, KDM5C, KDM5D, KDM1A, KDM1B, DNMT1, DNMT3A, DNMT3B, TET1, TET2, TET3, MECP2, MBD1, MBD2, MBD3, SETDB1, SETDB2, SUV39H1, SUV39H2, EHMT1, EHMT2, HDAC1, HDAC2, HDAC3, CHD4, ZMYND8, SMARCA2, SMARCA4, SMARCB1, SMARCE1, ARID1A, ARID1B, EP300, CREBBP, BRD2, BRD3, BRD4]

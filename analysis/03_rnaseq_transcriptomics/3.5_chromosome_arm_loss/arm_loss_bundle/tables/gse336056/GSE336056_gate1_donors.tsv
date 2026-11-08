@@ -1,0 +1,2 @@
+donor	n_cells	median_nCount	fy	loy_status	n_cells_thr	n_LOY_thr	pct_chrY0_thr	is_male
+RPTEC_donor1	25123	32320	0.9904	Y_intact	24860	110	0.44	TRUE

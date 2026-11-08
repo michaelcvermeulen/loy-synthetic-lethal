@@ -1,0 +1,3 @@
+control_Y_region,raw_X_to_Y_depth_ratio,predicted_PAR_retention_X_over_XplusY_raw,corrected_X_to_Y_CN_ratio,predicted_PAR_retention_X_over_XplusY_corrected
+MSY_Yp,1.7745074425550362,0.6395756649767345,1.8614959307913233,0.65053244030878
+euchromatic_Yq,1.9076644225789745,0.656081357864178,1.9130624618086909,0.6567186549858219

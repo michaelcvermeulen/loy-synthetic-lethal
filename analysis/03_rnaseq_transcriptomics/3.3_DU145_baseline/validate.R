@@ -1,0 +1,40 @@
+# Independent checks on identities, design, direction, normalisation isolation and test families.
+assert(identical(colnames(x$counts),x$meta$sample_key),'Sample order mismatch')
+assert(!anyDuplicated(x$annotation$gene_id),'Duplicate exact gene IDs')
+assert(nrow(x$core)==6 && all(table(x$core$treatment)==3),'Core design mismatch')
+assert(nrow(x$pairs)==3 && setequal(x$pairs$block,c('P12','P13','P14')),'Passage pairs changed')
+assert(all(colnames(e$de$design)==c('(Intercept)','passageP13','passageP14','conditionLOY')),'Primary model is not ~ passage + condition')
+assert(all(e$de$table$residual_df==2),'Incorrect paired residual degrees of freedom')
+assert(all(e$unpaired$table$residual_df==4),'Incorrect unpaired residual degrees of freedom')
+assert(!any(x$annotation$PAR[e$norm$keep]) && !any(x$annotation$chrom[e$norm$keep]%in%c('chrY','chrM')),'Primary-background leakage')
+direct <- rowMeans(e$logCPM[,x$core$treatment=='LOY'])-rowMeans(e$logCPM[,x$core$treatment=='CTRL'])
+assert(max(abs(direct-e$effects$mean_difference))<1e-12,'Effect direction changed')
+pd <- sapply(x$pairs$block,function(b) {r<-x$pairs[x$pairs$block==b,]; e$logCPM[,r$LOY]-e$logCPM[,r$CTRL]})
+assert(max(abs(rowMeans(pd)-e$effects$mean_difference))<1e-10,'Mean difference is not the mean of pair differences')
+t <- e$de$table
+assert(max(abs(t$FDR-p.adjust(t$PValue,'BH')))<1e-12,'Incorrect gene-level BH')
+agree <- rowSums(sign(pd[t$gene_id,,drop=FALSE])==sign(t$logFC))
+rule <- unname(t$FDR<cfg$de_fdr & abs(t$logFC)>=cfg$de_abs_log2fc & agree==3)
+assert(identical(rule,t$thesis_DE),'Thesis DE call does not reproduce')
+assert(all(is.finite(e$de$voom$weights)) && all(e$de$voom$weights>0),'Invalid voom weights')
+yt <- y$table
+assert(all(yt$chrom[!yt$PAR]=='chrY'),'Non-Y gene in MSY table')
+ok <- is.finite(yt$PValue); assert(max(abs(yt$BH_Y_PAR_family[ok]-p.adjust(yt$PValue[ok],'BH')))<1e-12,'Incorrect Y/PAR-family BH')
+assert(all(cn$genes$gene_id %in% t$gene_id),'CN table outside primary universe')
+audit <- data.table::fread('outputs/tables/counting_audit.csv')
+assert(all(vapply(audit$source,hash_file,character(1))==audit$sha256),'Raw input mutated')
+assert(all(vapply(frozen$path,hash_file,character(1))==frozen$sha256),'Resource hash mismatch')
+dh <- data.table::fread('outputs/tables/identity_depmap_input_hashes.csv')
+assert(all(vapply(dh$path,hash_file,character(1))==dh$sha256),'DepMap inputs changed')
+if (exists('p') && !is.null(p)) {
+  assert(setequal(p$fgsea$pathway,p$camera$pathway),'Enrichment test families differ')
+  assert(max(abs(p$fgsea$BH_across_collections-p.adjust(p$fgsea$pval,'BH')),na.rm=TRUE)<1e-12,'Incorrect global fgsea BH')
+  assert(max(abs(p$camera$BH_across_collections-p.adjust(p$camera$PValue,'BH')),na.rm=TRUE)<1e-12,'Incorrect global CAMERA BH')
+}
+figs <- list.files('outputs/figures',pattern='\\.pdf$',full.names=TRUE)
+assert(length(figs)>=11 && all(file.info(figs)$size>1000),'Missing figure exports')
+assert(file.exists('outputs/report/analysis.html'),'Missing report')
+jsonlite::write_json(list(status='passed',checked_at=format(Sys.time(),'%Y-%m-%d %H:%M:%S %z'),core_libraries=6,passage_pairs=3,
+  source_tables_verified=nrow(audit),primary_model='~ passage + condition',thesis_DE_genes=sum(t$thesis_DE),
+  independent_derivation_claimed=FALSE,figure_count=length(figs)),'provenance/validation.json',auto_unbox=TRUE,pretty=TRUE)
+message('Scientific validation passed')

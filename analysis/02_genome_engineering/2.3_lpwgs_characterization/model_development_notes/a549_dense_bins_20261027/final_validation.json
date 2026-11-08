@@ -1,0 +1,25 @@
+{
+  "previews": [
+    {
+      "bin_size_kb": 100,
+      "Y_bins": 167,
+      "X_PAR_bins": 28,
+      "RNA_observations": 88,
+      "minimum_control_reads": 50,
+      "selected_exports_unchanged": true,
+      "RNA_and_ideogram_unchanged": true
+    },
+    {
+      "bin_size_kb": 50,
+      "Y_bins": 326,
+      "X_PAR_bins": 55,
+      "RNA_observations": 88,
+      "minimum_control_reads": 28,
+      "selected_exports_unchanged": true,
+      "RNA_and_ideogram_unchanged": true
+    }
+  ],
+  "counts_conserved": true,
+  "recommended_preview": "100kb",
+  "selected_exports_unchanged": true
+}

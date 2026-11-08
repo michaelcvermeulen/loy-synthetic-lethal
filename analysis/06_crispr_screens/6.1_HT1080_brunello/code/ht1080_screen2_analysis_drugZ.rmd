@@ -1,0 +1,2365 @@
+---
+title: "HT1080 LOY CRISPR Screen Analysis (drugZ)"
+author: "CRISPR Screen Pipeline"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 10,
+  fig.height = 7,
+  dpi = 300
+)
+
+# Load libraries
+library(tidyverse)
+library(ggplot2)
+library(ggrepel)
+library(pheatmap)
+library(RColorBrewer)
+library(patchwork)
+library(DT)
+library(readxl)
+
+# Set paths
+project_dir <- "A:/Dropbox/LOY_paralogs/projects/crispr_screen/ht1080_loy_screen_2"
+results_dir <- file.path(project_dir, "results/drugZ_analysis")
+dir.create(results_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Data paths - drugZ results instead of MAGeCK
+count_file <- file.path(project_dir, "count/ht1080_screen2_R1.count.txt")
+count_summary_file <- file.path(project_dir, "count/ht1080_screen2_R1.countsummary.txt")
+drugz_file <- file.path(project_dir, "results/drugZ/LOY_vs_CTRL_unfiltered.txt")
+mageck_file <- file.path(project_dir, "test/POST_LOY_vs_CTRL.gene_summary.txt")  # For LFC values
+sgrna_summary_file <- file.path(project_dir, "test/POST_LOY_vs_CTRL.sgrna_summary.txt")
+rnaseq_de_file <- "A:/Dropbox/LOY_paralogs/data/RNAseq/AUG_13_2025_LOY_A549_HT1080/DE/ht1080_LOY_v_WT_DE_noY.csv"
+
+# Analysis parameters
+FDR_THRESHOLD <- 0.25
+ZSCORE_THRESHOLD <- 2  # Using normZ for effect size threshold
+
+# Custom theme
+theme_crispr <- function() {
+  theme_bw() +
+    theme(
+      panel.grid.minor = element_blank(),
+      text = element_text(size = 12),
+      plot.title = element_text(size = 14, face = "bold"),
+      legend.position = "bottom"
+    )
+}
+
+# Color palettes
+colors_condition <- c("LOY" = "#E41A1C", "CTRL" = "#377EB8")
+colors_timepoint <- c("D0" = "#984EA3", "POST" = "#4DAF4A")
+colors_significance <- c("Depleted" = "#2166AC", "Enriched" = "#B2182B", "NS" = "grey70")
+```
+
+# Project Overview
+
+This analysis examines a CRISPR screen comparing **Y- (LOY)** vs **Y+ (CTRL)** HT1080 cells using **drugZ** algorithm results to identify genetic vulnerabilities specific to cells that have lost the Y chromosome.
+
+**Key parameters:**
+
+-   **Library**: Brunello (77,441 sgRNAs targeting 19,114 genes)
+-   **Comparison**: POST_LOY vs POST_CTRL
+-   **Analysis method**: drugZ (sumZ statistic)
+-   **FDR threshold**: `r FDR_THRESHOLD`
+-   **Note**: D0 samples have low mapping rates (\~21%) and are excluded from main analysis
+
+------------------------------------------------------------------------
+
+# Module 1: Quality Control {.tabset}
+
+## 1.1 Load Data
+
+```{r load-data}
+# Load count matrix
+counts <- read_tsv(count_file, show_col_types = FALSE)
+colnames(counts)[1:2] <- c("sgRNA", "Gene")
+
+# Load count summary (MAGeCK QC metrics)
+count_summary <- read_tsv(count_summary_file, show_col_types = FALSE)
+
+# Display count summary
+count_summary %>%
+  dplyr::mutate(
+    Percentage = scales::percent(Percentage, accuracy = 0.1),
+    Mapped = scales::comma(Mapped),
+    Reads = scales::comma(Reads)
+  ) %>%
+  dplyr::select(Label, Reads, Mapped, Percentage, Zerocounts, GiniIndex) %>%
+  dplyr::rename(
+    Sample = Label,
+    `Total Reads` = Reads,
+    `Mapped Reads` = Mapped,
+    `Mapping Rate` = Percentage,
+    `Zero Counts` = Zerocounts,
+    `Gini Index` = GiniIndex
+  ) %>%
+  knitr::kable(caption = "MAGeCK Count Summary") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+```{r sample-metadata}
+# Create sample metadata
+sample_info <- tibble(
+  Sample = c("D0_CTRL", "D0_LOY", "POST_CTRL_REP1", "POST_CTRL_REP2", "POST_LOY_REP1", "POST_LOY_REP2"),
+  Condition = c("CTRL", "LOY", "CTRL", "CTRL", "LOY", "LOY"),
+  Timepoint = c("D0", "D0", "POST", "POST", "POST", "POST"),
+  Replicate = c("pooled", "pooled", "1", "2", "1", "2")
+) %>%
+  dplyr::left_join(count_summary %>% dplyr::select(Label, Mapped, Percentage, GiniIndex),
+            by = c("Sample" = "Label"))
+
+sample_info %>%
+  knitr::kable(caption = "Sample Metadata") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## 1.2 Library Size & Mapping
+
+```{r library-size-plot, fig.height=5}
+# Library size bar chart
+p_libsize <- count_summary %>%
+  mutate(
+    Sample = Label,
+    Condition = ifelse(grepl("LOY", Label), "LOY", "CTRL"),
+    Timepoint = ifelse(grepl("D0", Label), "D0", "POST"),
+    Mapped_M = Mapped / 1e6
+  ) %>%
+  ggplot(aes(x = reorder(Sample, -Mapped_M), y = Mapped_M, fill = Condition)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  scale_fill_manual(values = colors_condition) +
+  labs(
+    title = "Mapped Reads per Sample",
+    x = "Sample",
+    y = "Mapped Reads (millions)"
+  ) +
+  theme_crispr() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Mapping rate bar chart
+p_maprate <- count_summary %>%
+  mutate(
+    Sample = Label,
+    Condition = ifelse(grepl("LOY", Label), "LOY", "CTRL"),
+    Timepoint = ifelse(grepl("D0", Label), "D0", "POST"),
+    MapPct = Percentage * 100
+  ) %>%
+  ggplot(aes(x = reorder(Sample, -MapPct), y = MapPct, fill = Timepoint)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_hline(yintercept = 50, linetype = "dashed", color = "red") +
+  scale_fill_manual(values = colors_timepoint) +
+  labs(
+    title = "Mapping Rate per Sample",
+    subtitle = "Red line = 50% threshold; D0 samples have low mapping (~21%)",
+    x = "Sample",
+    y = "Mapping Rate (%)"
+  ) +
+  theme_crispr() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+p_libsize + p_maprate
+```
+
+**Key observation**: D0 samples have \~21% mapping rate compared to \~85% for POST samples. This suggests a library preparation or technical issue with D0 samples. **D0 samples should be excluded from primary differential analysis.**
+
+## 1.3 Gini Index
+
+The Gini index measures library uniformity (0 = perfectly uniform, 1 = all reads in one sgRNA).
+
+```{r gini-plot, fig.height=4}
+count_summary %>%
+  mutate(
+    Sample = Label,
+    Condition = ifelse(grepl("LOY", Label), "LOY", "CTRL"),
+    Timepoint = ifelse(grepl("D0", Label), "D0", "POST")
+  ) %>%
+  ggplot(aes(x = reorder(Sample, GiniIndex), y = GiniIndex, fill = Condition)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_hline(yintercept = 0.2, linetype = "dashed", color = "red") +
+  scale_fill_manual(values = colors_condition) +
+  labs(
+    title = "Gini Index per Sample",
+    subtitle = "Red line = 0.2 threshold; lower is better",
+    x = "Sample",
+    y = "Gini Index"
+  ) +
+  coord_flip() +
+  theme_crispr()
+```
+
+All samples have Gini indices below 0.12, indicating good library uniformity.
+
+## 1.4 Count Distributions
+
+```{r count-distributions, fig.height=6}
+# Reshape count data for plotting
+count_long <- counts %>%
+  dplyr::select(-sgRNA, -Gene) %>%
+  pivot_longer(everything(), names_to = "Sample", values_to = "Count") %>%
+  dplyr::mutate(
+    log2Count = log2(Count + 1),
+    Condition = ifelse(grepl("LOY", Sample), "LOY", "CTRL"),
+    Timepoint = ifelse(grepl("D0", Sample), "D0", "POST")
+  )
+
+# Density plot
+ggplot(count_long, aes(x = log2Count, fill = Sample)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(~Timepoint, ncol = 1) +
+  labs(
+    title = "sgRNA Count Distribution by Sample",
+    x = "log2(Count + 1)",
+    y = "Density"
+  ) +
+  theme_crispr() +
+  theme(legend.position = "right")
+```
+
+## 1.5 Sample Correlation
+
+```{r correlation-heatmap, fig.height=6, fig.width=7}
+# Calculate correlation matrix (Spearman)
+count_matrix <- counts %>%
+  dplyr::select(-sgRNA, -Gene) %>%
+  as.matrix()
+
+cor_matrix <- cor(count_matrix, method = "spearman")
+
+# Create annotation
+annotation_col <- data.frame(
+  Condition = ifelse(grepl("LOY", colnames(cor_matrix)), "LOY", "CTRL"),
+  Timepoint = ifelse(grepl("D0", colnames(cor_matrix)), "D0", "POST"),
+  row.names = colnames(cor_matrix)
+)
+
+annotation_colors <- list(
+  Condition = colors_condition,
+  Timepoint = colors_timepoint
+)
+
+pheatmap(
+  cor_matrix,
+  display_numbers = TRUE,
+  number_format = "%.3f",
+  color = colorRampPalette(c("#2166AC", "white", "#B2182B"))(100),
+  breaks = seq(0.8, 1, length.out = 101),
+  annotation_col = annotation_col,
+  annotation_colors = annotation_colors,
+  main = "Sample Correlation (Spearman)",
+  fontsize = 10
+)
+```
+
+## 1.5b Replicate Correlation Scatter Plots
+
+```{r replicate-correlation, fig.height=5, fig.width=10}
+# Compute log2 CPM (also used downstream in PCA chunk)
+lib_sizes <- colSums(count_matrix)
+cpm_matrix <- t(t(count_matrix) / lib_sizes * 1e6)
+log2_cpm <- log2(cpm_matrix + 1)
+
+# Create data frame with log2 CPM for scatter plots
+log2_cpm_df <- as.data.frame(log2_cpm) %>%
+  rownames_to_column("sgRNA")
+
+# CTRL replicates correlation
+cor_ctrl <- cor(log2_cpm_df$POST_CTRL_REP1, log2_cpm_df$POST_CTRL_REP2, method = "pearson")
+
+p_ctrl_rep <- ggplot(log2_cpm_df, aes(x = POST_CTRL_REP1, y = POST_CTRL_REP2)) +
+  geom_point(size = 0.5, alpha = 0.3, color = colors_condition["CTRL"]) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  annotate("text", x = 2, y = max(log2_cpm_df$POST_CTRL_REP2) - 1,
+           label = paste0("R = ", round(cor_ctrl, 3)),
+           size = 5, fontface = "bold") +
+  labs(
+    title = "CTRL Biological Replicates",
+    x = "POST_CTRL_REP1 (log2 CPM)",
+    y = "POST_CTRL_REP2 (log2 CPM)"
+  ) +
+  theme_crispr() +
+  coord_fixed()
+
+# LOY replicates correlation
+cor_loy <- cor(log2_cpm_df$POST_LOY_REP1, log2_cpm_df$POST_LOY_REP2, method = "pearson")
+
+p_loy_rep <- ggplot(log2_cpm_df, aes(x = POST_LOY_REP1, y = POST_LOY_REP2)) +
+  geom_point(size = 0.5, alpha = 0.3, color = colors_condition["LOY"]) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  annotate("text", x = 2, y = max(log2_cpm_df$POST_LOY_REP2) - 1,
+           label = paste0("R = ", round(cor_loy, 3)),
+           size = 5, fontface = "bold") +
+  labs(
+    title = "LOY Biological Replicates",
+    x = "POST_LOY_REP1 (log2 CPM)",
+    y = "POST_LOY_REP2 (log2 CPM)"
+  ) +
+  theme_crispr() +
+  coord_fixed()
+
+# Combine plots
+p_ctrl_rep + p_loy_rep
+
+cat("\nReplicate Correlations (Pearson R):\n")
+cat("  CTRL (REP1 vs REP2):", round(cor_ctrl, 4), "\n")
+cat("  LOY (REP1 vs REP2):", round(cor_loy, 4), "\n")
+```
+
+## 1.6 PCA
+
+```{r pca-plot, fig.height=5, fig.width=5}
+# PCA on CPM-normalized counts (accounts for library size differences)
+# Calculate CPM (counts per million)
+lib_sizes <- colSums(count_matrix)
+cpm_matrix <- t(t(count_matrix) / lib_sizes * 1e6)
+
+# Log2 transform CPM values
+log2_cpm <- log2(cpm_matrix + 1)
+
+# Remove zero-variance rows (constant across samples) before PCA
+row_vars <- apply(log2_cpm, 1, var)
+log2_cpm_filtered <- log2_cpm[row_vars > 0, ]
+cat("Using CPM-normalized counts for PCA\n")
+cat("Removed", sum(row_vars == 0), "zero-variance sgRNAs for PCA\n")
+
+pca_result <- prcomp(t(log2_cpm_filtered), scale. = TRUE)
+
+# Extract variance explained
+var_explained <- summary(pca_result)$importance[2, 1:2] * 100
+
+# PCA plot
+pca_df <- as.data.frame(pca_result$x[, 1:2]) %>%
+  rownames_to_column("Sample") %>%
+  mutate(
+    Condition = ifelse(grepl("LOY", Sample), "LOY", "CTRL"),
+    Timepoint = ifelse(grepl("D0", Sample), "D0", "POST")
+  )
+
+ggplot(pca_df, aes(x = PC1, y = PC2, color = Condition, shape = Timepoint)) +
+  geom_point(size = 5) +
+  geom_text_repel(aes(label = Sample), size = 3) +
+  scale_color_manual(values = colors_condition) +
+  labs(
+    title = "PCA of sgRNA Counts (CPM-normalized)",
+    x = paste0("PC1 (", round(var_explained[1], 1), "% variance)"),
+    y = paste0("PC2 (", round(var_explained[2], 1), "% variance)")
+  ) +
+  theme_crispr()
+```
+
+## 1.7 Non-Targeting Control Analysis
+
+```{r control-guide-analysis, fig.height=5}
+# Load sgRNA summary to get LFC values
+sgrna_summary <- read_tsv(sgrna_summary_file, show_col_types = FALSE)
+
+# Extract non-targeting controls
+ntc_guides <- sgrna_summary %>%
+  filter(Gene == "Non-Targeting-Control")
+
+cat("Number of Non-Targeting Control sgRNAs:", nrow(ntc_guides), "\n")
+
+# Calculate summary statistics for NTC LFCs
+ntc_stats <- ntc_guides %>%
+  summarise(
+    n = n(),
+    mean_lfc = mean(LFC),
+    sd_lfc = sd(LFC),
+    median_lfc = median(LFC),
+    q025 = quantile(LFC, 0.025),
+    q975 = quantile(LFC, 0.975)
+  )
+
+cat("\nNon-Targeting Control LFC Statistics:\n")
+cat("  Mean LFC:", round(ntc_stats$mean_lfc, 3), "\n")
+cat("  SD LFC:", round(ntc_stats$sd_lfc, 3), "\n")
+cat("  95% CI:", round(ntc_stats$q025, 3), "to", round(ntc_stats$q975, 3), "\n")
+
+# Plot NTC distribution
+p_ntc <- ggplot(ntc_guides, aes(x = LFC)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "grey70", color = "grey40") +
+  geom_density(color = "black", linewidth = 1) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(ntc_stats$q025, ntc_stats$q975),
+             linetype = "dotted", color = "blue") +
+  labs(
+    title = "Non-Targeting Control sgRNA LFC Distribution",
+    subtitle = paste0("n = ", ntc_stats$n, " guides | Mean = ", round(ntc_stats$mean_lfc, 3),
+                      " | SD = ", round(ntc_stats$sd_lfc, 3)),
+    x = "Log2 Fold Change (POST_LOY vs POST_CTRL)",
+    y = "Density"
+  ) +
+  theme_crispr()
+
+p_ntc
+
+# Save NTC stats for later use
+ntc_lfc_values <- ntc_guides$LFC
+```
+
+The non-targeting control distribution provides our null expectation. sgRNAs outside the 95% CI (blue dotted lines) are more likely to represent true biological effects.
+
+## 1.8 QC Summary
+
+```{r qc-summary}
+# Create QC summary table
+qc_summary <- count_summary %>%
+  mutate(
+    Sample = Label,
+    Condition = ifelse(grepl("LOY", Label), "LOY", "CTRL"),
+    Timepoint = ifelse(grepl("D0", Label), "D0", "POST"),
+    QC_Status = case_when(
+      Percentage < 0.5 ~ "FAIL - Low mapping",
+      GiniIndex > 0.2 ~ "WARNING - High Gini",
+      TRUE ~ "PASS"
+    )
+  ) %>%
+  dplyr::select(Sample, Condition, Timepoint, Percentage, GiniIndex, Zerocounts, QC_Status)
+
+qc_summary %>%
+  mutate(Percentage = scales::percent(Percentage, accuracy = 0.1)) %>%
+  knitr::kable(caption = "QC Summary") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kableExtra::row_spec(which(qc_summary$QC_Status != "PASS"), background = "#FFCCCC")
+```
+
+**QC Conclusions:**
+
+1.  **D0 samples FAIL** QC due to low mapping rates (\~21%)
+2.  All POST samples **PASS** QC with good mapping (\>84%) and low Gini indices (\<0.09)
+3.  Non-targeting controls center around LFC = `r round(ntc_stats$mean_lfc, 2)` with SD = `r round(ntc_stats$sd_lfc, 2)`
+4.  **Recommendation**: Use only POST samples for differential analysis
+
+------------------------------------------------------------------------
+
+```{r save-module1-outputs}
+# Save QC metrics
+write_csv(qc_summary, file.path(results_dir, "module1_qc_metrics.csv"))
+
+# Save NTC stats
+write_csv(ntc_stats, file.path(results_dir, "module1_ntc_statistics.csv"))
+```
+
+**Module 1 Complete.** Review the QC results above before proceeding to Module 2.
+
+------------------------------------------------------------------------
+
+# Module 2: CRISPR Screen Visualization (drugZ) {.tabset}
+
+## 2.1 Load drugZ Results
+
+```{r load-drugz}
+# Load drugZ gene summary
+drugz_results <- read_tsv(drugz_file, show_col_types = FALSE)
+
+# Rename columns to standard format
+# drugZ columns: GENE, sumZ, numObs, normZ, pval_synth, rank_synth, fdr_synth, pval_supp, rank_supp, fdr_supp
+gene_summary <- drugz_results %>%
+  rename(
+    id = GENE,
+    num = numObs
+  ) %>%
+  mutate(
+    # Add significance categories based on drugZ FDR
+    neg_fdr = fdr_synth,  # synthetic lethality = depletion
+    pos_fdr = fdr_supp,   # suppressor = enrichment
+    neg_lfc = sumZ,       # Use sumZ as effect size (negative = depleted)
+    pos_lfc = -sumZ,      # Positive selection would be opposite sign
+    neg_significant = neg_fdr < FDR_THRESHOLD,
+    pos_significant = pos_fdr < FDR_THRESHOLD,
+    category = case_when(
+      neg_fdr < FDR_THRESHOLD ~ "Depleted",
+      pos_fdr < FDR_THRESHOLD ~ "Enriched",
+      TRUE ~ "NS"
+    )
+  )
+
+# Summary counts
+n_depleted <- sum(gene_summary$neg_significant, na.rm = TRUE)
+n_enriched <- sum(gene_summary$pos_significant, na.rm = TRUE)
+
+cat("drugZ Results Summary:\n")
+cat("Significant genes at FDR <", FDR_THRESHOLD, ":\n")
+cat("  Depleted (synthetic lethality):", n_depleted, "\n")
+cat("  Enriched (suppressor):", n_enriched, "\n")
+cat("  Total genes tested:", nrow(gene_summary), "\n")
+
+# Show drugZ-specific columns
+cat("\ndrugZ statistics for top 20 depleted genes:\n")
+gene_summary %>%
+  arrange(fdr_synth) %>%
+  head(20) %>%
+  select(id, sumZ, normZ, fdr_synth, rank_synth, num) %>%
+  knitr::kable(digits = 4) %>%
+  print()
+```
+
+## 2.2 Waterfall Plot
+
+```{r waterfall-plot, fig.height=3, fig.width=4}
+# Prepare data - rank by normZ (ascending: most negative/depleted first)
+waterfall_data <- gene_summary %>%
+  arrange(normZ) %>%
+  mutate(rank = row_number())
+
+# Number of genes to label on each end
+n_depleted_label <- 10
+n_enriched_label <- 3
+
+# Get top depleted (lowest normZ) and enriched (highest normZ) genes
+top_depleted <- waterfall_data %>% slice_head(n = n_depleted_label)
+top_enriched <- waterfall_data %>% slice_tail(n = n_enriched_label)
+
+# Publication-style waterfall plot
+p_waterfall <- ggplot(waterfall_data, aes(x = rank, y = normZ)) +
+  geom_point(size = 0.5, color = "black") +
+  # Label top depleted genes in red (italic)
+  geom_text_repel(
+    data = top_depleted,
+    aes(label = id),
+    color = "#B2182B",
+    fontface = "italic",
+    size = 3,
+    nudge_x = 1500,
+    direction = "y",
+    hjust = 0,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.05,
+    point.padding = 0.1,
+    max.overlaps = 20
+  ) +
+  # Label top enriched genes in blue (italic)
+  geom_text_repel(
+    data = top_enriched,
+    aes(label = id),
+    color = "#2166AC",
+    fontface = "italic",
+    size = 3,
+    nudge_x = -1500,
+    direction = "y",
+    hjust = 1,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.05,
+    point.padding = 0.1,
+    max.overlaps = 20
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    x = "Gene Rank",
+    y = "NormZ score"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+
+p_waterfall
+
+# Save
+ggsave(file.path(results_dir, "module2_waterfall.pdf"), p_waterfall,
+       width = 6, height = 5)
+```
+
+## 2.2b Waterfall Plot - SAGA Complex Highlight
+
+```{r waterfall-saga, fig.height=3, fig.width=4}
+# SAGA complex genes
+saga_genes <- c("ATXN7", "ATXN7L3", "ENY2", "KAT2A", "KAT2B", "PAAF1",
+                "SF3B3", "SF3B5", "SGF29", "SUPT20H", "SUPT20HL1", "SUPT20HL2",
+                "SUPT3H", "SUPT7L", "TADA1", "TADA2A", "TADA2B", "TADA3",
+                "TAF10", "TAF12", "TAF5", "TAF5L", "TAF6", "TAF6L",
+                "TAF9", "TRRAP", "USP22")
+
+# Prepare waterfall data with SAGA highlighting
+waterfall_saga <- waterfall_data %>%
+  mutate(is_saga = id %in% saga_genes)
+
+# Get SAGA genes for highlighting and labeling - only those with FDR < 0.2
+saga_in_plot <- waterfall_saga %>% filter(is_saga & fdr_synth < 0.2)
+
+# Waterfall plot highlighting significant SAGA members
+p_waterfall_saga <- ggplot(waterfall_saga, aes(x = rank, y = normZ)) +
+  geom_point(data = filter(waterfall_saga, !is_saga | fdr_synth >= 0.2),
+             size = 0.5, color = "black") +
+  geom_point(data = saga_in_plot,
+             size = 2, color = "#E41A1C") +
+  geom_text_repel(
+    data = saga_in_plot,
+    aes(label = id),
+    color = "#E41A1C",
+    fontface = "italic",
+    size = 3,
+    nudge_x = 1500,
+    direction = "y",
+    hjust = 0,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.05,
+    point.padding = 0.1,
+    max.overlaps = 20
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    x = "Gene Rank",
+    y = "NormZ score"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+
+p_waterfall_saga
+
+ggsave(file.path(results_dir, "module2_waterfall_saga.pdf"), p_waterfall_saga,
+       width = 6, height = 5)
+```
+
+## 2.2b-ii Waterfall Plot - All SAGA Members
+
+Unlike 2.2b (which labels only SAGA members passing the FDR threshold), this
+plot highlights **every** SAGA subunit present in the screen, colored by whether
+it reaches significance.
+
+```{r waterfall-saga-all, fig.height=3, fig.width=4}
+# All SAGA members present in the screen (no FDR filter), colored by significance.
+# `saga_genes` is defined above in the 2.2b chunk.
+waterfall_saga_all <- waterfall_data %>%
+  mutate(
+    is_saga = id %in% saga_genes,
+    saga_sig = case_when(
+      is_saga & fdr_synth < FDR_THRESHOLD ~ paste0("SAGA (FDR < ", FDR_THRESHOLD, ")"),
+      is_saga ~ "SAGA (NS)",
+      TRUE ~ "Other"
+    )
+  )
+
+saga_all_in_plot <- waterfall_saga_all %>% filter(is_saga)
+
+cat("SAGA genes in list:", length(saga_genes), "\n")
+cat("SAGA members present in screen (all labeled):", nrow(saga_all_in_plot), "\n")
+
+sig_col <- paste0("SAGA (FDR < ", FDR_THRESHOLD, ")")
+p_waterfall_saga_all <- ggplot(waterfall_saga_all, aes(x = rank, y = normZ)) +
+  geom_point(data = filter(waterfall_saga_all, !is_saga),
+             size = 0.5, color = "grey70") +
+  geom_point(data = saga_all_in_plot,
+             aes(color = saga_sig), size = 2) +
+  scale_color_manual(values = setNames(c("#E41A1C", "#377EB8"),
+                                       c(sig_col, "SAGA (NS)")),
+                     name = NULL) +
+  geom_text_repel(
+    data = saga_all_in_plot,
+    aes(label = id, color = saga_sig),
+    fontface = "italic",
+    size = 2.5,
+    max.overlaps = Inf,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.15,
+    show.legend = FALSE
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    subtitle = "All SAGA complex members labeled",
+    x = "Gene Rank",
+    y = "NormZ score"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    legend.position = "bottom",
+    legend.text = element_text(size = 8),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+
+p_waterfall_saga_all
+
+ggsave(file.path(results_dir, "module2_waterfall_saga_all.pdf"), p_waterfall_saga_all,
+       width = 6, height = 5)
+ggsave(file.path(results_dir, "module2_waterfall_saga_all.png"), p_waterfall_saga_all,
+       width = 6, height = 5, dpi = 300)
+```
+
+## 2.2b-iii Waterfall Plot - Essential SAGA Members
+
+Highlights only the SAGA subunits reported as **essential / functionally
+required** in Batty et al. 2026, *Nat Commun* 17:3410
+(doi:10.1038/s41467-026-71613-7), *"Disruption of the SAGA CORE triggers
+collateral degradation of KAT2A."*
+
+```{r waterfall-saga-essential, fig.height=3, fig.width=4}
+# SAGA subunits observed as essential / functionally required, per
+# Batty et al. 2026, Nat Commun 17:3410 (doi:10.1038/s41467-026-71613-7):
+#   - TADA1, TAF5L, TAF6L : SAGA CORE subunits necessary for KAT2A stability and
+#       complex integrity (central finding; validated by IF, sucrose-gradient
+#       fractionation, and dTAG acute degradation)
+#   - TAF12               : explicitly "an essential gene" (shared SAGA CORE /
+#       TFIID); loss also reduces KAT2A (co-translational handshake with TADA1)
+#   - SF3B3, SF3B5        : SPL module, "common essentiality" (rapid sgRNA
+#       dropout comparable to the RAD21 / MYC essential controls)
+#   - TADA2B, TADA3, SGF29: HAT module; knockout significantly reduced KAT2A
+# (The DUB module - USP22, ENY2, ATXN7, ATXN7L3 - was dispensable, and the
+#  TRRAP reporter effect was an artifact, so those are excluded.)
+saga_essential <- c("TADA1", "TAF5L", "TAF6L", "TAF12",
+                    "SF3B3", "SF3B5", "TADA2B", "TADA3", "SGF29")
+
+waterfall_saga_ess <- waterfall_data %>%
+  mutate(is_ess = id %in% saga_essential)
+
+saga_ess_in_plot <- waterfall_saga_ess %>% filter(is_ess)
+
+cat("Essential SAGA members present in screen:", nrow(saga_ess_in_plot),
+    "of", length(saga_essential), "\n\n")
+saga_ess_in_plot %>%
+  arrange(normZ) %>%
+  select(id, normZ, sumZ, fdr_synth) %>%
+  mutate(across(where(is.numeric), ~signif(., 3))) %>%
+  print()
+
+p_waterfall_saga_ess <- ggplot(waterfall_saga_ess, aes(x = rank, y = normZ)) +
+  geom_point(data = filter(waterfall_saga_ess, !is_ess),
+             size = 0.5, color = "grey70") +
+  geom_point(data = saga_ess_in_plot,
+             size = 2.5, color = "#7B3294") +
+  geom_text_repel(
+    data = saga_ess_in_plot,
+    aes(label = id),
+    color = "#7B3294",
+    fontface = "italic",
+    size = 3,
+    nudge_x = 1500,
+    direction = "y",
+    hjust = 0,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.1,
+    max.overlaps = Inf
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    subtitle = "Essential SAGA subunits (Batty et al. 2026, Nat Commun)",
+    x = "Gene Rank",
+    y = "NormZ score"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+
+p_waterfall_saga_ess
+
+ggsave(file.path(results_dir, "module2_waterfall_saga_essential.pdf"), p_waterfall_saga_ess,
+       width = 6, height = 5)
+ggsave(file.path(results_dir, "module2_waterfall_saga_essential.png"), p_waterfall_saga_ess,
+       width = 6, height = 5, dpi = 300)
+```
+
+## 2.2c Waterfall Plot - Druggable Targets
+
+```{r waterfall-druggable, fig.height=5, fig.width=6}
+# Load curated inhibitor summary
+inhibitor_summary <- read_excel(
+  "C:/Users/micha/Downloads/crispr_screen_inhibitor_summary.xlsx",
+  sheet = "Inhibitor Summary"
+)
+
+# Identify druggable genes (Druggability starts with "Yes")
+druggable_df <- inhibitor_summary %>%
+  filter(grepl("^Yes", Druggability)) %>%
+  rename(gene = Gene, inhibitors = `Inhibitor(s)`, stage = `Development Stage`)
+
+druggable_genes <- druggable_df$gene
+
+cat("Druggable genes from inhibitor summary:", length(druggable_genes), "\n")
+druggable_df %>%
+  select(gene, Druggability, inhibitors, stage) %>%
+  knitr::kable() %>%
+  print()
+
+# Prepare waterfall data with druggable annotation
+waterfall_druggable <- waterfall_data %>%
+  mutate(
+    is_druggable = id %in% druggable_genes,
+    is_sig = fdr_synth < FDR_THRESHOLD
+  )
+
+druggable_in_plot <- waterfall_druggable %>%
+  filter(is_druggable & is_sig)
+
+cat("\nDruggable + significant hits plotted:", nrow(druggable_in_plot), "\n")
+
+# Waterfall plot highlighting druggable significant hits
+p_waterfall_druggable <- ggplot(waterfall_druggable, aes(x = rank, y = normZ)) +
+  geom_point(data = filter(waterfall_druggable, !(is_druggable & is_sig)),
+             size = 0.5, color = "black") +
+  geom_point(data = druggable_in_plot,
+             size = 2.5, color = "#7570B3") +
+  geom_text_repel(
+    data = druggable_in_plot,
+    aes(label = id),
+    color = "#7570B3",
+    fontface = "italic",
+    size = 3,
+    nudge_x = 1500,
+    direction = "y",
+    hjust = 0,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.05,
+    point.padding = 0.1,
+    max.overlaps = 30
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    subtitle = paste0("Druggable targets (FDR < ", FDR_THRESHOLD, ") highlighted in purple"),
+    x = "Gene Rank",
+    y = "NormZ score"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+
+p_waterfall_druggable
+
+ggsave(file.path(results_dir, "module2_waterfall_druggable.pdf"), p_waterfall_druggable,
+       width = 6, height = 5)
+```
+
+## 2.2d Waterfall Plot - X-Y Paralogs
+
+Highlights the **X-linked partner** of each known X-Y paralog (gametolog) pair.
+When the Y chromosome is lost, the Y-linked paralog is gone, so the X-linked
+partner becomes the sole source of that function - the core dosage-compensation
+rationale for LOY-specific dependencies.
+
+```{r waterfall-xy-paralogs, fig.height=3, fig.width=4}
+# X-Y paralog (gametolog) pairs. The Y genes match this project's curated set in
+# background/Y_chromosome_genes/ (plus DDX3Y, whose partner DDX3X has its own
+# background/X_chromosome_genes/ entry). Highlighting the X-linked partner.
+xy_paralogs <- tibble::tribble(
+  ~x_gene,  ~y_gene,
+  "DDX3X",  "DDX3Y",
+  "EIF1AX", "EIF1AY",
+  "KDM5C",  "KDM5D",
+  "KDM6A",  "UTY",
+  "NLGN4X", "NLGN4Y",
+  "RPS4X",  "RPS4Y1",
+  "TBL1X",  "TBL1Y",
+  "TMSB4X", "TMSB4Y",
+  "USP9X",  "USP9Y",
+  "ZFX",    "ZFY"
+)
+xy_x_genes <- xy_paralogs$x_gene
+
+waterfall_xy <- waterfall_data %>%
+  mutate(is_xy = id %in% xy_x_genes)
+
+xy_in_plot <- waterfall_xy %>% filter(is_xy)
+
+cat("X-Y paralog X-linked partners present in screen:", nrow(xy_in_plot),
+    "of", length(xy_x_genes), "\n\n")
+xy_in_plot %>%
+  arrange(normZ) %>%
+  left_join(xy_paralogs, by = c("id" = "x_gene")) %>%
+  select(x_gene = id, y_gene, normZ, sumZ, fdr_synth) %>%
+  mutate(across(where(is.numeric), ~signif(., 3))) %>%
+  print()
+
+p_waterfall_xy <- ggplot(waterfall_xy, aes(x = rank, y = normZ)) +
+  geom_point(data = filter(waterfall_xy, !is_xy),
+             size = 0.5, color = "grey70") +
+  geom_point(data = xy_in_plot,
+             aes(color = fdr_synth < FDR_THRESHOLD), size = 2.5) +
+  scale_color_manual(values = c("TRUE" = "#FF6600", "FALSE" = "#1F78B4"),
+                     labels = c("TRUE" = paste0("FDR < ", FDR_THRESHOLD),
+                                "FALSE" = "NS"),
+                     name = NULL) +
+  geom_text_repel(
+    data = xy_in_plot,
+    aes(label = id),
+    color = "black",
+    fontface = "italic",
+    size = 3,
+    nudge_x = 1500,
+    direction = "y",
+    hjust = 0,
+    segment.size = 0.2,
+    segment.color = "grey70",
+    box.padding = 0.1,
+    max.overlaps = Inf
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    subtitle = "X-linked partners of X-Y paralog pairs",
+    x = "Gene Rank",
+    y = "NormZ score"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    legend.position = "bottom",
+    legend.text = element_text(size = 8),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+
+p_waterfall_xy
+
+ggsave(file.path(results_dir, "module2_waterfall_xy_paralogs.pdf"), p_waterfall_xy,
+       width = 6, height = 5)
+ggsave(file.path(results_dir, "module2_waterfall_xy_paralogs.png"), p_waterfall_xy,
+       width = 6, height = 5, dpi = 300)
+```
+
+## 2.3 Volcano Plot - Negative Selection (Synthetic Lethality)
+
+```{r volcano-neg, fig.height=7, fig.width=10}
+# Define STAGA complex genes (CORUM:6664) for highlighting
+staga_genes <- c("TAF6L", "SUPT20H", "ATXN7L3", "TADA2B", "TADA1")
+
+# Prepare volcano data for negative selection (synthetic lethality)
+volcano_neg <- gene_summary %>%
+  mutate(
+    neg_log10_fdr = -log10(fdr_synth),
+    is_staga = id %in% staga_genes,
+    label = case_when(
+      fdr_synth < 0.01 ~ id,  # Label top hits
+      is_staga ~ id,  # Always label STAGA genes
+      TRUE ~ NA_character_
+    )
+  )
+
+# Top 20 depleted genes for labeling
+top_depleted <- volcano_neg %>%
+  filter(neg_significant) %>%
+  arrange(fdr_synth) %>%
+  head(20) %>%
+  pull(id)
+
+volcano_neg <- volcano_neg %>%
+  mutate(label = ifelse(id %in% top_depleted, id, label))
+
+# Volcano plot with STAGA highlighting
+p_volcano_neg <- ggplot(volcano_neg, aes(x = sumZ, y = neg_log10_fdr)) +
+  # Non-significant points
+  geom_point(data = filter(volcano_neg, !neg_significant & !is_staga),
+             color = "grey70", alpha = 0.5, size = 1) +
+  # Significant points (not STAGA)
+  geom_point(data = filter(volcano_neg, neg_significant & !is_staga),
+             color = colors_significance["Depleted"], alpha = 0.7, size = 2) +
+  # STAGA complex genes (highlighted with purple triangles, smaller with black outline)
+  geom_point(data = filter(volcano_neg, is_staga),
+             aes(shape = neg_significant),
+             fill = "#8E44AD", color = "black", size = 2.5, stroke = 0.5) +
+  scale_shape_manual(values = c("TRUE" = 24, "FALSE" = 2),  # 24 = filled triangle, 2 = open triangle
+                     labels = c("TRUE" = "Significant", "FALSE" = "Not significant"),
+                     name = "STAGA Status") +
+  # Labels for non-STAGA genes
+  geom_text_repel(
+    data = filter(volcano_neg, !is_staga & !is.na(label)),
+    aes(label = label),
+    size = 3,
+    max.overlaps = 30,
+    segment.size = 0.2,
+    fontface = "italic"
+  ) +
+  # Labels for STAGA genes (purple, larger)
+  geom_text_repel(
+    data = filter(volcano_neg, is_staga),
+    aes(label = id),
+    color = "#8E44AD",
+    size = 4,
+    max.overlaps = 30,
+    segment.size = 0.2,
+    fontface = "bold.italic"
+  ) +
+  # Threshold lines
+  geom_hline(yintercept = -log10(FDR_THRESHOLD), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = 0, linetype = "solid", color = "grey50") +
+  labs(
+    title = "Volcano Plot: Synthetic Lethality (drugZ)",
+    subtitle = paste0("FDR < ", FDR_THRESHOLD, " threshold (red line) | ",
+                      "Purple = STAGA complex genes (CORUM:6664)"),
+    x = "drugZ sumZ Score (negative = depleted)",
+    y = "-log10(FDR)"
+  ) +
+  theme_crispr() +
+  coord_cartesian(xlim = c(-25, 15))
+
+p_volcano_neg
+
+# Save
+ggsave(file.path(results_dir, "module2_volcano_neg.pdf"), p_volcano_neg,
+       width = 10, height = 7)
+```
+
+## 2.4 Volcano Plot - Positive Selection (Suppressor)
+
+```{r volcano-pos, fig.height=7, fig.width=10}
+# Prepare volcano data for positive selection (suppressor)
+volcano_pos <- gene_summary %>%
+  mutate(
+    pos_log10_fdr = -log10(fdr_supp),
+    label = ifelse(fdr_supp < 0.1, id, NA_character_)
+  )
+
+# Top enriched genes
+top_enriched <- volcano_pos %>%
+  filter(pos_significant) %>%
+  arrange(fdr_supp) %>%
+  head(20) %>%
+  pull(id)
+
+volcano_pos <- volcano_pos %>%
+  mutate(label = ifelse(id %in% top_enriched, id, label))
+
+# Volcano plot
+p_volcano_pos <- ggplot(volcano_pos, aes(x = -sumZ, y = pos_log10_fdr)) +
+  geom_point(data = filter(volcano_pos, !pos_significant),
+             color = "grey70", alpha = 0.5, size = 1) +
+  geom_point(data = filter(volcano_pos, pos_significant),
+             color = colors_significance["Enriched"], alpha = 0.7, size = 2) +
+  geom_text_repel(
+    aes(label = label),
+    size = 3,
+    max.overlaps = 25,
+    segment.size = 0.2,
+    fontface = "italic"
+  ) +
+  geom_hline(yintercept = -log10(FDR_THRESHOLD), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = 0, linetype = "solid", color = "grey50") +
+  labs(
+    title = "Volcano Plot: Suppressor Selection (drugZ)",
+    subtitle = paste0("FDR < ", FDR_THRESHOLD, " threshold (red line)"),
+    x = "drugZ -sumZ Score (positive = enriched)",
+    y = "-log10(FDR)"
+  ) +
+  theme_crispr() +
+  coord_cartesian(xlim = c(-15, 25))
+
+p_volcano_pos
+
+# Save
+ggsave(file.path(results_dir, "module2_volcano_pos.pdf"), p_volcano_pos,
+       width = 10, height = 7)
+```
+
+## 2.4b Volcano Plot - Log2FC with SAGA Highlight
+
+```{r volcano-lfc, fig.height=5, fig.width=6}
+# Load MAGeCK results for LFC values
+mageck_results <- read_tsv(mageck_file, show_col_types = FALSE)
+# Clean column names - replace pipes and dashes with underscores
+colnames(mageck_results) <- gsub("[|-]", "_", colnames(mageck_results))
+
+# Merge drugZ p-values with MAGeCK LFC (rename to avoid conflict with existing neg_lfc)
+volcano_lfc_data <- gene_summary %>%
+  left_join(
+    mageck_results %>%
+      select(id, neg_lfc, pos_lfc) %>%
+      rename(mageck_lfc = neg_lfc),
+    by = "id"
+  ) %>%
+  mutate(
+    log2fc = mageck_lfc,  # Use MAGeCK LFC
+    enrichment_score = -log10(pval_synth),
+    is_saga = id %in% saga_genes
+  )
+
+# Get SAGA genes for labeling
+saga_volcano <- volcano_lfc_data %>% filter(is_saga)
+
+# Proper volcano plot: Log2FC vs -log10(p-value)
+p_volcano_lfc <- ggplot(volcano_lfc_data, aes(x = log2fc, y = enrichment_score)) +
+  # All genes as black points
+  geom_point(data = filter(volcano_lfc_data, !is_saga),
+             size = 0.8, color = "black", alpha = 0.5) +
+  # SAGA genes highlighted in blue
+  geom_point(data = filter(volcano_lfc_data, is_saga),
+             size = 2.5, color = "#2166AC") +
+  # Label SAGA genes
+  geom_text_repel(
+    data = saga_volcano,
+    aes(label = id),
+    color = "#2166AC",
+    fontface = "italic",
+    size = 3,
+    max.overlaps = 30
+  ) +
+  labs(
+    title = "HT1080 + LOY",
+    subtitle = "SAGA complex members highlighted in blue",
+    x = "Log2FC",
+    y = "Enrichment Score (-log10 p-value)"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10)
+  )
+
+p_volcano_lfc
+
+ggsave(file.path(results_dir, "module2_volcano_lfc.pdf"), p_volcano_lfc,
+       width = 6, height = 5)
+```
+
+## 2.5 Top Hits Tables
+
+### Depleted Genes (Synthetic Lethality)
+
+```{r top-hits-neg}
+# Top depleted genes table
+top_hits_neg <- gene_summary %>%
+  filter(neg_significant) %>%
+  arrange(fdr_synth) %>%
+  select(id, num, normZ, fdr_synth, sumZ, rank_synth) %>%
+  rename(
+    Gene = id,
+    `# sgRNAs` = num,
+    `normZ Score` = normZ,
+    FDR = fdr_synth,
+    sumZ = sumZ,
+    Rank = rank_synth
+  ) %>%
+  mutate(
+    FDR = signif(FDR, 3),
+    `normZ Score` = round(`normZ Score`, 3),
+    sumZ = round(sumZ, 3)
+  )
+
+cat("Top 50 Depleted Genes (FDR <", FDR_THRESHOLD, "):\n\n")
+
+top_hits_neg %>%
+  head(50) %>%
+  DT::datatable(
+    options = list(pageLength = 25, scrollX = TRUE),
+    caption = paste0("Depleted genes in LOY cells (n = ", nrow(top_hits_neg), ")")
+  )
+
+# Save full table
+write_csv(top_hits_neg, file.path(results_dir, "module2_top_hits_neg.csv"))
+```
+
+### Enriched Genes (Suppressor)
+
+```{r top-hits-pos}
+# Top enriched genes table
+top_hits_pos <- gene_summary %>%
+  filter(pos_significant) %>%
+  arrange(fdr_supp) %>%
+  select(id, num, normZ, fdr_supp, sumZ, rank_supp) %>%
+  rename(
+    Gene = id,
+    `# sgRNAs` = num,
+    `normZ Score` = normZ,
+    FDR = fdr_supp,
+    sumZ = sumZ,
+    Rank = rank_supp
+  ) %>%
+  mutate(
+    FDR = signif(FDR, 3),
+    `normZ Score` = round(`normZ Score`, 3),
+    sumZ = round(sumZ, 3)
+  )
+
+cat("Top 50 Enriched Genes (FDR <", FDR_THRESHOLD, "):\n\n")
+
+if(nrow(top_hits_pos) > 0) {
+  top_hits_pos %>%
+    head(50) %>%
+    DT::datatable(
+      options = list(pageLength = 25, scrollX = TRUE),
+      caption = paste0("Enriched genes in LOY cells (n = ", nrow(top_hits_pos), ")")
+    )
+} else {
+  cat("No significantly enriched genes at FDR <", FDR_THRESHOLD, "\n")
+}
+
+# Save full table
+write_csv(top_hits_pos, file.path(results_dir, "module2_top_hits_pos.csv"))
+```
+
+## 2.6 X-Linked Gene Analysis
+
+```{r x-linked-analysis, fig.height=8}
+# Define expanded X-linked gene list (15 genes including RPS4X, EIF1AX, ZFX)
+x_linked_genes <- c("DDX3X", "TIMM8A", "USP9X", "KDM6A", "KDM5C", "ATRX",
+                    "SMC1A", "HDAC6", "BCOR", "BCORL1", "HUWE1", "UBA1",
+                    "RPS4X", "EIF1AX", "ZFX")
+
+# Focus on X-linked genes
+x_linked_data <- gene_summary %>%
+  filter(id %in% x_linked_genes) %>%
+  arrange(fdr_synth) %>%
+  select(id, num, fdr_synth, sumZ, normZ, fdr_supp)
+
+cat("X-Linked Genes in Screen (drugZ results):\n\n")
+
+x_linked_data %>%
+  mutate(
+    fdr_synth = signif(fdr_synth, 3),
+    fdr_supp = signif(fdr_supp, 3),
+    sumZ = round(sumZ, 3),
+    normZ = round(normZ, 3)
+  ) %>%
+  knitr::kable(caption = "X-linked genes - potential LOY vulnerabilities") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Bar plot of X-linked gene sumZ scores
+p_xlinked <- x_linked_data %>%
+  mutate(
+    significant = fdr_synth < FDR_THRESHOLD,
+    id = fct_reorder(id, sumZ)
+  ) %>%
+  ggplot(aes(x = id, y = sumZ, fill = significant)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_hline(yintercept = 0, color = "black") +
+  scale_fill_manual(values = c("TRUE" = "#FF6600", "FALSE" = "grey70"),
+                    labels = c("TRUE" = "Significant", "FALSE" = "NS")) +
+  coord_flip() +
+  labs(
+    title = "X-Linked Gene Depletion in LOY Cells (drugZ)",
+    subtitle = paste0("FDR < ", FDR_THRESHOLD),
+    x = "Gene",
+    y = "drugZ sumZ Score (negative = depleted)",
+    fill = "Status"
+  ) +
+  theme_crispr()
+
+p_xlinked
+```
+
+**Key X-linked findings:**
+
+-   **DDX3X** is the top hit overall (FDR = `r signif(x_linked_data$fdr_synth[1], 3)`, sumZ = `r round(x_linked_data$sumZ[1], 2)`), suggesting strong synthetic lethality with LOY
+-   **BCORL1** and other X-linked genes also show significant depletion
+-   These genes may escape X-inactivation and provide dosage-sensitive vulnerabilities
+
+## 2.7 Per-Gene sgRNA Plots
+
+Generate individual plots for each significant gene showing its sgRNAs against the non-targeting control distribution.
+
+```{r sgrna-plot-function}
+# Function to create per-gene sgRNA plot
+create_sgrna_plot <- function(gene_name, sgrna_data, ntc_data, gene_stats) {
+
+  # Get sgRNAs for this gene
+  gene_sgrnas <- sgrna_data %>%
+    filter(Gene == gene_name)
+
+  # Get gene-level stats from drugZ
+  stats <- gene_stats %>%
+    filter(id == gene_name)
+
+  if(nrow(gene_sgrnas) == 0) return(NULL)
+
+  # Create plot
+  p <- ggplot() +
+    # NTC distribution (background)
+    geom_density(data = ntc_data, aes(x = LFC),
+                 fill = "grey80", color = "grey50", alpha = 0.7) +
+    # Gene sgRNAs as vertical lines
+    geom_vline(data = gene_sgrnas, aes(xintercept = LFC),
+               color = "#2166AC", linewidth = 1, alpha = 0.8) +
+    # Gene sgRNAs as points at top
+    geom_point(data = gene_sgrnas,
+               aes(x = LFC, y = 0.05),
+               color = "#2166AC", size = 3, shape = 17) +
+    # Zero line
+    geom_vline(xintercept = 0, linetype = "dashed", color = "red", alpha = 0.5) +
+    # Labels
+    labs(
+      title = gene_name,
+      subtitle = paste0("drugZ FDR = ", signif(stats$fdr_synth, 3),
+                        " | sumZ = ", round(stats$sumZ, 2),
+                        " | ", stats$num, " sgRNAs"),
+      x = "Log2 Fold Change",
+      y = "Density"
+    ) +
+    theme_crispr() +
+    theme(
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9),
+      axis.line.x.bottom = element_line(color = "black", linewidth = 0.5),
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5)
+    ) +
+    coord_cartesian(xlim = c(-6, 4))
+
+  return(p)
+}
+```
+
+### Depleted Genes sgRNA Plots
+
+```{r sgrna-plots-depleted, fig.height=4, fig.width=6, results='asis'}
+# Get significant depleted genes
+sig_depleted <- gene_summary %>%
+  filter(neg_significant) %>%
+  arrange(fdr_synth) %>%
+  pull(id)
+
+cat("Generating sgRNA plots for", length(sig_depleted), "depleted genes...\n\n")
+
+# Create plots for top 30 (or all if fewer)
+n_plots <- min(30, length(sig_depleted))
+
+depleted_plots <- list()
+for(i in 1:n_plots) {
+  gene <- sig_depleted[i]
+  p <- create_sgrna_plot(gene, sgrna_summary, ntc_guides, gene_summary)
+  if(!is.null(p)) {
+    depleted_plots[[gene]] <- p
+    print(p)
+    cat("\n\n")
+  }
+}
+
+# Save all depleted plots to PDF
+if(length(depleted_plots) > 0) {
+  pdf(file.path(results_dir, "module2_sgrna_plots_depleted.pdf"),
+      width = 8, height = 5)
+  for(p in depleted_plots) {
+    print(p)
+  }
+  dev.off()
+  cat("\nSaved", length(depleted_plots), "depleted gene plots to PDF.\n")
+}
+```
+
+### X-Linked Genes sgRNA Plots
+
+```{r sgrna-plots-xlinked, fig.height=4, fig.width=6, results='asis'}
+# Generate sgRNA plots for specific X-linked genes of interest (including those not passing FDR threshold)
+xlinked_for_sgrna <- c("EIF1AX", "ZFX", "RPS4X")
+
+cat("Generating sgRNA plots for X-linked genes of interest:\n")
+cat("  EIF1AX, ZFX, RPS4X\n\n")
+
+xlinked_plots <- list()
+for(gene in xlinked_for_sgrna) {
+  p <- create_sgrna_plot(gene, sgrna_summary, ntc_guides, gene_summary)
+  if(!is.null(p)) {
+    xlinked_plots[[gene]] <- p
+    print(p)
+    cat("\n\n")
+  } else {
+    cat("No sgRNA data found for", gene, "\n\n")
+  }
+}
+
+# Save X-linked plots
+if(length(xlinked_plots) > 0) {
+  pdf(file.path(results_dir, "module2_sgrna_plots_xlinked.pdf"),
+      width = 8, height = 5)
+  for(p in xlinked_plots) print(p)
+  dev.off()
+  cat("\nSaved", length(xlinked_plots), "X-linked gene plots to PDF.\n")
+}
+```
+
+## 2.8 Module 2 Summary
+
+```{r module2-summary}
+cat("=== Module 2 Summary (drugZ Analysis) ===\n\n")
+cat("Genes analyzed:", nrow(gene_summary), "\n")
+cat("Depleted genes (FDR <", FDR_THRESHOLD, "):", n_depleted, "\n")
+cat("Enriched genes (FDR <", FDR_THRESHOLD, "):", n_enriched, "\n\n")
+
+cat("Top 10 Depleted Genes (drugZ):\n")
+gene_summary %>%
+  filter(neg_significant) %>%
+  arrange(fdr_synth) %>%
+  head(10) %>%
+  select(id, fdr_synth, sumZ, normZ) %>%
+  mutate(fdr_synth = signif(fdr_synth, 3), sumZ = round(sumZ, 2), normZ = round(normZ, 2)) %>%
+  print()
+
+cat("\nFiles saved to results/drugZ_analysis/:\n")
+cat("  - module2_waterfall.pdf\n")
+cat("  - module2_volcano_neg.pdf\n")
+cat("  - module2_volcano_pos.pdf\n")
+cat("  - module2_top_hits_neg.csv\n")
+cat("  - module2_top_hits_pos.csv\n")
+cat("  - module2_sgrna_plots_depleted.pdf\n")
+cat("  - module2_sgrna_plots_xlinked.pdf\n")
+```
+
+**Module 2 Complete.** Review the visualizations above before proceeding to Module 3.
+
+------------------------------------------------------------------------
+
+# Module 3: RNA-seq Integration {.tabset}
+
+## 3.1 Load RNA-seq Data
+
+```{r load-rnaseq}
+# Load RNA-seq differential expression data
+rnaseq_de <- read_csv(rnaseq_de_file, show_col_types = FALSE)
+
+cat("RNA-seq DE data loaded:\n")
+cat("  Genes:", nrow(rnaseq_de), "\n")
+cat("  Columns:", paste(colnames(rnaseq_de), collapse = ", "), "\n")
+
+# Preview
+head(rnaseq_de) %>%
+  mutate(across(where(is.numeric), ~signif(., 3))) %>%
+  knitr::kable(caption = "RNA-seq DE data preview") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## 3.2 Merge CRISPR and RNA-seq Data
+
+```{r merge-data}
+# Merge by gene name
+# drugZ uses 'id' (renamed from GENE), RNA-seq uses 'gene_name'
+integrated_data <- gene_summary %>%
+  inner_join(
+    rnaseq_de %>% select(gene_name, logFC, logCPM, PValue, FDR),
+    by = c("id" = "gene_name")
+  ) %>%
+  rename(
+    rnaseq_logFC = logFC,
+    rnaseq_logCPM = logCPM,
+    rnaseq_pvalue = PValue,
+    rnaseq_fdr = FDR
+  )
+
+cat("Data integration summary:\n")
+cat("  drugZ genes:", nrow(gene_summary), "\n")
+cat("  RNA-seq genes:", nrow(rnaseq_de), "\n")
+cat("  Merged genes:", nrow(integrated_data), "\n")
+cat("  Match rate:", scales::percent(nrow(integrated_data) / nrow(gene_summary)), "\n")
+```
+
+## 3.3 Add Chromosome Annotation
+
+```{r add-chromosome}
+# Try to add chromosome info using biomaRt or a predefined list
+# For now, use a curated list of X-linked genes
+
+# Expanded X-linked gene list (known escapees and LOY-relevant)
+x_chromosome_genes <- c(
+  # Known X-inactivation escapees
+  "DDX3X", "KDM6A", "KDM5C", "USP9X", "EIF1AX", "ZFX", "PRKX",
+  "RPS4X", "TXLNG", "SMC1A", "HDAC6", "TIMM8A", "ATRX",
+  # Other X-linked genes in screen
+  "BCOR", "BCORL1", "HUWE1", "UBA1", "MECP2", "IKBKG",
+  "WAS", "BTK", "IL2RG", "CYBB", "F8", "F9",
+  "DMD", "OTC", "PHKA1", "PHKA2", "GLA", "LAMP2"
+)
+
+integrated_data <- integrated_data %>%
+  mutate(
+    chromosome = ifelse(id %in% x_chromosome_genes, "X", "Autosome"),
+    is_x_linked = chromosome == "X"
+  )
+
+# Count X-linked genes in integrated data
+n_x_linked <- sum(integrated_data$is_x_linked)
+cat("\nX-linked genes in integrated dataset:", n_x_linked, "\n")
+```
+
+## 3.4 Concordance Analysis
+
+```{r concordance-analysis}
+# Define significance thresholds
+CRISPR_FDR <- FDR_THRESHOLD
+RNASEQ_FDR <- 0.05
+
+# Classify genes by concordance
+integrated_data <- integrated_data %>%
+  mutate(
+    # Significance flags
+    crispr_sig_neg = fdr_synth < CRISPR_FDR,
+    crispr_sig_pos = fdr_supp < CRISPR_FDR,
+    rnaseq_sig = rnaseq_fdr < RNASEQ_FDR,
+
+    # Direction of effect
+    crispr_direction = case_when(
+      crispr_sig_neg ~ "Depleted",
+      crispr_sig_pos ~ "Enriched",
+      TRUE ~ "NS"
+    ),
+    rnaseq_direction = case_when(
+      rnaseq_sig & rnaseq_logFC < 0 ~ "Down",
+      rnaseq_sig & rnaseq_logFC > 0 ~ "Up",
+      TRUE ~ "NS"
+    ),
+
+    # Concordance category
+    concordance = case_when(
+      # Concordant: CRISPR depleted + RNA-seq down (gene important, low expression in LOY)
+      crispr_sig_neg & rnaseq_sig & rnaseq_logFC < 0 ~ "Concordant (Depleted/Down)",
+      # Concordant: CRISPR enriched + RNA-seq up
+      crispr_sig_pos & rnaseq_sig & rnaseq_logFC > 0 ~ "Concordant (Enriched/Up)",
+      # Discordant patterns
+      crispr_sig_neg & rnaseq_sig & rnaseq_logFC > 0 ~ "Discordant (Depleted/Up)",
+      crispr_sig_pos & rnaseq_sig & rnaseq_logFC < 0 ~ "Discordant (Enriched/Down)",
+      # One significant only
+      crispr_sig_neg & !rnaseq_sig ~ "CRISPR only (Depleted)",
+      crispr_sig_pos & !rnaseq_sig ~ "CRISPR only (Enriched)",
+      !crispr_sig_neg & !crispr_sig_pos & rnaseq_sig ~ "RNA-seq only",
+      TRUE ~ "Neither significant"
+    )
+  )
+
+# Summary table
+concordance_summary <- integrated_data %>%
+  count(concordance) %>%
+  arrange(desc(n)) %>%
+  mutate(percent = scales::percent(n / sum(n)))
+
+cat("Concordance Summary:\n\n")
+concordance_summary %>%
+  knitr::kable(caption = "Gene classification by CRISPR and RNA-seq significance") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Save concordance summary
+write_csv(concordance_summary, file.path(results_dir, "module3_concordance_summary.csv"))
+```
+
+## 3.5 CRISPR vs RNA-seq Scatter Plot
+
+```{r integration-scatter, fig.height=8, fig.width=10}
+# Calculate correlation (using sumZ as CRISPR effect size)
+cor_pearson <- cor(integrated_data$sumZ, integrated_data$rnaseq_logFC,
+                   use = "complete.obs", method = "pearson")
+cor_spearman <- cor(integrated_data$sumZ, integrated_data$rnaseq_logFC,
+                    use = "complete.obs", method = "spearman")
+
+cat("Correlation between drugZ sumZ and RNA-seq logFC:\n")
+cat("  Pearson r =", round(cor_pearson, 3), "\n")
+cat("  Spearman rho =", round(cor_spearman, 3), "\n")
+
+# Prepare labels for key genes
+integrated_data <- integrated_data %>%
+  mutate(
+    label = case_when(
+      # Always label X-linked significant hits
+      is_x_linked & crispr_sig_neg ~ id,
+      # Label concordant hits
+      concordance %in% c("Concordant (Depleted/Down)", "Concordant (Enriched/Up)") ~ id,
+      # Label top CRISPR hits
+      fdr_synth < 0.05 ~ id,
+      TRUE ~ NA_character_
+    )
+  )
+
+# Define colors for concordance
+concordance_colors <- c(
+  "Concordant (Depleted/Down)" = "#2166AC",
+  "Concordant (Enriched/Up)" = "#B2182B",
+  "Discordant (Depleted/Up)" = "#762A83",
+  "Discordant (Enriched/Down)" = "#1B7837",
+  "CRISPR only (Depleted)" = "#67A9CF",
+  "CRISPR only (Enriched)" = "#EF8A62",
+  "RNA-seq only" = "#F7F7F7",
+  "Neither significant" = "grey80"
+)
+
+# Scatter plot (using sumZ for x-axis)
+p_scatter <- ggplot(integrated_data,
+                    aes(x = sumZ, y = rnaseq_logFC, color = concordance)) +
+  # Background points (neither significant)
+  geom_point(data = filter(integrated_data, concordance == "Neither significant"),
+             alpha = 0.3, size = 1) +
+  # Significant points
+  geom_point(data = filter(integrated_data, concordance != "Neither significant"),
+             alpha = 0.7, size = 2) +
+  # X-linked genes as triangles
+  geom_point(data = filter(integrated_data, is_x_linked & crispr_sig_neg),
+             aes(x = sumZ, y = rnaseq_logFC),
+             color = "#FF6600", size = 4, shape = 17) +
+  # Labels
+  geom_text_repel(
+    aes(label = label),
+    size = 2.5,
+    max.overlaps = 30,
+    segment.size = 0.2,
+    fontface = "italic"
+  ) +
+  # Reference lines
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  # Trend line
+  geom_smooth(method = "lm", color = "black", linetype = "solid",
+              se = TRUE, alpha = 0.2, linewidth = 0.5) +
+  # Colors
+  scale_color_manual(values = concordance_colors, name = "Category") +
+  # Labels
+  labs(
+    title = "drugZ CRISPR Screen vs RNA-seq Integration",
+    subtitle = paste0("Pearson r = ", round(cor_pearson, 3),
+                      " | Spearman rho = ", round(cor_spearman, 3),
+                      " | Orange triangles = X-linked"),
+    x = "drugZ sumZ Score (negative = depleted)",
+    y = "RNA-seq Log2 Fold Change (LOY vs WT)"
+  ) +
+  theme_crispr() +
+  theme(legend.position = "right") +
+  coord_cartesian(xlim = c(-25, 15), ylim = c(-5, 5))
+
+p_scatter
+
+# Save
+ggsave(file.path(results_dir, "module3_crispr_vs_rnaseq.pdf"), p_scatter,
+       width = 10, height = 8)
+```
+
+## 3.6 X-Linked Gene Integration
+
+```{r x-linked-integration, fig.height=6, fig.width=10}
+# Focus on X-linked genes
+x_linked_integrated <- integrated_data %>%
+  filter(is_x_linked) %>%
+  arrange(fdr_synth) %>%
+  select(id, fdr_synth, sumZ, rnaseq_logFC, rnaseq_fdr, concordance)
+
+cat("X-Linked Genes - CRISPR and RNA-seq Integration:\n\n")
+
+x_linked_integrated %>%
+  mutate(
+    fdr_synth = signif(fdr_synth, 3),
+    sumZ = round(sumZ, 2),
+    rnaseq_logFC = round(rnaseq_logFC, 2),
+    rnaseq_fdr = signif(rnaseq_fdr, 3)
+  ) %>%
+  knitr::kable(caption = "X-linked genes with CRISPR and RNA-seq data") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Plot X-linked genes - paired bar chart
+if(nrow(x_linked_integrated) > 0) {
+  x_linked_long <- x_linked_integrated %>%
+    select(id, sumZ, rnaseq_logFC, fdr_synth) %>%
+    pivot_longer(cols = c(sumZ, rnaseq_logFC),
+                 names_to = "assay", values_to = "Effect") %>%
+    mutate(
+      assay = ifelse(assay == "sumZ", "CRISPR (sumZ)", "RNA-seq (logFC)"),
+      significant = fdr_synth < FDR_THRESHOLD
+    )
+
+  p_xlinked_compare <- ggplot(x_linked_long,
+                               aes(x = reorder(id, -Effect), y = Effect, fill = assay)) +
+    geom_col(position = position_dodge(width = 0.8), width = 0.7, color = "black", linewidth = 0.3) +
+    geom_hline(yintercept = 0, color = "black") +
+    scale_fill_manual(values = c("CRISPR (sumZ)" = "#2166AC", "RNA-seq (logFC)" = "#B2182B")) +
+    coord_flip() +
+    labs(
+      title = "X-Linked Genes: CRISPR (drugZ) vs RNA-seq",
+      subtitle = "Comparison of effect sizes between assays",
+      x = "Gene",
+      y = "Effect Size (sumZ or logFC)",
+      fill = "Assay"
+    ) +
+    theme_crispr()
+
+  print(p_xlinked_compare)
+
+  ggsave(file.path(results_dir, "module3_x_linked_comparison.pdf"), p_xlinked_compare,
+         width = 10, height = 6)
+}
+```
+
+## 3.7 Quadrant Analysis
+
+```{r quadrant-analysis, fig.height=6}
+# Count genes in each quadrant (based on direction of sumZ and rnaseq_logFC)
+quadrant_counts <- integrated_data %>%
+  mutate(
+    quadrant = case_when(
+      sumZ < 0 & rnaseq_logFC < 0 ~ "CRISPR- / RNA-",
+      sumZ < 0 & rnaseq_logFC > 0 ~ "CRISPR- / RNA+",
+      sumZ > 0 & rnaseq_logFC < 0 ~ "CRISPR+ / RNA-",
+      sumZ > 0 & rnaseq_logFC > 0 ~ "CRISPR+ / RNA+",
+      TRUE ~ "On axis"
+    )
+  ) %>%
+  count(quadrant) %>%
+  mutate(percent = scales::percent(n / sum(n)))
+
+cat("Quadrant Analysis:\n\n")
+quadrant_counts %>%
+  knitr::kable(caption = "Gene distribution by CRISPR and RNA-seq direction") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Quadrant interpretation
+cat("\nInterpretation:\n")
+cat("- CRISPR- / RNA-: Genes depleted in screen AND downregulated in LOY\n")
+cat("  (May be essential genes with reduced expression in LOY)\n\n")
+cat("- CRISPR- / RNA+: Genes depleted in screen BUT upregulated in LOY\n")
+cat("  (Interesting: compensatory upregulation of essential genes?)\n\n")
+cat("- CRISPR+ / RNA-: Genes enriched in screen AND downregulated in LOY\n")
+cat("  (Tumor suppressors? Loss provides growth advantage)\n\n")
+cat("- CRISPR+ / RNA+: Genes enriched in screen AND upregulated in LOY\n")
+cat("  (Oncogenes? Both elevated and drive growth)\n")
+
+# Bar plot of quadrant distribution
+p_quadrant <- quadrant_counts %>%
+  filter(quadrant != "On axis") %>%
+  ggplot(aes(x = reorder(quadrant, -n), y = n, fill = quadrant)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_text(aes(label = paste0(n, "\n(", percent, ")")),
+            vjust = -0.3, size = 3) +
+  scale_fill_manual(values = c("CRISPR- / RNA-" = "#2166AC",
+                                "CRISPR- / RNA+" = "#762A83",
+                                "CRISPR+ / RNA-" = "#1B7837",
+                                "CRISPR+ / RNA+" = "#B2182B")) +
+  labs(
+    title = "Quadrant Analysis: CRISPR vs RNA-seq Direction",
+    subtitle = "Distribution of genes by effect direction",
+    x = "Quadrant",
+    y = "Number of Genes"
+  ) +
+  theme_crispr() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 0, hjust = 0.5)) +
+  ylim(0, max(quadrant_counts$n) * 1.15)
+
+p_quadrant
+```
+
+## 3.8 Save Integrated Data
+
+```{r save-module3}
+# Save full integrated dataset
+integrated_export <- integrated_data %>%
+  select(
+    gene = id,
+    chromosome, is_x_linked,
+    # drugZ CRISPR metrics
+    drugz_sumZ = sumZ, drugz_normZ = normZ,
+    drugz_fdr_synth = fdr_synth, drugz_fdr_supp = fdr_supp,
+    drugz_rank_synth = rank_synth, drugz_num_sgrna = num,
+    # RNA-seq metrics
+    rnaseq_logFC, rnaseq_logCPM, rnaseq_fdr,
+    # Classifications
+    crispr_direction, rnaseq_direction, concordance
+  )
+
+write_csv(integrated_export, file.path(results_dir, "module3_integrated_data.csv"))
+
+cat("\nModule 3 outputs saved:\n")
+cat("  - module3_crispr_vs_rnaseq.pdf\n")
+cat("  - module3_x_linked_comparison.pdf\n")
+cat("  - module3_concordance_summary.csv\n")
+cat("  - module3_integrated_data.csv\n")
+```
+
+## 3.9 Module 3 Summary
+
+```{r module3-summary}
+cat("=== Module 3 Summary ===\n\n")
+cat("Integration Statistics:\n")
+cat("  Genes with both CRISPR and RNA-seq data:", nrow(integrated_data), "\n")
+cat("  Correlation (Pearson):", round(cor_pearson, 3), "\n")
+cat("  Correlation (Spearman):", round(cor_spearman, 3), "\n\n")
+
+cat("Concordance Breakdown:\n")
+print(concordance_summary)
+
+# Key findings
+key_concordant <- integrated_data %>%
+  filter(concordance == "Concordant (Depleted/Down)") %>%
+  arrange(fdr_synth) %>%
+  head(10)
+
+cat("\n\nTop Concordant Hits (CRISPR depleted + RNA-seq down):\n")
+if(nrow(key_concordant) > 0) {
+  key_concordant %>%
+    select(id, fdr_synth, sumZ, rnaseq_logFC, rnaseq_fdr) %>%
+    mutate(across(where(is.numeric), ~round(., 3))) %>%
+    print()
+} else {
+  cat("No concordant hits found.\n")
+}
+```
+
+**Module 3 Complete.** Review the integration results above before proceeding to Module 4.
+
+------------------------------------------------------------------------
+
+# Module 4: Pathway Analysis {.tabset}
+
+## 4.1 Setup and Gene Ranking
+
+```{r pathway-setup}
+# Load pathway analysis packages
+library(fgsea)
+library(msigdbr)
+
+# Create ranked gene list for GSEA
+# Strategy: Use normZ directly (negative = depleted, already normalized)
+# This ranks strongly depleted genes at the top (most negative)
+
+ranked_genes <- gene_summary %>%
+  filter(!is.na(normZ)) %>%
+  arrange(normZ) %>%
+  distinct(id, .keep_all = TRUE)
+
+# Create named vector for fgsea (using normZ as the ranking statistic)
+gene_ranks <- setNames(ranked_genes$normZ, ranked_genes$id)
+
+cat("Gene ranking summary (using drugZ normZ):\n")
+cat("  Total ranked genes:", length(gene_ranks), "\n")
+cat("  Range:", round(min(gene_ranks), 2), "to", round(max(gene_ranks), 2), "\n")
+cat("  Median:", round(median(gene_ranks), 2), "\n")
+
+# Show top depleted and enriched
+cat("\nTop 10 most depleted (most negative normZ):\n")
+head(sort(gene_ranks), 10)
+
+cat("\nTop 10 most enriched (most positive normZ):\n")
+tail(sort(gene_ranks), 10)
+```
+
+## 4.2 MSigDB Hallmark Pathways
+
+```{r gsea-hallmark, fig.height=8, fig.width=10}
+# Get MSigDB Hallmark gene sets
+hallmark_sets <- msigdbr(species = "Homo sapiens", category = "H") %>%
+  select(gs_name, gene_symbol) %>%
+  group_by(gs_name) %>%
+  summarise(genes = list(gene_symbol), .groups = "drop")
+
+# Convert to list format for fgsea
+hallmark_pathways <- setNames(hallmark_sets$genes, hallmark_sets$gs_name)
+
+cat("Loaded", length(hallmark_pathways), "Hallmark pathways\n")
+
+# Run fgsea
+set.seed(42)
+gsea_hallmark <- fgsea(
+  pathways = hallmark_pathways,
+  stats = gene_ranks,
+  minSize = 15,
+  maxSize = 500,
+  nPermSimple = 10000
+)
+
+# Sort by NES and filter significant
+gsea_hallmark <- gsea_hallmark %>%
+  as_tibble() %>%
+  arrange(pval) %>%
+  mutate(
+    direction = ifelse(NES > 0, "Enriched in LOY", "Depleted in LOY"),
+    pathway_short = gsub("HALLMARK_", "", pathway)
+  )
+
+# Display results
+cat("\nSignificant Hallmark pathways (padj < 0.25):\n\n")
+
+gsea_hallmark %>%
+  filter(padj < 0.25) %>%
+  select(pathway_short, NES, pval, padj, size) %>%
+  mutate(
+    NES = round(NES, 3),
+    pval = signif(pval, 3),
+    padj = signif(padj, 3)
+  ) %>%
+  knitr::kable(caption = "Significant Hallmark pathways") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Bar plot of top pathways
+n_show <- min(20, nrow(gsea_hallmark))
+p_hallmark_bar <- gsea_hallmark %>%
+  head(n_show) %>%
+  mutate(pathway_short = fct_reorder(pathway_short, NES)) %>%
+  ggplot(aes(x = pathway_short, y = NES, fill = direction)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_hline(yintercept = 0, color = "black") +
+  coord_flip() +
+  scale_fill_manual(values = c("Depleted in LOY" = "#2166AC",
+                                "Enriched in LOY" = "#B2182B")) +
+  labs(
+    title = "GSEA: MSigDB Hallmark Pathways (drugZ ranking)",
+    subtitle = "Ranked by drugZ normZ score",
+    x = "Pathway",
+    y = "Normalized Enrichment Score (NES)",
+    fill = "Direction"
+  ) +
+  theme_crispr() +
+  theme(axis.text.y = element_text(size = 9))
+
+p_hallmark_bar
+
+ggsave(file.path(results_dir, "module4_gsea_hallmark_bar.pdf"), p_hallmark_bar,
+       width = 10, height = 8)
+
+# Save results
+write_csv(gsea_hallmark, file.path(results_dir, "module4_gsea_hallmark.csv"))
+```
+
+## 4.3 KEGG Pathways
+
+```{r gsea-kegg, fig.height=8, fig.width=10}
+# Get KEGG gene sets
+kegg_sets <- msigdbr(species = "Homo sapiens",
+                     category = "C2",
+                     subcategory = "CP:KEGG_LEGACY") %>%
+  select(gs_name, gene_symbol) %>%
+  group_by(gs_name) %>%
+  summarise(genes = list(gene_symbol), .groups = "drop")
+
+kegg_pathways <- setNames(kegg_sets$genes, kegg_sets$gs_name)
+
+cat("Loaded", length(kegg_pathways), "KEGG pathways\n")
+
+# Run fgsea
+set.seed(42)
+gsea_kegg <- fgsea(
+  pathways = kegg_pathways,
+  stats = gene_ranks,
+  minSize = 15,
+  maxSize = 500,
+  nPermSimple = 10000
+)
+
+gsea_kegg <- gsea_kegg %>%
+  as_tibble() %>%
+  arrange(pval) %>%
+  mutate(
+    direction = ifelse(NES > 0, "Enriched in LOY", "Depleted in LOY"),
+    pathway_short = gsub("KEGG_", "", pathway)
+  )
+
+# Display significant results
+cat("\nSignificant KEGG pathways (padj < 0.25):\n\n")
+
+gsea_kegg %>%
+  filter(padj < 0.25) %>%
+  select(pathway_short, NES, pval, padj, size) %>%
+  mutate(
+    NES = round(NES, 3),
+    pval = signif(pval, 3),
+    padj = signif(padj, 3)
+  ) %>%
+  head(30) %>%
+  knitr::kable(caption = "Significant KEGG pathways") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Bar plot
+n_show_kegg <- min(25, nrow(gsea_kegg))
+p_kegg_bar <- gsea_kegg %>%
+  head(n_show_kegg) %>%
+  mutate(pathway_short = fct_reorder(pathway_short, NES)) %>%
+  ggplot(aes(x = pathway_short, y = NES, fill = direction)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_hline(yintercept = 0, color = "black") +
+  coord_flip() +
+  scale_fill_manual(values = c("Depleted in LOY" = "#2166AC",
+                                "Enriched in LOY" = "#B2182B")) +
+  labs(
+    title = "GSEA: KEGG Pathways (drugZ ranking)",
+    subtitle = "Ranked by drugZ normZ score",
+    x = "Pathway",
+    y = "Normalized Enrichment Score (NES)",
+    fill = "Direction"
+  ) +
+  theme_crispr() +
+  theme(axis.text.y = element_text(size = 8))
+
+p_kegg_bar
+
+ggsave(file.path(results_dir, "module4_gsea_kegg_bar.pdf"), p_kegg_bar,
+       width = 10, height = 8)
+
+write_csv(gsea_kegg, file.path(results_dir, "module4_gsea_kegg.csv"))
+```
+
+## 4.4 SAGA Complex Analysis
+
+The SAGA (Spt-Ada-Gcn5 Acetyltransferase) complex is a key chromatin-modifying complex involved in transcriptional regulation. Multiple SAGA subunits appear in our top hits.
+
+```{r saga-analysis, fig.height=6, fig.width=10}
+# Define SAGA complex genes
+saga_genes <- c("ATXN7", "ATXN7L3", "ENY2", "KAT2A", "KAT2B", "PAAF1",
+                "SF3B3", "SF3B5", "SGF29", "SUPT20H", "SUPT20HL1", "SUPT20HL2",
+                "SUPT3H", "SUPT7L", "TADA1", "TADA2A", "TADA2B", "TADA3",
+                "TAF10", "TAF12", "TAF5", "TAF5L", "TAF6", "TAF6L",
+                "TAF9", "TRRAP", "USP22")
+
+# Extract SAGA genes from drugZ screen results
+saga_in_screen <- gene_summary %>%
+  filter(id %in% saga_genes) %>%
+  arrange(fdr_synth) %>%
+  select(id, fdr_synth, sumZ, normZ, num)
+
+cat("SAGA Complex Subunits in Screen (drugZ):\n")
+cat("  Total SAGA genes:", length(saga_genes), "\n")
+cat("  Found in screen:", nrow(saga_in_screen), "\n")
+cat("  Significant (FDR <", FDR_THRESHOLD, "):",
+    sum(saga_in_screen$fdr_synth < FDR_THRESHOLD, na.rm = TRUE), "\n\n")
+
+# Display table
+saga_in_screen %>%
+  mutate(
+    significant = ifelse(fdr_synth < FDR_THRESHOLD, "***", ""),
+    fdr_synth = signif(fdr_synth, 3),
+    sumZ = round(sumZ, 3),
+    normZ = round(normZ, 3)
+  ) %>%
+  knitr::kable(caption = "SAGA complex subunits in drugZ CRISPR screen") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Visualize SAGA complex depletion
+p_saga <- saga_in_screen %>%
+  mutate(
+    significant = fdr_synth < FDR_THRESHOLD,
+    id = fct_reorder(id, sumZ)
+  ) %>%
+  ggplot(aes(x = id, y = sumZ, fill = significant)) +
+  geom_col(color = "black", linewidth = 0.3) +
+  geom_hline(yintercept = 0, color = "black") +
+  scale_fill_manual(
+    values = c("TRUE" = "#8E44AD", "FALSE" = "grey70"),
+    labels = c("TRUE" = paste0("FDR < ", FDR_THRESHOLD), "FALSE" = "NS")
+  ) +
+  coord_flip() +
+  labs(
+    title = "SAGA Complex Subunit Depletion in LOY Cells (drugZ)",
+    subtitle = paste0("Multiple subunits show significant depletion (FDR < ", FDR_THRESHOLD, ")"),
+    x = "SAGA Subunit",
+    y = "drugZ sumZ Score (negative = depleted)",
+    fill = "Significance"
+  ) +
+  theme_crispr() +
+  theme(legend.position = "bottom")
+
+print(p_saga)
+
+ggsave(file.path(results_dir, "module4_saga_complex.pdf"), p_saga,
+       width = 10, height = 6)
+```
+
+## 4.5 Module 4 Summary
+
+```{r module4-summary}
+cat("=== Module 4 Summary (drugZ Pathway Analysis) ===\n\n")
+
+cat("GSEA Results Summary:\n")
+cat("  Hallmark pathways tested:", nrow(gsea_hallmark), "\n")
+cat("  Hallmark significant (padj < 0.25):", sum(gsea_hallmark$padj < 0.25), "\n\n")
+
+cat("  KEGG pathways tested:", nrow(gsea_kegg), "\n")
+cat("  KEGG significant (padj < 0.25):", sum(gsea_kegg$padj < 0.25), "\n\n")
+
+cat("Top Depleted Pathways (genes essential in LOY cells):\n")
+gsea_hallmark %>%
+  filter(NES < 0) %>%
+  head(5) %>%
+  select(pathway, NES, padj) %>%
+  mutate(pathway = gsub("HALLMARK_", "", pathway),
+         NES = round(NES, 2),
+         padj = signif(padj, 3)) %>%
+  print()
+
+cat("\nFiles saved to results/drugZ_analysis/:\n")
+cat("  - module4_gsea_hallmark.csv\n")
+cat("  - module4_gsea_hallmark_bar.pdf\n")
+cat("  - module4_gsea_kegg.csv\n")
+cat("  - module4_gsea_kegg_bar.pdf\n")
+cat("  - module4_saga_complex.pdf\n")
+```
+
+**Module 4 Complete.** Review the pathway analysis results above before proceeding to Module 5.
+
+------------------------------------------------------------------------
+
+# Module 5: Summary Visualizations {.tabset}
+
+## 5.1 Key Findings Summary
+
+```{r key-findings}
+cat("=" %>% rep(60) %>% paste(collapse = ""), "\n")
+cat("       HT1080 LOY CRISPR SCREEN - KEY FINDINGS (drugZ)\n")
+cat("=" %>% rep(60) %>% paste(collapse = ""), "\n\n")
+
+# Screen summary
+cat("SCREEN OVERVIEW:\n")
+cat("  Library: Brunello sgRNAs\n")
+cat("  Genes tested:", scales::comma(nrow(gene_summary)), "\n")
+cat("  Comparison: POST_LOY vs POST_CTRL\n")
+cat("  Analysis method: drugZ\n")
+cat("  FDR threshold:", FDR_THRESHOLD, "\n\n")
+
+# Hit summary
+cat("SIGNIFICANT HITS:\n")
+cat("  Depleted genes (synthetic lethality, FDR <", FDR_THRESHOLD, "):", n_depleted, "\n")
+cat("  Enriched genes (suppressor, FDR <", FDR_THRESHOLD, "):", n_enriched, "\n\n")
+
+# Top hits
+cat("TOP 10 DEPLETED GENES (LOY vulnerabilities):\n")
+gene_summary %>%
+  filter(neg_significant) %>%
+  arrange(fdr_synth) %>%
+  head(10) %>%
+  mutate(
+    rank = row_number(),
+    x_linked = ifelse(id %in% x_chromosome_genes, "*", ""),
+    info = paste0(rank, ". ", id, x_linked, " (FDR=", signif(fdr_synth, 3),
+                  ", sumZ=", round(sumZ, 2), ")")
+  ) %>%
+  pull(info) %>%
+  cat(sep = "\n")
+
+cat("\n* = X-linked gene\n\n")
+
+# X-linked genes
+cat("X-LINKED GENES (Synthetic Lethality Candidates):\n")
+integrated_data %>%
+  filter(is_x_linked & crispr_sig_neg) %>%
+  arrange(fdr_synth) %>%
+  mutate(
+    info = paste0("  ", id, ": FDR=", signif(fdr_synth, 3),
+                  ", sumZ=", round(sumZ, 2),
+                  ", RNA-seq logFC=", round(rnaseq_logFC, 2))
+  ) %>%
+  pull(info) %>%
+  head(10) %>%
+  cat(sep = "\n")
+
+cat("\n\nINTEGRATION WITH RNA-seq:\n")
+cat("  Genes with both CRISPR and RNA-seq data:", nrow(integrated_data), "\n")
+cat("  Correlation (Pearson r):", round(cor_pearson, 3), "\n")
+cat("  Concordant (CRISPR depleted + RNA down):",
+    sum(integrated_data$concordance == "Concordant (Depleted/Down)"), "\n\n")
+
+cat("=" %>% rep(60) %>% paste(collapse = ""), "\n")
+cat("                    CONCLUSIONS\n")
+cat("=" %>% rep(60) %>% paste(collapse = ""), "\n\n")
+
+cat("1. DDX3X is the top synthetic lethal hit with LOY\n")
+cat("   - X-linked DEAD-box RNA helicase\n")
+cat("   - Known X-inactivation escapee\n")
+cat("   - Strong drugZ depletion signal\n\n")
+
+cat("2. Multiple X-linked genes show LOY-specific dependencies\n")
+cat("   - TIMM8A, BCORL1, USP9X among significant hits\n")
+cat("   - Suggests dosage-sensitive vulnerabilities\n\n")
+
+cat("3. STAGA complex subunits enriched in depleted genes\n")
+cat("   - TAF6L, SUPT20H, TADA2B, ATXN7L3, TADA1\n")
+cat("   - Chromatin modification vulnerability in LOY cells\n\n")
+```
+
+## 5.2 Save Summary Outputs
+
+```{r save-module5}
+# Create a summary data frame for export
+final_summary <- tibble(
+  Metric = c(
+    "Analysis method",
+    "Total genes tested",
+    "Depleted genes (FDR < 0.25)",
+    "Enriched genes (FDR < 0.25)",
+    "Top hit gene",
+    "Top hit FDR",
+    "Top hit sumZ",
+    "X-linked significant genes",
+    "CRISPR-RNAseq correlation (r)",
+    "Concordant depleted/down genes"
+  ),
+  Value = c(
+    "drugZ",
+    as.character(nrow(gene_summary)),
+    as.character(n_depleted),
+    as.character(n_enriched),
+    gene_summary %>% arrange(fdr_synth) %>% slice(1) %>% pull(id),
+    as.character(signif(gene_summary %>% arrange(fdr_synth) %>% slice(1) %>% pull(fdr_synth), 4)),
+    as.character(round(gene_summary %>% arrange(fdr_synth) %>% slice(1) %>% pull(sumZ), 2)),
+    as.character(sum(integrated_data$is_x_linked & integrated_data$crispr_sig_neg, na.rm = TRUE)),
+    as.character(round(cor_pearson, 3)),
+    as.character(sum(integrated_data$concordance == "Concordant (Depleted/Down)", na.rm = TRUE))
+  )
+)
+
+write_csv(final_summary, file.path(results_dir, "module5_analysis_summary.csv"))
+
+cat("\nModule 5 outputs saved:\n")
+cat("  - module5_analysis_summary.csv\n")
+```
+
+**Module 5 Complete.** All summary visualizations have been generated.
+
+------------------------------------------------------------------------
+
+# Module 10: Summary Excel Export {.tabset}
+
+This module creates a comprehensive Excel workbook for collaborators with all drugZ screen results, expression data, and annotations.
+
+## 10.1 Build Gene Summary Table
+
+```{r module10-gene-summary}
+library(openxlsx)
+
+cat("===== BUILDING GENE SUMMARY TABLE (drugZ) =====\n\n")
+
+# Start with drugZ gene summary
+gene_summary_export <- gene_summary %>%
+  select(
+    Gene = id,
+    n_sgRNAs = num,
+    drugZ_sumZ = sumZ,
+    drugZ_normZ = normZ,
+    drugZ_fdr_synth = fdr_synth,
+    drugZ_rank_synth = rank_synth,
+    drugZ_fdr_supp = fdr_supp,
+    drugZ_rank_supp = rank_supp
+  )
+
+# Add chromosome info
+gene_summary_export <- gene_summary_export %>%
+  mutate(
+    chromosome = ifelse(Gene %in% x_chromosome_genes, "X", "Autosome"),
+    is_x_linked = chromosome == "X"
+  )
+
+# Add RNA-seq data if available
+if(exists("rnaseq_de")) {
+  rnaseq_slim <- rnaseq_de %>%
+    select(gene_name, logFC, logCPM, FDR) %>%
+    rename(
+      Gene = gene_name,
+      RNAseq_logFC = logFC,
+      RNAseq_logCPM = logCPM,
+      RNAseq_FDR = FDR
+    )
+
+  gene_summary_export <- gene_summary_export %>%
+    left_join(rnaseq_slim, by = "Gene")
+}
+
+# Add CRISPR direction classification
+gene_summary_export <- gene_summary_export %>%
+  mutate(
+    CRISPR_direction = case_when(
+      drugZ_fdr_synth < 0.25 & drugZ_sumZ < 0 ~ "Depleted",
+      drugZ_fdr_supp < 0.25 & drugZ_sumZ > 0 ~ "Enriched",
+      TRUE ~ "NS"
+    )
+  )
+
+# Reorder columns
+gene_summary_export <- gene_summary_export %>%
+  select(
+    Gene, chromosome, is_x_linked,
+    n_sgRNAs,
+    drugZ_sumZ, drugZ_normZ, drugZ_fdr_synth, drugZ_rank_synth,
+    drugZ_fdr_supp, drugZ_rank_supp,
+    CRISPR_direction,
+    everything()
+  ) %>%
+  arrange(drugZ_fdr_synth)
+
+cat(sprintf("Gene summary table: %d genes x %d columns\n", nrow(gene_summary_export), ncol(gene_summary_export)))
+```
+
+## 10.2 Export to Excel
+
+```{r module10-export-excel}
+cat("===== EXPORTING TO EXCEL =====\n\n")
+
+# Create workbook
+wb <- createWorkbook()
+
+# Add Gene Summary sheet
+addWorksheet(wb, "Gene_Summary_drugZ")
+writeData(wb, "Gene_Summary_drugZ", gene_summary_export)
+
+# Format header
+header_style <- createStyle(
+  textDecoration = "bold",
+  fgFill = "#4472C4",
+  fontColour = "white",
+  halign = "center"
+)
+addStyle(wb, "Gene_Summary_drugZ", header_style, rows = 1, cols = 1:ncol(gene_summary_export), gridExpand = TRUE)
+
+# Auto-width columns
+setColWidths(wb, "Gene_Summary_drugZ", cols = 1:ncol(gene_summary_export), widths = "auto")
+
+# Save workbook
+excel_output <- file.path(results_dir, "ht1080_loy_screen_drugZ_summary.xlsx")
+saveWorkbook(wb, excel_output, overwrite = TRUE)
+
+cat(sprintf("Excel file saved: %s\n", excel_output))
+cat(sprintf("  - Tab 1 (Gene_Summary_drugZ): %d rows x %d columns\n", nrow(gene_summary_export), ncol(gene_summary_export)))
+```
+
+**Module 10 Complete.** Summary Excel file exported.
+
+------------------------------------------------------------------------
+
+# Final Summary
+
+```{r final-summary}
+cat("\n")
+cat("=" %>% rep(70) %>% paste(collapse = ""), "\n")
+cat("           drugZ ANALYSIS COMPLETE - ALL MODULES FINISHED\n")
+cat("=" %>% rep(70) %>% paste(collapse = ""), "\n\n")
+
+cat("OUTPUT FILES IN:", results_dir, "\n\n")
+
+# List all output files
+output_files <- list.files(results_dir, pattern = "^module", full.names = FALSE)
+cat("Generated module files:\n")
+for(f in sort(output_files)) {
+  cat("  -", f, "\n")
+}
+
+cat("\nSummary Excel file:\n")
+cat("  - ht1080_loy_screen_drugZ_summary.xlsx\n")
+
+cat("\n")
+cat("NEXT STEPS:\n")
+cat("1. Review the summary Excel file for collaborators\n")
+cat("2. Compare results with MAGeCK analysis\n")
+cat("3. Examine DDX3X and other X-linked hits for follow-up validation\n")
+cat("4. Consider protein complex analysis for mechanistic insights\n")
+cat("5. Cross-reference with other LOY cancer datasets\n\n")
+```
+
+------------------------------------------------------------------------
+
+# Session Info
+
+```{r session-info}
+sessionInfo()
+```

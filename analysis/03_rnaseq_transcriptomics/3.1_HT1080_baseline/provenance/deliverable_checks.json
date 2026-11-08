@@ -1,0 +1,389 @@
+{
+  "figures": [
+    {
+      "figure": "Fig01_design_QC",
+      "width_mm": 182.73888888888888,
+      "height_mm": 159.8083333333333,
+      "embedded_fonts": [
+        "/HAMKXN+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3779
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 166
+    },
+    {
+      "figure": "Fig02_expression_repeatability",
+      "width_mm": 182.73888888888888,
+      "height_mm": 159.8083333333333,
+      "embedded_fonts": [
+        "/CZQYQE+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3779
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 194
+    },
+    {
+      "figure": "Fig03_pathways_regulators",
+      "width_mm": 182.73888888888888,
+      "height_mm": 164.7472222222222,
+      "embedded_fonts": [
+        "/BNHYTM+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3897
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 214
+    },
+    {
+      "figure": "Fig04_Y_paralog_dosage",
+      "width_mm": 182.73888888888888,
+      "height_mm": 164.7472222222222,
+      "embedded_fonts": [
+        "/NHLXIW+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3897
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 215
+    },
+    {
+      "figure": "SuppFig01_additional_QC",
+      "width_mm": 182.73888888888888,
+      "height_mm": 159.8083333333333,
+      "embedded_fonts": [
+        "/PNEOZF+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3779
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 166
+    },
+    {
+      "figure": "SuppFig02_sensitivity_signature",
+      "width_mm": 182.73888888888888,
+      "height_mm": 159.8083333333333,
+      "embedded_fonts": [
+        "/FOYGRW+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3779
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 189
+    },
+    {
+      "figure": "SuppFig03_program_scores",
+      "width_mm": 182.73888888888888,
+      "height_mm": 159.8083333333333,
+      "embedded_fonts": [
+        "/ILWDCN+ArialMT",
+        "/NKYJHN+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3779
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 150
+    },
+    {
+      "figure": "Fig05_expanded_enrichment",
+      "width_mm": 182.73888888888888,
+      "height_mm": 159.8083333333333,
+      "embedded_fonts": [
+        "/VPJYVN+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3779
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 189
+    },
+    {
+      "figure": "Fig06_ZMYND8_followup",
+      "width_mm": 182.73888888888888,
+      "height_mm": 154.8694444444444,
+      "embedded_fonts": [
+        "/WIVFXH+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3661
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 207
+    },
+    {
+      "figure": "Fig07_chromatin_signatures",
+      "width_mm": 182.73888888888888,
+      "height_mm": 164.7472222222222,
+      "embedded_fonts": [
+        "/SHKZUO+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3897
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 211
+    },
+    {
+      "figure": "SuppFig04_chromatin_regulators",
+      "width_mm": 182.73888888888888,
+      "height_mm": 164.7472222222222,
+      "embedded_fonts": [
+        "/FBVDUT+ArialMT",
+        "/NKYJHN+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        3897
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 127
+    },
+    {
+      "figure": "Fig08_HDAC12_gene_drivers",
+      "width_mm": 182.73888888888888,
+      "height_mm": 179.91666666666666,
+      "embedded_fonts": [
+        "/NOZDCX+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        4251
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 209
+    },
+    {
+      "figure": "SuppFig05_HDAC12_scores_processes",
+      "width_mm": 182.73888888888888,
+      "height_mm": 214.84166666666664,
+      "embedded_fonts": [
+        "/LJOVBW+ArialMT",
+        "/PKYVCJ+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        5078
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 200
+    },
+    {
+      "figure": "Fig09_HDAC_external_comparison",
+      "width_mm": 182.73888888888888,
+      "height_mm": 229.6583333333333,
+      "embedded_fonts": [
+        "/PXDCZV+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        5433
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 232
+    },
+    {
+      "figure": "SuppFig06_HDAC_external_QC_sensitivity",
+      "width_mm": 182.73888888888888,
+      "height_mm": 239.88888888888889,
+      "embedded_fonts": [
+        "/TXVKSC+ArialMT",
+        "/PKYVCJ+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        5669
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 224
+    },
+    {
+      "figure": "Fig10_PRC2_gene_programs",
+      "width_mm": 182.73888888888888,
+      "height_mm": 199.67222222222222,
+      "embedded_fonts": [
+        "/XFJUYP+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        4724
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 210
+    },
+    {
+      "figure": "Fig11_epigenetic_context",
+      "width_mm": 182.73888888888888,
+      "height_mm": 239.88888888888889,
+      "embedded_fonts": [
+        "/GFWYEG+ArialMT",
+        "/NCLJQG+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        5669
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 219
+    },
+    {
+      "figure": "Fig12_GSEA_PRC2_H3K27me3",
+      "width_mm": 182.73888888888888,
+      "height_mm": 239.88888888888889,
+      "embedded_fonts": [
+        "/WSWKVH+ArialMT",
+        "/TZDSDS+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        5669
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 193
+    },
+    {
+      "figure": "Fig13_GSEA_other_chromatin",
+      "width_mm": 182.73888888888888,
+      "height_mm": 239.88888888888889,
+      "embedded_fonts": [
+        "/GGHIUQ+ArialMT",
+        "/TZDSDS+Arial-BoldMT"
+      ],
+      "editable_pdf_text": true,
+      "editable_svg_text": true,
+      "png_pixels": [
+        4322,
+        5669
+      ],
+      "png_dpi": [
+        599.9988,
+        599.9988
+      ],
+      "caption_words": 190
+    }
+  ],
+  "source_panels": 74,
+  "broken_local_links": [],
+  "embedded_report_figures": 19,
+  "caption_docx": true,
+  "renv_lock": true
+}

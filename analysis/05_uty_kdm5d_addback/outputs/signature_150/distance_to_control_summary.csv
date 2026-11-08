@@ -1,0 +1,17 @@
+arm,category,n_genes,fraction
+LOY,closer_same_side,40,0.266666666666667
+LOY_KDM5D_AB,closer_same_side,50,0.333333333333333
+LOY_KDM5D_UTY_AB,closer_same_side,85,0.566666666666667
+LOY_UTY_AB,closer_same_side,77,0.513333333333333
+LOY,crossed_control_closer,12,0.08
+LOY_KDM5D_AB,crossed_control_closer,4,0.0266666666666667
+LOY_KDM5D_UTY_AB,crossed_control_closer,24,0.16
+LOY_UTY_AB,crossed_control_closer,29,0.193333333333333
+LOY,crossed_control_farther,39,0.26
+LOY_KDM5D_AB,crossed_control_farther,6,0.04
+LOY_KDM5D_UTY_AB,crossed_control_farther,10,0.0666666666666667
+LOY_UTY_AB,crossed_control_farther,10,0.0666666666666667
+LOY,farther_same_side,59,0.393333333333333
+LOY_KDM5D_AB,farther_same_side,90,0.6
+LOY_KDM5D_UTY_AB,farther_same_side,31,0.206666666666667
+LOY_UTY_AB,farther_same_side,34,0.226666666666667

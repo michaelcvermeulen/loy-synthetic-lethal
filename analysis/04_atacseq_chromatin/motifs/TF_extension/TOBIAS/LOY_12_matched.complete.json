@@ -1,0 +1,10 @@
+{
+  "sample": "LOY_12",
+  "condition": "LOY",
+  "source_nonY_fragments": 14439857,
+  "target_fragments": 13595165,
+  "sampling_probability": 0.94150274479865,
+  "seed": 20260912,
+  "actual_reads": 27191562,
+  "actual_fragments": 13595781
+}

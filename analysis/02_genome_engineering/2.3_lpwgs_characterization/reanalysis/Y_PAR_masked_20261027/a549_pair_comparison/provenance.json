@@ -1,0 +1,34 @@
+{
+  "BAMs": [
+    {
+      "sample": "A549-CTRL2",
+      "alignment": "original",
+      "path": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/t2t_bam/A549-CTRL2.bam",
+      "size": 884247700
+    },
+    {
+      "sample": "A549-CTRL2",
+      "alignment": "Y_PAR_masked",
+      "path": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/reanalysis/Y_PAR_masked_20261027/alignment/A549-CTRL2.YPARmasked.bam",
+      "size": 888439647
+    },
+    {
+      "sample": "A549-LOY",
+      "alignment": "original",
+      "path": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/t2t_bam/A549-LOY.bam",
+      "size": 881703130
+    },
+    {
+      "sample": "A549-LOY",
+      "alignment": "Y_PAR_masked",
+      "path": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/reanalysis/Y_PAR_masked_20261027/alignment/A549-LOY.YPARmasked.bam",
+      "size": 885428476
+    }
+  ],
+  "min_MAPQ": 37,
+  "excluded_flags": "0xf04",
+  "method": "Sum X and Y PAR aligned bases, divide by X PAR length and median usable-autosomal depth; compare LOY/control.",
+  "interpretation": "Combined X/Y PAR signal; cannot assign to Y or estimate Y-PAR retention.",
+  "reference_PAR_bed_sha256": "9ba7f1ed5dfd88107356ff71965655a40f1d29ead912e7fc926c3f14d54300b3",
+  "annotation_sha256": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60"
+}

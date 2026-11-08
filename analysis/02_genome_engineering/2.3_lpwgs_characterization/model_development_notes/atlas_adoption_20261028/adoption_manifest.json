@@ -1,0 +1,66 @@
+{
+  "archive": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\archive\\regional_y_ypar_adoption_20261028",
+  "staging": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\regional_y_ypar_adoption_20261028",
+  "figures": {
+    "HT1080": {
+      "selected": "CH3_S3_4_5_1_F04_ht1080_regional_y",
+      "stem": "ch03_main_ht1080_lpwgs_chrY_atlas",
+      "draft_number": "3.4",
+      "historical_master_number": "3.10",
+      "preview": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\ht1080_du145_ypar_20261027\\ht1080",
+      "frozen_sources": {
+        "autosomal_normalization.csv": "3731db08f17eb27abdc3b9debe3c93efa562d49ca8ca797a38b3d4c63de2a3ca",
+        "binned_coverage.csv": "765e3ac6210feb9cd0c0d82fce308f331bb330f66fb8aba89f92f13bd9cc87d6",
+        "bin_annotation.csv": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+        "ddpcr_target_loci.csv": "ba5b1d3281ed1c4f3553fb6ca0f3733cd34cc1bc6bd3da7313be28d509379b83",
+        "gene_mapping_plotted.csv": "cea54877c5d2ac2f6ef77280de07a8c907d403ca9af367d0eaaa13f6a7b285f4",
+        "qdnaseq_bins.csv": "7f93c1c1e2002f992011a34e9cb0b1dae222f071d1a2d50d33d59a7b842f5c6b",
+        "relative_expression_group_means.csv": "10bbb61001fab49d6ebdfd12b19fedb8e4bdf0636d10660ab11d23dec4018ea5",
+        "relative_expression_per_sample.csv": "fb69688665df301211ce55431071d635d6c330445cf4acfc7c1f27085cdd9f5b",
+        "sample_map.json": "0bc3d30c1dc21536f5e2e21b8cc703941933f0f7cfbd7166927eb3a90271c750",
+        "sample_metadata.csv": "e12cee18b4d01d35f93ba916cd2c036cae6bab55bb083fe78147a13543b4fb34",
+        "T2T_chrY_cytobands.csv": "b9075283fbab97c9b11c0630eff45953e94a011a782ed1d3d98e9f3ce6daf007"
+      }
+    },
+    "A549": {
+      "selected": "CH3_S3_4_5_2_F02_a549_regional_y",
+      "stem": "ch03_main_a549_lpwgs_chrY_atlas",
+      "draft_number": "3.5",
+      "historical_master_number": "3.12",
+      "preview": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\a549_dense_bins_20261027\\100kb",
+      "frozen_sources": {
+        "autosomal_normalization.csv": "596e74e11f588c5f0ea9e70fe92bea885d7c7e9ce017be6fd2bfa05c953cc67b",
+        "binned_coverage.csv": "abbe9dcbffe23d4fcdf8c00ae3ac515f36e81ab588390eb502c54fbd06937074",
+        "bin_annotation.csv": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+        "ddpcr_target_loci.csv": "ba5b1d3281ed1c4f3553fb6ca0f3733cd34cc1bc6bd3da7313be28d509379b83",
+        "gene_mapping_plotted.csv": "cea54877c5d2ac2f6ef77280de07a8c907d403ca9af367d0eaaa13f6a7b285f4",
+        "qdnaseq_bins.csv": "81adf8ac38015cc42bdf945a408de3cac8b36d1e3aef9d23f2664211c78d7204",
+        "relative_expression_group_means.csv": "97917d419dcf389c92b3d1153e8ce45e9bac7c2e214f0f63f8e7d82c07124863",
+        "relative_expression_per_sample.csv": "ee4e7ba9bf22ea9a6a59c08f9461def05000fd23eebc1b1423ec1594030c0c50",
+        "sample_map.json": "2a02133aeb73ac6d5ac842e625f9d567b0363acfd303f561f520e193059c2c8b",
+        "sample_metadata.csv": "c10169ac973d73a8f628b1661d1bcf650fa9fb620c48d3e0f2cc1342f34c9aaa",
+        "T2T_chrY_cytobands.csv": "b9075283fbab97c9b11c0630eff45953e94a011a782ed1d3d98e9f3ce6daf007"
+      }
+    },
+    "DU145": {
+      "selected": "CH3_S3_4_5_3_F02_du145_regional_y",
+      "stem": "ch03_main_du145_lpwgs_chrY_atlas",
+      "draft_number": "3.6",
+      "historical_master_number": "3.14",
+      "preview": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\figures\\chapter3\\drafts\\ht1080_du145_ypar_20261027\\du145",
+      "frozen_sources": {
+        "autosomal_normalization.csv": "bc60061e5be37bbc74e3b0cb532a9052426adc67fcb2e978167ec06b226cd9bf",
+        "binned_coverage.csv": "16c33acb2bbf1913c082530d46b9ce9490a5e032f6ee74b0933e8fa9ecaba855",
+        "bin_annotation.csv": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+        "ddpcr_target_loci.csv": "ba5b1d3281ed1c4f3553fb6ca0f3733cd34cc1bc6bd3da7313be28d509379b83",
+        "gene_mapping_plotted.csv": "cea54877c5d2ac2f6ef77280de07a8c907d403ca9af367d0eaaa13f6a7b285f4",
+        "qdnaseq_bins.csv": "b53e3d4649f1fa46da14b40bea5e8a50490269f4a37f3fafa7d312b4e4b844b5",
+        "relative_expression_group_means.csv": "1c7748b98d8ef834b9a4c0cf4f45e6fca7c0ea2e96f8fdc18fde89dd3a8abd1f",
+        "relative_expression_per_sample.csv": "83c756ea2b5c9bc6fb8a87919ee7b222beb9ef813a62a69b8b96e0acddcd1eef",
+        "sample_map.json": "417dd5b0151d73f22f62e273dc56a5286202da3d61763c1daa9478c36c8ead56",
+        "sample_metadata.csv": "07277a409a6c384f2faa7163780ea374caa0d34c289daa69179e70e3a803e631",
+        "T2T_chrY_cytobands.csv": "b9075283fbab97c9b11c0630eff45953e94a011a782ed1d3d98e9f3ce6daf007"
+      }
+    }
+  }
+}

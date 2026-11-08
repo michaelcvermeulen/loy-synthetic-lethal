@@ -1,0 +1,4 @@
+Source: https://mart.ensembl.org/info/genome/genebuild/human_PARS.html
+Retrieved: 2026-09-08
+Assembly: GRCh38
+Converted Ensembl 1-based inclusive coordinates to BED 0-based half-open coordinates.

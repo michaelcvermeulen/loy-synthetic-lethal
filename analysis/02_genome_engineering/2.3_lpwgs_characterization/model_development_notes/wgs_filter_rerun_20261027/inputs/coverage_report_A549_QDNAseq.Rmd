@@ -1,0 +1,184 @@
+---
+title: "A549 — QDNAseq Copy Number Analysis (T2T-CHM13v2.0)"
+subtitle: "GC + mappability-corrected, segmented log2 ratios — CTRL2 (Y+) vs LOY (Y-)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 12, fig.height = 5)
+suppressPackageStartupMessages({
+  library(QDNAseq)
+  library(Biobase)
+  library(tidyverse)
+  library(cowplot)
+})
+
+bamdir <- "../t2t_bam"
+
+sample_meta <- tribble(
+  ~sample,        ~label,    ~display_order, ~color,
+  "A549-CTRL2",   "sgCTRL",   1, "#2166AC",
+  "A549-LOY",     "LOY",      2, "#B2182B"
+) %>% arrange(display_order)
+
+samples       <- sample_meta$sample
+sample_labels <- setNames(sample_meta$label, sample_meta$sample)
+label_colors  <- setNames(sample_meta$color, sample_meta$label)
+```
+
+## Pipeline overview
+
+Mirrors `coverage_report_HT1080_QDNAseq.Rmd` exactly — same T2T 100kb bin
+annotation, same filter / correction / segmentation parameters. Output is two
+RDS files in `../`:
+
+- `A549_QDNAseq_cn.rds` — full `QDNAseqCopyNumbers` object
+- `A549_QDNAseq_cn_df.rds` — tidy long-form per bin × sample
+
+These are consumed by `RNAseq/analysis/A549/analysis_A549_extended.Rmd` §9.
+
+## 1. Read counts
+
+```{r run_qdnaseq, cache=TRUE, cache.extra = file.info("../t2t_bins_100kb.rds")$mtime}
+bins <- readRDS("../t2t_bins_100kb.rds")
+
+bam_paths <- file.path(bamdir, paste0(samples, ".bam"))
+stopifnot(all(file.exists(bam_paths)))
+
+t0 <- Sys.time()
+rc <- binReadCounts(bins, bamfiles = bam_paths, bamnames = samples,
+                    isPaired = TRUE, verbose = FALSE)
+cat("binReadCounts:",
+    round(as.numeric(difftime(Sys.time(), t0, units = "secs")), 1),
+    "sec across", length(samples), "BAMs\n")
+
+read_summary <- pData(rc) %>%
+  rownames_to_column("sample") %>%
+  as_tibble() %>%
+  mutate(sample = factor(sample, levels = samples),
+         label  = factor(sample_labels[as.character(sample)],
+                         levels = sample_meta$label))
+
+knitr::kable(read_summary %>%
+               select(label, total.reads, used.reads, expected.variance),
+             digits = c(0, 0, 0, 4),
+             col.names = c("Sample", "Total Reads", "Used Reads",
+                           "Expected Variance"),
+             caption = "QDNAseq read-count summary")
+```
+
+## 2. GC + mappability correction & segmentation
+
+```{r correct_segment, cache=TRUE, dependson="run_qdnaseq"}
+low_depth <- pData(rc)$total.reads < 5e6
+if (any(low_depth)) {
+  excluded <- rownames(pData(rc))[low_depth]
+  message("Dropping low-depth samples: ", paste(excluded, collapse = ", "))
+  rc <- rc[, !low_depth]
+}
+
+# Disable all QDNAseq per-bin filters — T2T bin annotation already encodes
+# 'use'; chromosomes=NA keeps chrX/chrY (default drops them).
+rc_f <- applyFilters(rc, residual = FALSE, blacklist = FALSE,
+                     mappability = FALSE, bases = FALSE,
+                     chromosomes = NA)
+
+rc_f <- estimateCorrection(rc_f)
+cn_corr   <- correctBins(rc_f)
+cn_norm   <- normalizeBins(cn_corr)
+cn_smooth <- smoothOutlierBins(cn_norm)
+
+cn_seg <- segmentBins(cn_smooth, transformFun = "sqrt")
+cn_seg <- normalizeSegmentedBins(cn_seg)
+
+calls_ok <- tryCatch({
+  cn_called <- callBins(cn_seg)
+  TRUE
+}, error = function(e) {
+  message("callBins() failed: ", conditionMessage(e))
+  FALSE
+})
+
+cn <- if (calls_ok) cn_called else cn_seg
+cat("Final QDNAseqCopyNumbers object:\n")
+print(cn)
+
+# Export for downstream RNAseq integration (analysis_A549_extended.Rmd).
+saveRDS(cn, file.path("..", "A549_QDNAseq_cn.rds"))
+cat("Saved CN object to ../A549_QDNAseq_cn.rds\n")
+```
+
+## 3. QC plots
+
+```{r vignette_isobar, fig.height=5, fig.width=7, fig.show='hold'}
+for (s in sampleNames(rc_f)) isobarPlot(rc_f[, s])
+```
+
+```{r vignette_noise, fig.height=5, fig.width=7, fig.show='hold'}
+for (s in sampleNames(rc_f)) noisePlot(rc_f[, s])
+```
+
+```{r vignette_plot_segmented, fig.height=4, fig.width=12, fig.show='hold'}
+for (s in sampleNames(cn_seg)) plot(cn_seg[, s])
+```
+
+## 4. Tidy long-form export
+
+```{r extract_segmented}
+fdat <- fData(cn) %>% as_tibble(rownames = "bin_id") %>%
+  mutate(chromosome = paste0("chr", chromosome),
+         midpoint = (start + end) / 2 / 1e6)
+
+cn_long <- assayDataElement(cn, "copynumber") %>%
+  as.data.frame() %>%
+  rownames_to_column("bin_id") %>%
+  pivot_longer(-bin_id, names_to = "sample", values_to = "copynumber") %>%
+  filter(!is.na(copynumber)) %>%
+  mutate(log2 = log2(pmax(copynumber, 1e-3)))
+
+seg_long <- assayDataElement(cn, "segmented") %>%
+  as.data.frame() %>%
+  rownames_to_column("bin_id") %>%
+  pivot_longer(-bin_id, names_to = "sample", values_to = "segmented") %>%
+  filter(!is.na(segmented)) %>%
+  mutate(log2_seg = log2(pmax(segmented, 1e-3)))
+
+cn_df <- cn_long %>%
+  left_join(seg_long %>% select(bin_id, sample, log2_seg),
+            by = c("bin_id", "sample")) %>%
+  inner_join(fdat %>% select(bin_id, chromosome, start, end, midpoint, use),
+             by = "bin_id") %>%
+  mutate(label = factor(sample_labels[sample], levels = sample_meta$label),
+         chromosome = factor(chromosome,
+                             levels = paste0("chr", c(1:22, "X", "Y"))))
+
+chrom_offsets <- cn_df %>%
+  group_by(chromosome) %>%
+  summarise(chrom_len = max(midpoint), .groups = "drop") %>%
+  mutate(offset = cumsum(lag(chrom_len, default = 0) + 2))
+
+cn_df <- cn_df %>%
+  left_join(chrom_offsets %>% select(chromosome, offset), by = "chromosome") %>%
+  mutate(genome_x = midpoint + offset)
+
+saveRDS(cn_df, file.path("..", "A549_QDNAseq_cn_df.rds"))
+cat("Saved tidy CN long-form to ../A549_QDNAseq_cn_df.rds\n")
+
+cat(sprintf("\nFinal cn_df: %d bins × %d samples\n",
+            length(unique(cn_df$bin_id)),
+            length(unique(cn_df$sample))))
+print(unique(cn_df$label))
+```
+
+## 5. Session info
+
+```{r session-info}
+sessionInfo()
+```

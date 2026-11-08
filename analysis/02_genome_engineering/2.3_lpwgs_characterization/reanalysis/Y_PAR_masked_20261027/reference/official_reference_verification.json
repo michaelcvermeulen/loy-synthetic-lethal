@@ -1,0 +1,106 @@
+{
+  "official_gzip_md5": "bd90ddb80c86af7fcfeefe7a0909b175",
+  "all_contig_sequences_match_prepared_reference": true,
+  "contigs": {
+    "chr1": {
+      "length": 248387328,
+      "md5": "e469247288ceb332aee524caec92bb22"
+    },
+    "chr2": {
+      "length": 242696752,
+      "md5": "e5ff97665b6025191d4d7dfa2cec4cf0"
+    },
+    "chr3": {
+      "length": 201105948,
+      "md5": "0012f8a55c07f0b61e199736105e7257"
+    },
+    "chr4": {
+      "length": 193574945,
+      "md5": "b7e17a4f043aab5bc45cdfd5cccf9deb"
+    },
+    "chr5": {
+      "length": 182045439,
+      "md5": "e069fd69dce480b348767fa9827671b4"
+    },
+    "chr6": {
+      "length": 172126628,
+      "md5": "ae714983adbd673c7c84b0b1daa91f7e"
+    },
+    "chr7": {
+      "length": 160567428,
+      "md5": "3ff4435e65cf8cdd69a3150d09dd649f"
+    },
+    "chr8": {
+      "length": 146259331,
+      "md5": "29aeec58cb54d9132e2283839f9fcc9c"
+    },
+    "chr9": {
+      "length": 150617247,
+      "md5": "419dad1fb58ae389ad8828536b5d78cd"
+    },
+    "chr10": {
+      "length": 134758134,
+      "md5": "fbf3087282695f275d460157fc7864a5"
+    },
+    "chr11": {
+      "length": 135127769,
+      "md5": "7f144a0b4800c341a4b4f1518838cc59"
+    },
+    "chr12": {
+      "length": 133324548,
+      "md5": "5086cf368e83b9cefd7bb19ef0f40d3c"
+    },
+    "chr13": {
+      "length": 113566686,
+      "md5": "6f9949b26d5ece38c6cdefd48a516907"
+    },
+    "chr14": {
+      "length": 101161492,
+      "md5": "7ad36d43a1ab059e190ab918f27cb5bf"
+    },
+    "chr15": {
+      "length": 99753195,
+      "md5": "914e0733351aaa9a4354ca8efb527401"
+    },
+    "chr16": {
+      "length": 96330374,
+      "md5": "fcc04e14d89b12c757d56c177261e248"
+    },
+    "chr17": {
+      "length": 84276897,
+      "md5": "8627043bd24255e9f356e0c99ece251f"
+    },
+    "chr18": {
+      "length": 80542538,
+      "md5": "b6a85aabc31b2d57f707aa679a8612c5"
+    },
+    "chr19": {
+      "length": 61707364,
+      "md5": "c2c74cb0832b34b9e8eebf4b744a88c1"
+    },
+    "chr20": {
+      "length": 66210255,
+      "md5": "f1a31f30d3da50893470ff47bf0b5a38"
+    },
+    "chr21": {
+      "length": 45090682,
+      "md5": "760794bbbe965d4d1e3884bf09d1f306"
+    },
+    "chr22": {
+      "length": 51324926,
+      "md5": "0068189b6b7c95e860cce0815662293f"
+    },
+    "chrX": {
+      "length": 154259566,
+      "md5": "1f2616c4cfa30104517e44dd3c426453"
+    },
+    "chrY": {
+      "length": 62460029,
+      "md5": "dd7264df17e7e4a4dac5b0f1f19dcfe0"
+    },
+    "chrM": {
+      "length": 16569,
+      "md5": "ec493a132ac4823aa696e37109f64972"
+    }
+  }
+}

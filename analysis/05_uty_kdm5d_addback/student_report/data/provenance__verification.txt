@@ -1,0 +1,7 @@
+PASS sample_manifest: 18 libraries, six groups, three matched collection occasions
+PASS design_rank: 8 columns, rank 8
+PASS tested_genes: 23992 autosomal/non-PAR-X genes
+PASS frozen_signature: 100/100 genes represented; 50 up, 50 down
+PASS primary_contrasts: 15
+PASS addback_only_pca: 12 libraries; PC1 46.836%, PC2 18.960%
+PASS figures: PDF, SVG and PNG generated for thesis composites and student standalone panels

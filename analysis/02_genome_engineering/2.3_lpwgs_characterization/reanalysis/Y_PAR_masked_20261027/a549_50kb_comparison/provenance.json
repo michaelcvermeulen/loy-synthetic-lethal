@@ -1,0 +1,12 @@
+{
+  "bin_size_bp": 50000,
+  "reference": "/home/micha/codex-work/wgs-ypar-pilot-20261027/reference/chm13v2.0.YPARmasked.fa",
+  "masking": "Y-PAR only, same aligned reference",
+  "annotation_sources": {
+    "mappability_T2T.gz": "cf7d931a9ac772a637e003433f6895642168498e108f865334b6ef6f4b797818",
+    "difficulty_regions_T2T.gz": "44338dc78e723d2508a3ed1e28d5d350cd5056406f46b39a7f2945af79c6ba38"
+  },
+  "coverage_MAPQ": 37,
+  "coverage_excluded_flags": "0xF04",
+  "coverage_control_filter": "Evaluated after counting; never filter on LOY abundance."
+}

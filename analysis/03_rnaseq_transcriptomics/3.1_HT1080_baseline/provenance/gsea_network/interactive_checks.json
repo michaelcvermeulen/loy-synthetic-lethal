@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "checks": [
+    "All 808 nodes render",
+    "Primary graph has 711 leading-edge connections",
+    "Click selects the correct pathway",
+    "Mikkelsen partner appears as a neighbour",
+    "Neighbour navigation works",
+    "Full membership yields 377 connections",
+    "Full-membership sensitivity yields 690 connections",
+    "Leading-edge sensitivity yields 1285 connections",
+    "Direction filter retains all 32 higher-RNA sets",
+    "Higher-RNA graph has eight connections",
+    "Edge selection shows shared genes",
+    "Pathway search finds both higher-RNA H3K27me3 sets",
+    "Gene search finds interferon leading edges",
+    "Zoom changes the viewport",
+    "Reset clears the search and restores all rows",
+    "Reset restores the viewport"
+  ],
+  "checked_utc": "2026-09-14T18:36:10.816642+00:00",
+  "local_links_verified": 10,
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+}

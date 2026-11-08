@@ -1,0 +1,3 @@
+condition,input_reads,cut_site_FRiP,pre_forward,post_forward,pre_reverse,post_reverse,post_to_pre_bias_variance_forward,post_to_pre_bias_variance_reverse
+CTRL,81576998,0.34491,0.0044525,6.16e-05,0.0044515,6.21e-05,0.013834924199887706,0.013950353813321355
+LOY,81569618,0.36551,0.0045195,7.16e-05,0.0045225,7.28e-05,0.015842460449164732,0.01609729132117192

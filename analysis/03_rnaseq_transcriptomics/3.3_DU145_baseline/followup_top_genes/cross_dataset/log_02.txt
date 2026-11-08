@@ -1,0 +1,68 @@
+A:\Dropbox\LOY_paralogs\projects\RNAseq\analysis\LNCAP\SEPT_23_2026_REANALYZE\followup_top_genes\cross_dataset\02_depmap_Y_association.py:132: RuntimeWarning: invalid value encountered in divide
+  tval = np.where(se > 0, beta / se, np.nan)
+default profiles: (1719, 19215)
+male default lines: 905
+           StrippedCellLineName   lineage  Y_score  DDX3Y  KDM5D   UTY  USP9Y  EIF1AY   ZFY  RPS4Y1  GRHL2  ZEB1  CDH1   VIM
+ACH-001422             WPE1NA22  Prostate     0.00   0.00   0.00  0.00   0.00    0.00  0.00    0.00   4.12  0.26  8.28  1.63
+ACH-001627                 P4E6  Prostate     0.00   0.00   0.00  0.00   0.00    0.00  0.00    0.00   3.65  0.61  7.14  5.85
+ACH-000090                  PC3  Prostate     0.10   0.01   0.07  0.01   0.02    0.03  0.06    0.53   2.79  2.26  5.35  8.47
+ACH-000177              NCIH660  Prostate     0.11   0.07   0.05  0.00   0.03    0.00  0.04    0.57   4.89  1.90  6.42  5.67
+ACH-001648               SHMAC4  Prostate     3.22   4.70   3.14  2.12   5.10    4.77  2.41    0.30   3.71  0.66  8.01  7.64
+ACH-000979                DU145  Prostate     3.46   2.97   2.34  0.98   2.78    4.20  2.39    8.59   0.02  1.26  5.37  8.99
+ACH-001649               SHMAC5  Prostate     4.46   4.72   4.14  2.50   5.44    4.31  2.57    7.55   4.02  0.60  8.77  6.31
+ACH-001453                 BPH1  Prostate     5.19   4.91   3.85  3.61   4.94    6.22  4.13    8.71   4.53  0.07  7.43  2.11
+ACH-000956                22RV1  Prostate     5.21   5.89   4.92  2.74   4.86    5.76  3.36    8.96   5.14  0.07  7.20  3.13
+ACH-000170               PRECLH  Prostate     5.33   6.24   5.42  3.41   6.27    4.59  3.09    8.30   3.07  3.06  8.51  7.68
+ACH-000952             MDAPCA2B  Prostate     5.39   5.40   4.97  2.11   6.59    6.52  3.01    9.12   6.09  0.09  7.66  2.48
+ACH-000115                 VCAP  Prostate     5.48   5.61   4.96  3.10   5.51    5.74  4.01    9.40   6.32  0.10  6.94  1.52
+ACH-000977        LNCAPCLONEFGC  Prostate     5.66   6.57   4.15  2.43   7.44    6.19  3.31    9.51   5.51  0.51  8.21  3.88
+         gene    Y_coef        Y_t  male_mean
+319     KDM5D  0.848840  63.124451   2.224553
+985     DDX3Y  1.178401  98.168752   3.174953
+1008      ZFY  0.595868  55.219602   1.704230
+4223    USP9Y  0.895964  68.078441   2.320953
+6071   RPS4Y1  1.675233  59.676771   5.245828
+14922     UTY  0.600898  68.998094   1.539251
+16761  EIF1AY  1.204796  68.863805   3.332685
+                                                      set      n  median_Y_t_set  median_Y_t_rest       AUC         P
+0                                        DU145_FDR05_down    101        0.229365         0.742972  0.409974  0.001798
+1                                          DU145_FDR05_up     34        0.210898         0.741806  0.400122  0.043939
+2  all genes: spearman(DU145 mean_difference, DepMap Y_t)  12908       -0.031649              NaN       NaN  0.000323
+                                                                                                                                           0               1                    2
+neighbourhood                                                                                                                   GRHL2_top200     ZEB1_top200  ZEB1_top200_vs_down
+n_in_DU145_universe                                                                                                                      181             177                  177
+universe                                                                                                                               13843           13843                13843
+median_md_nb                                                                                                                       -0.134657        0.089148             0.089148
+median_md_rest                                                                                                                      0.009833        0.008225             0.008225
+AUC_nb_higher                                                                                                                       0.274589        0.611834             0.611834
+wilcoxon_P                                                                                                                               0.0             0.0                  0.0
+overlap_set                                                                                                                 DU145_FDR05_down  DU145_FDR05_up     DU145_FDR05_down
+overlap_k                                                                                                                                 16               0                    0
+set_size                                                                                                                                 106              39                  106
+expected_k                                                                                                                          1.385971        0.498664             1.355342
+fisher_OR                                                                                                                           14.62303             0.0                  0.0
+fisher_P_greater                                                                                                                         0.0             1.0                  1.0
+overlap_genes                       AP1M2;ATP2C2;BICDL2;C6orf132;CLDN7;EPS8L1;LAD1;LCN2;MAL2;MPZL2;S100A14;ST14;TACSTD2;TMC4;TMEM30B;TMEM45B                                     
+null_frac_random_nb_AUC_le_obs                                                                                                         0.008             NaN                  NaN
+null_frac_random_nb_overlap_ge_obs                                                                                                     0.026             NaN                  NaN
+null_AUC_median                                                                                                                     0.530989             NaN                  NaN
+null_overlap_median                                                                                                                      0.0             NaN                  NaN
+                                  subset     n  spearman     spearman_P   pearson      pearson_P
+0                      all_default_lines  1719 -0.570774  3.562932e-149 -0.716603  5.943868e-271
+1                             male_lines   905 -0.520036   7.573099e-64 -0.683322  1.706780e-125
+2                           female_lines   711 -0.618742   2.396480e-76 -0.760633  3.652074e-135
+3                         prostate_lines    13 -0.708791   6.681784e-03 -0.505487   7.803850e-02
+4  all lines, OLS GRHL2 ~ ZEB1 + lineage  1719       NaN            NaN -0.621981  1.591309e-177
+n_male             905.000000
+female_Y_p99         0.608624
+male_Y_low_n       322.000000
+male_Y_low_frac      0.355801
+male_Y_q5            0.000000
+male_Y_q10           0.024000
+male_Y_q25           0.133000
+male_Y_q50           3.542000
+male_Y_q75           4.840000
+male_Y_q90           5.300000
+female_Y_median      0.084409
+dtype: float64
+lineages >=30 male lines: {'Lung': 151, 'Lymphoid': 112, 'Skin': 74, 'CNS/Brain': 65, 'Head and Neck': 55, 'Esophagus/Stomach': 53, 'Bowel': 47, 'Myeloid': 45, 'Bone': 37, 'Kidney': 33, 'Pancreas': 31, 'Soft Tissue': 31} Prostate: 13

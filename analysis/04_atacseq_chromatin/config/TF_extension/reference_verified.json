@@ -1,0 +1,9 @@
+{
+  "source": "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/config/TF_extension/hg38_primary.fa",
+  "linux_cache": "/tmp/atacseq-sept08-2026-tf-tools/hg38_primary.fa",
+  "sha256": "d5fdff32d78baf7eb978b0edd2e9e28e065a691f7797cf53d8278e621ba21f5e",
+  "verified_peak_sequences": 84510,
+  "BAM_chromosome_lengths_agree": true,
+  "line_endings": "LF",
+  "sequence_reference": "Independent BSgenome getSeq export"
+}

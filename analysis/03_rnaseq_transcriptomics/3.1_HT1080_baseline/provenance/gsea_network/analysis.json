@@ -1,0 +1,69 @@
+{
+  "created_utc": "2026-09-14T18:20:05.867849+00:00",
+  "config": {
+    "seed": 42,
+    "selection_contrast": "combined",
+    "global_BH_threshold": 0.05,
+    "collections": "all eligible H and C1-C9; frozen MSigDB 2026.1.Hs",
+    "primary_gene_basis": "combined fgsea leading edge",
+    "jaccard_threshold": 0.25,
+    "minimum_shared_genes": 3,
+    "louvain_resolution": 1.0,
+    "sensitivity_jaccard_thresholds": [
+      0.2,
+      0.25,
+      0.35,
+      0.5
+    ],
+    "period_support": "period global BH < 0.05 and NES direction agrees with combined",
+    "direction_split": "within-direction edges only; no cross-direction edges inferred",
+    "inference": "exploratory preranked enrichment; repeated established populations; no new tests",
+    "method_reference": "https://enrichmentmap.readthedocs.io/en/latest/Parameters.html"
+  },
+  "input_sha256": {
+    "outputs/tables/fgsea_all_collections.csv": "6221bf915e852efcf2847459d5600f1f0d80a2dbb04f98589990a86378f3f530",
+    "resources/msigdb_all_membership.csv.gz": "cb9c848e12ab7f0b0a3779fc1eba9af439da6b926f4d69ce69c4ead79f756f43",
+    "outputs/tables/pathway_TF_effect_ranking.csv": "be59a3708ece680e048719ce96a52435a840583184fe008847b755be0a5b66c5",
+    "outputs/tables/camera_all_collections.csv": "05a74c5fe98e86a54c4e31bbeb81fbe6379cb46e41f8f06af415e917772bee2e",
+    "outputs/tables/camera_estimated_correlation_sensitivity.csv": "c4a47f8a8c55a979a8e3b68e98faceb7cdb1c274ada1a6d4c887fe7b19a1020c"
+  },
+  "script_sha256": "fe81b3ebd2057ad7d2075646f2a8692147e17ce92757f78e0121d80181cf00aa",
+  "original_combined_tests": 23696,
+  "ranked_gene_universe": 25461,
+  "new_enrichment_tests": false,
+  "summary": {
+    "DOWN": {
+      "nodes": 776,
+      "leading_edge_edges": 703,
+      "leading_edge_isolates": 489,
+      "communities": 556,
+      "non_singleton_communities": 67,
+      "period_support": {
+        "May only": 451,
+        "Both periods": 130,
+        "Combined only": 126,
+        "August only": 69
+      },
+      "both_period_directions_agree": 776
+    },
+    "UP": {
+      "nodes": 32,
+      "leading_edge_edges": 8,
+      "leading_edge_isolates": 19,
+      "communities": 25,
+      "non_singleton_communities": 6,
+      "period_support": {
+        "May only": 14,
+        "Combined only": 10,
+        "August only": 6,
+        "Both periods": 2
+      },
+      "both_period_directions_agree": 32
+    }
+  },
+  "versions": {
+    "networkx": "3.4.2",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3"
+  }
+}

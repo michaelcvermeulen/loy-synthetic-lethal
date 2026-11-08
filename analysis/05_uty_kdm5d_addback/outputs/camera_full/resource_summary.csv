@@ -1,0 +1,27 @@
+collection,subcollection,collection_name,db_version,available,tested,below_10,above_500
+C3,MIR:MIR_LEGACY,MIR_Legacy,2026.1.Hs,221,207,9,5
+C3,TFT:TFT_LEGACY,TFT_Legacy,2026.1.Hs,610,579,1,30
+C2,CGP,Chemical and Genetic Perturbations,2026.1.Hs,3555,2978,450,127
+C3,TFT:GTRD,GTRD,2026.1.Hs,506,274,51,181
+C8,"",Cell Type Signature,2026.1.Hs,866,764,60,42
+C6,"",Oncogenic Signature,2026.1.Hs,189,189,0,0
+C7,VAX,HIPC Vaccine Response,2026.1.Hs,347,226,100,21
+C2,CP:BIOCARTA,BioCarta Pathways,2026.1.Hs,292,186,106,0
+C4,CGN,Cancer Gene Neighborhoods,2026.1.Hs,427,424,3,0
+C4,3CA,Curated Cancer Cell Atlas gene sets ,2026.1.Hs,148,148,0,0
+C9,"",Computational Perturbation Signature,2026.1.Hs,62,62,0,0
+C5,GO:BP,GO Biological Process,2026.1.Hs,7538,4684,2658,196
+C5,GO:CC,GO Cellular Component,2026.1.Hs,1080,656,381,43
+C7,IMMUNESIGDB,ImmuneSigDB,2026.1.Hs,4872,4872,0,0
+C5,GO:MF,GO Molecular Function,2026.1.Hs,1872,994,841,37
+H,"",Hallmark,2026.1.Hs,50,50,0,0
+C5,HPO,Human Phenotype Ontology,2026.1.Hs,5793,3863,1733,197
+C2,CP:KEGG_LEGACY,KEGG Legacy Pathways,2026.1.Hs,186,178,8,0
+C2,CP:KEGG_MEDICUS,KEGG Medicus Pathways,2026.1.Hs,658,359,299,0
+C3,MIR:MIRDB,miRDB,2026.1.Hs,2377,2178,114,85
+C4,CM,Cancer Modules,2026.1.Hs,431,394,35,2
+C1,"",Positional,2026.1.Hs,302,266,35,1
+C2,CP:PID,PID Pathways,2026.1.Hs,196,195,1,0
+C2,CP:REACTOME,Reactome Pathways,2026.1.Hs,1839,1340,482,17
+C2,CP,Canonical Pathways,2026.1.Hs,19,17,2,0
+C2,CP:WIKIPATHWAYS,WikiPathways,2026.1.Hs,925,722,203,0

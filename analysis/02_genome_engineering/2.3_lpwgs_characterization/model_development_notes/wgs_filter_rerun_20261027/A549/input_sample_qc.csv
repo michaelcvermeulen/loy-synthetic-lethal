@@ -1,0 +1,3 @@
+"sample","name","total.reads","used.reads","expected.variance","excluded_low_depth"
+"A549-CTRL2","A549-CTRL2",11084600,8941734,0.0025366444584462,FALSE
+"A549-LOY","A549-LOY",11151195,9004146,0.00251906177443147,FALSE

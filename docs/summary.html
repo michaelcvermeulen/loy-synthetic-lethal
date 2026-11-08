@@ -5,11 +5,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="generator" content="pandoc" />
 
-        <meta name="author" content="Mike Vermeulen" />
+        <meta name="author" content="Michael Cory Vermeulen" />
     
-        <meta name="date" content="2026-05-22" />
+        <meta name="date" content="2026-11-08" />
     
-    <title>LOY synthetic lethality — condensed reference</title>
+    <title>LOY Synthetic Lethality — Condensed Reference &amp; Headline Findings</title>
 
         <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -2756,47 +2756,49 @@ margin-left: 0 !important;
    </div>
    
         
-      <h1 class="title">LOY synthetic lethality — condensed
-reference</h1>
-         <h1 class="subtitle">One-page summary across all analyses, for
-PIs and lab members</h1>
+      <h1 class="title">LOY Synthetic Lethality — Condensed Reference
+&amp; Headline Findings</h1>
+         <h1 class="subtitle">Quantitative summary across Chapters 3 and
+4</h1>
    
          <!-- readthedown authors -->
    <div id="sidebar">
-    <h2><a href="#content">LOY synthetic lethality — condensed
-reference</a></h2>
+    <h2><a href="#content">LOY Synthetic Lethality — Condensed Reference
+&amp; Headline Findings</a></h2>
     <div id="toc">
       <ul>
-      <li><a href="#one-paragraph-overview" id="toc-one-paragraph-overview">One-paragraph overview</a></li>
-      <li><a href="#section-by-section-highlights" id="toc-section-by-section-highlights">Section-by-section
-      highlights</a>
+      <li><a href="#executive-summary" id="toc-executive-summary">Executive Summary</a></li>
+      <li><a href="#module-by-module-headline-findings" id="toc-module-by-module-headline-findings">Module-by-Module
+      Headline Findings</a>
       <ul>
-      <li><a href="#genome-engineering" id="toc-genome-engineering">§1
-      Genome engineering</a></li>
-      <li><a href="#bulk-rna-seq" id="toc-bulk-rna-seq">§2 Bulk
-      RNA-seq</a></li>
-      <li><a href="#chip-seq-public-sources-only-pending-in-house-data" id="toc-chip-seq-public-sources-only-pending-in-house-data">§3
-      ChIP-seq (public sources only, pending in-house data)</a></li>
-      <li><a href="#atac-seq-multiomic" id="toc-atac-seq-multiomic">§4
-      ATAC-seq + multiomic</a></li>
-      <li><a href="#depmap-pan-cancer" id="toc-depmap-pan-cancer">§5
-      DepMap pan-cancer</a></li>
-      <li><a href="#tcga" id="toc-tcga">§6 TCGA</a></li>
-      <li><a href="#single-cell-loy-atlas" id="toc-single-cell-loy-atlas">§7 Single-cell LOY atlas</a></li>
-      <li><a href="#functional-screens" id="toc-functional-screens">§8
-      Functional screens</a></li>
+      <li><a href="#public-depmap-crispr-prism-drug-screens-01_depmap_prism_public" id="toc-public-depmap-crispr-prism-drug-screens-01_depmap_prism_public">§1
+      Public DepMap CRISPR &amp; PRISM Drug Screens
+      (<code>01_depmap_prism_public/</code>)</a></li>
+      <li><a href="#repeat-targeting-guide-design-ddpcr-lpwgs-02_genome_engineering" id="toc-repeat-targeting-guide-design-ddpcr-lpwgs-02_genome_engineering">§2
+      Repeat-Targeting Guide Design, ddPCR &amp; lpWGS
+      (<code>02_genome_engineering/</code>)</a></li>
+      <li><a href="#bulk-rna-seq-comparative-transcriptomics-03_rnaseq_transcriptomics" id="toc-bulk-rna-seq-comparative-transcriptomics-03_rnaseq_transcriptomics">§3
+      Bulk RNA-Seq &amp; Comparative Transcriptomics
+      (<code>03_rnaseq_transcriptomics/</code>)</a></li>
+      <li><a href="#chromatin-accessibility-multi-omic-integration-04_atacseq_chromatin" id="toc-chromatin-accessibility-multi-omic-integration-04_atacseq_chromatin">§4
+      Chromatin Accessibility &amp; Multi-Omic Integration
+      (<code>04_atacseq_chromatin/</code>)</a></li>
+      <li><a href="#lentiviral-uty-and-kdm5d-add-back-rescue-05_uty_kdm5d_addback" id="toc-lentiviral-uty-and-kdm5d-add-back-rescue-05_uty_kdm5d_addback">§5
+      Lentiviral <em>UTY</em> and <em>KDM5D</em> Add-Back Rescue
+      (<code>05_uty_kdm5d_addback/</code>)</a></li>
+      <li><a href="#isogenic-genome-wide-brunello-crispr-screens-06_crispr_screens" id="toc-isogenic-genome-wide-brunello-crispr-screens-06_crispr_screens">§6
+      Isogenic Genome-Wide Brunello CRISPR Screens
+      (<code>06_crispr_screens/</code>)</a></li>
+      <li><a href="#reciprocal-two-colour-spectral-flow-competition-assays-07_competitive_growth_assays" id="toc-reciprocal-two-colour-spectral-flow-competition-assays-07_competitive_growth_assays">§7
+      Reciprocal Two-Colour Spectral Flow Competition Assays
+      (<code>07_competitive_growth_assays/</code>)</a></li>
       </ul></li>
-      <li><a href="#mechanism-in-one-figure" id="toc-mechanism-in-one-figure">Mechanism in one figure</a></li>
-      <li><a href="#what-to-read-first-for-a-new-lab-member" id="toc-what-to-read-first-for-a-new-lab-member">What to read
-      first (for a new lab member)</a></li>
-      <li><a href="#document-status" id="toc-document-status">Document
-      status</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
-                  <p class="author"><span class="glyphicon glyphicon-user"></span> Mike
-Vermeulen</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2026-05-22</p>
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Michael
+Cory Vermeulen</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2026-11-08</p>
           </div>
    </div>
      
@@ -2807,154 +2809,369 @@ Vermeulen</p>
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
 <blockquote>
-<p><strong>How to use this document.</strong> This is the condensed,
-“what do I actually need to know” reference. Each section pulls the key
-take-aways from one analysis or one mechanism notebook, with a link to
-the full report. Read this first; follow links into the full reports
-only as needed.</p>
-<p><strong>Read first</strong>: <a href="background.html">Background</a>
-→ this document → individual analyses.</p>
+<p><strong>How to use this document.</strong> This is the condensed
+quantitative reference for the repository. Each section summarizes the
+headline numerical results from one numbered analysis module
+(<code>01</code>–<code>07</code>), maps them to the corresponding thesis
+sections and figures (<code>Fig 3.1–3.15</code>,
+<code>Supp Fig 3.1–3.44</code>, <code>Fig 4.1–4.8</code>,
+<code>Supp Fig 4.1–4.16</code>), and links directly to the underlying
+scripts and tables.</p>
+<p><strong>Read first:</strong> <a href="background.html">Background</a>
+→ <strong>Condensed summary</strong> → <a href="project_plan.html">Project &amp; thesis overview</a>.</p>
 </blockquote>
-<div id="one-paragraph-overview" class="section level1">
-<h1>One-paragraph overview</h1>
-<p><code>TODO: keep this synced with the abstract. Working draft:</code>
-Loss of Y chromosome (LOY) in cancer removes the H3K4me2/3 demethylase
-<em>KDM5D</em> and the H3K27me3 demethylase <em>UTY</em>, creating a
-stereotyped chromatin imbalance: H3K4me3 accumulates at Polycomb-marked
-loci, PRC2 redistributes off canonical neural and developmental targets,
-and silenced developmental programs are derepressed. The LOY+ state
-becomes addicted to SAGA/STAGA coactivator function to maintain this
-aberrant transcriptional program. Targeting SAGA/STAGA is selectively
-lethal in LOY+ cells across our isogenic systems, in pan-cancer
-dependency data, and in patient-derived cohorts.</p>
+<hr />
+<div id="executive-summary" class="section level1">
+<h1>Executive Summary</h1>
+<p>Across <strong>Chapter 3</strong> (isogenic LOY model engineering and
+multi-omic characterization) and <strong>Chapter 4</strong> (public
+pharmacogenomic/CRISPR power analyses, genome-wide isogenic Brunello
+CRISPR screens, and reciprocal spectral flow-cytometry competition
+assays), we establish a complete framework connecting chromosome Y
+structure, lineage-dependent versus conserved transcriptional and
+chromatin remodelling, <em>UTY</em>-mediated transcriptional
+reversibility, and paralog versus coactivator/metabolic synthetic lethal
+dependencies.</p>
+<hr />
 </div>
-<div id="section-by-section-highlights" class="section level1">
-<h1>Section-by-section highlights</h1>
-<p>Each row is a placeholder until the corresponding analysis is
-migrated and the key finding extracted.</p>
-<div id="genome-engineering" class="section level2">
-<h2>§1 Genome engineering</h2>
+<div id="module-by-module-headline-findings" class="section level1">
+<h1>Module-by-Module Headline Findings</h1>
+<div id="public-depmap-crispr-prism-drug-screens-01_depmap_prism_public" class="section level2">
+<h2>§1 Public DepMap CRISPR &amp; PRISM Drug Screens
+(<code>01_depmap_prism_public/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>: LOY-engineered isogenic A549, HT1080, and
-LNCaP lines were generated and validated by ddPCR and lpWGS as cleanly
-LOY+ with no detectable off-target copy-number changes.</li>
-<li><strong>Status</strong>:
-<code>TODO: confirm clean clones for all three lines; cite ddPCR + lpWGS validation reports.</code></li>
-<li><strong>Read more</strong>: <a href="01_genome_engineering/">§1
-Genome engineering</a> — sgRNA design (1.1), ddPCR (1.2), lpWGS
-(1.3).</li>
+<li><strong>Thesis section:</strong> Chapter 4, §4.3.0
+(<code>Fig 4.1</code>, <code>Supp Fig 4.1–4.4</code>).</li>
+<li><strong>Y-status classification &amp; core gametolog
+recovery:</strong> Across <strong>568 classified male DepMap CRISPR
+models</strong> (404 Y-retaining, 164 LOY), pan-cancer linear models and
+Random Forest / Boruta feature selection recover four established
+X-linked paralog dependencies selectively required in LOY lines:
+<strong><em>DDX3X</em></strong>, <strong><em>EIF1AX</em></strong>,
+<strong><em>RPS4X</em></strong>, and <strong><em>ZFX</em></strong>.</li>
+<li><strong>Replication in 3D malignant organoid and neurosphere
+cohorts:</strong> Across Sanger Project Score and <strong>DepMap NextGen
+3D organoid/neurosphere screens</strong>,
+<strong><em>DDX3X</em></strong>, <strong><em>EIF1AX</em></strong>, and
+<strong><em>RPS4X</em></strong> meet the permutation-based replication
+criteria, whereas <em>ZFX</em> does not replicate in NextGen 3D models
+(<code>Fig 4.1f</code>).</li>
+<li><strong>Context-stratified genetic searches &amp; empirical power
+limits:</strong> Across lineage/disease subsets, <strong>86
+driver/genomic alteration contexts</strong> (523,654 interaction tests),
+and <strong>24 cancer-type <span class="math inline">\(\times\)</span>
+driver combinations</strong> (146,136 interaction tests; 414,052
+within-subset tests), no additional non-gametolog genetic dependency
+passes strict family-wise FDR control (<code>Supp Fig 4.2</code>).
+Transferring <strong>25 benchmark synthetic lethalities</strong> (e.g.,
+<em>WRN</em>–MSI, <em>PRMT5</em>–<em>MTAP</em>, <em>KRAS</em>,
+<em>BRAF</em>) onto observed LOY sample splits via empirical power
+simulations demonstrates that once public cohorts are subdivided by
+lineage or driver mutation, sample sizes and inter-line variance prevent
+detection of even benchmark-strength vulnerabilities in most subsets
+(<code>Supp Fig 4.3</code>).</li>
+<li><strong>Pharmacological screens:</strong> Across <strong>6,413
+pan-cancer drug comparisons</strong> (PRISM Repurposing
+Primary/Secondary, PRISM REP.1M, GDSC1/2, CTD2) and <strong>495,079
+finite within-subset drug tests</strong> across 121 binary contexts,
+positive controls recover expected target sensitivities, but no
+pan-cancer LOY drug sensitivity reaches significance
+(<code>Supp Fig 4.4</code>; one within-subset association at <span class="math inline">\(\mathrm{FDR} &lt; 0.05\)</span> is lower
+sensitivity to <code>SR-1664</code> in LOY mature B-cell neoplasms in
+PRISM REP.1M, <span class="math inline">\(\Delta = +0.667\)</span>,
+<span class="math inline">\(\mathrm{FDR} = 0.031\)</span>).</li>
 </ul>
 </div>
-<div id="bulk-rna-seq" class="section level2">
-<h2>§2 Bulk RNA-seq</h2>
+<div id="repeat-targeting-guide-design-ddpcr-lpwgs-02_genome_engineering" class="section level2">
+<h2>§2 Repeat-Targeting Guide Design, ddPCR &amp; lpWGS
+(<code>02_genome_engineering/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>: LOY induces a reproducible
-transcriptional signature across A549, HT1080, and LNCaP, with shared
-up-regulation of <code>TODO: gene set</code> and shared down-regulation
-of <code>TODO: gene set</code>.</li>
-<li><strong>Status</strong>:
-<code>TODO: list cross-line convergent vs. cell-context-specific effects from the combined notebook.</code></li>
-<li><strong>Read more</strong>: <a href="02_rnaseq/">§2 RNA-seq</a> —
-per-line analyses (2.1, 2.2, 2.3) and combined integration (2.4).</li>
+<li><strong>Thesis section:</strong> Chapter 3, §3.3.1–3.3.2
+(<code>Fig 3.1–3.6</code>, <code>Supp Fig 3.4–3.14</code>).</li>
+<li><strong>T2T-Y repeat guide discovery:</strong> Sliding-window
+scanning of the complete <code>T2T-CHM13v2.0</code> (HG002) Y assembly
+yielded <strong>14,723 candidate 20-nt NGG guides</strong>, filtered to
+<strong>6,901 guides</strong> with zero exact non-Y matches and
+<strong>215 high-copy top hits</strong> (<code>Supp Fig 3.4</code>).
+Five lead guides were characterized across three repeat arrays
+(<code>Fig 3.1</code>): centromeric <code>DYZ3</code> <span class="math inline">\(\alpha\)</span>-satellite (<code>CP</code> [35
+exact T2T-Y sites], <code>CN</code> [35 sites]), <code>Yq12</code>
+<code>DYZ1</code>/<code>HSat3</code> (<code>Q53</code> [259 sites]), and
+<code>Yp</code> <em>TSPY</em> (<code>P47</code> [46 sites],
+<code>P51</code> [34 sites]).</li>
+<li><strong>Pooled RNP engineering &amp; multiplex ddPCR:</strong>
+Delivering <code>CP + Q53</code> Cas9 RNPs transiently across two
+successive nucleofections (<code>2x</code>) achieves <strong>88–99%
+depletion of Yq target copies</strong> directly in bulk pooled
+populations of HT1080 fibrosarcoma and A549 lung adenocarcinoma cells
+without single-cell cloning (<code>Fig 3.2</code>). Notably,
+<code>CP</code> outperforms <code>CN</code> despite identical reference
+repeat counts in the same <code>DYZ3</code> array. In DU145,
+pre-treating cells with the pan-HDAC inhibitor
+<strong>panobinostat</strong> (30–75 nM for 24 h before nucleofection)
+substantially enhances single-round Y depletion compared with DMSO or
+post-nucleofection ATM inhibition with <code>KU-55933</code>
+(<code>Supp Fig 3.13</code>).</li>
+<li><strong>Y-PAR-masked T2T-Y lpWGS &amp; partial distal Yp
+retention:</strong> Combining 100-kb
+<code>QDNAseq</code>/<code>mosdepth</code> copy-number profiling on a
+Y-PAR-masked <code>T2T-CHM13v2.0</code> reference with regional RNA-seq
+across HT1080 (<code>Fig 3.3–3.4</code>), A549 (<code>Fig 3.5</code>),
+and DU145 (<code>Fig 3.6</code>) reveals distinct structural outcomes:
+<ul>
+<li><strong>A549 (<code>CP + Q53 2x</code>):</strong> Near-complete loss
+across the entire Y chromosome (<code>Yp</code> and <code>Yq</code>
+median DNA retention ~10–12%; MSY expression depleted across both
+arms).</li>
+<li><strong>HT1080 (<code>CP + Q53 2x</code>):</strong> Complete loss of
+euchromatic <code>Yq</code> (&lt;1% expression from <em>USP9Y</em> to
+<em>EIF1AY</em>) and strong proximal <code>Yp</code> depletion, but
+residual retention of distal male-specific <code>Yp</code> (~20–36%
+expression of <em>RPS4Y1</em> and <em>ZFY</em>).</li>
+<li><strong>DU145 (<code>CP + Q53 + P47 2x</code>, historically
+mislabelled “LNCaP” and verified as DU145 via STR and transcriptomic
+lineage profiling):</strong> Complete loss of euchromatic
+<code>Yq</code> and 96–98% depletion at proximal <code>Yp</code>
+(<em>AMELY</em> at ~6.5 Mb), but <strong>46–54% DNA and RNA retention
+across a distal male-specific <code>Yp</code> segment (~2.46–4.80
+Mb)</strong> containing <em>RPS4Y1</em> and <em>ZFY</em>
+(<code>Fig 3.6</code>, <code>Supp Fig 3.11–3.12</code>).</li>
+</ul></li>
 </ul>
 </div>
-<div id="chip-seq-public-sources-only-pending-in-house-data" class="section level2">
-<h2>§3 ChIP-seq (public sources only, pending in-house data)</h2>
+<div id="bulk-rna-seq-comparative-transcriptomics-03_rnaseq_transcriptomics" class="section level2">
+<h2>§3 Bulk RNA-Seq &amp; Comparative Transcriptomics
+(<code>03_rnaseq_transcriptomics/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>:
-<code>TODO: public ChIP-seq supports the H3K4me3 accumulation prediction at Polycomb-marked loci</code>.</li>
-<li><strong>Status</strong>: Postovit-lab in-house ChIP not yet
-generated; section currently uses public sources only.</li>
-<li><strong>Read more</strong>: <a href="03_chipseq_public/">§3 ChIP-seq
-(public)</a>.</li>
+<li><strong>Thesis section:</strong> Chapter 3, §3.3.3
+(<code>Fig 3.7–3.8</code>, <code>Fig 3.11–3.13</code>,
+<code>Supp Fig 3.1–3.2</code>, <code>Supp Fig 3.15–3.20</code>,
+<code>Supp Fig 3.29–3.41</code>).</li>
+<li><strong>HT1080 baseline RNA-seq
+(<code>SEPT_11_2026_REANALYZE</code>):</strong> Across 12 core libraries
+spanning two sampling windows (August 2025 &amp; May 2026; 25,526
+expressed autosomal/non-PAR X genes) plus 3 parental libraries, Y
+depletion drives <strong>1,003 high-confidence non-Y/non-PAR
+DEGs</strong> (<span class="math inline">\(\mathrm{FDR} &lt;
+0.05\)</span>, <span class="math inline">\(|\log_2\mathrm{FC}| \ge
+1\)</span>, concordant direction in both windows: 551 higher, 452 lower;
+<code>Fig 3.7</code>). <code>PAR1</code> retains 68.8%/66.8% and
+<code>PAR2</code> retains 60.2%/63.6% of <code>sgCTRL</code> expression.
+Pathway (<code>fgsea</code> and fixed-correlation <code>CAMERA</code>,
+<span class="math inline">\(\rho = 0.01\)</span>) and 42 STRING
+protein-association modules (<code>Fig 3.8</code>,
+<code>Supp Fig 3.16–3.20</code>) reveal strong suppression of
+<strong>type I/II interferon, inflammatory/cytokine, and ECM/contractile
+programmes</strong> alongside upregulation of <strong>neural/synaptic
+adhesion (<em>UNC5A</em>, <em>SDK2</em>, <em>ROR2</em>) and
+cholesterol/sterol biosynthesis</strong>.</li>
+<li><strong>A549 baseline RNA-seq
+(<code>SEPT_18_2026_REANALYZE</code>):</strong> Using the primary
+<code>RINe</code>-adjusted <code>limma-voom</code> model across 22,843
+expressed nuclear genes, Y depletion yields <strong>27 <span class="math inline">\(\mathrm{FDR} &lt; 0.05\)</span> genes</strong>: 17
+MSY genes and only <strong>10 non-Y/non-PAR genes</strong> (8 higher, 2
+lower; <code>Supp Fig 3.29–3.30</code>), with trend-level suppression of
+interferon/inflammatory gene sets.</li>
+<li><strong>DU145 baseline RNA-seq
+(<code>SEPT_23_2026_REANALYZE</code>):</strong> Across 6 passage-matched
+libraries (<code>P12</code>–<code>P14</code>, paired
+<code>~ passage + treatment</code>), Y depletion identifies <strong>136
+non-Y/non-PAR DEGs at <span class="math inline">\(\mathrm{FDR} &lt;
+0.05\)</span></strong> and <strong>114 passage-consistent genes</strong>
+(<span class="math inline">\(\mathrm{FDR} &lt; 0.05\)</span>, <span class="math inline">\(|\log_2\mathrm{FC}| \ge 0.5\)</span>, 3/3 passage
+pairs agreeing: 83 lower, 31 higher; <code>Fig 3.11</code>).
+Copy-number-independent transcriptional changes feature pronounced
+suppression of the epithelial identity factor
+<strong><em>GRHL2</em></strong> and luminal/interferon programmes
+alongside induction of basement-membrane collagens and ECM remodelling
+without canonical EMT transcription-factor activation
+(<code>Fig 3.12</code>, <code>Supp Fig 3.32–3.39</code>).</li>
+<li><strong>Cross-cell-line &amp; 18 external Y-loss comparisons
+(<code>crossline_SEPT_2026</code>):</strong> All three engineered models
+exhibit <strong>zero compensatory upregulation of X-linked
+gametologs</strong> (<code>Fig 3.13a,b</code>). Pairwise autosomal
+gene-level correlations between HT1080, A549, and DU145 are near zero
+(<span class="math inline">\(\rho = -0.06\)</span> to <span class="math inline">\(0.11\)</span>), yet pathway enrichment converges
+on <strong>suppressed interferon-<span class="math inline">\(\alpha\)</span>/<span class="math inline">\(\gamma\)</span> and inflammatory
+responses</strong> across our models and 18 external Y-loss, naturally
+Y-mosaic single-cell (<code>GSE313572</code>, Tahoe-100M DMSO lines),
+MB49, 45,X, and <em>UTY</em>-KO datasets (<code>Fig 3.13c,d</code>,
+<code>Supp Fig 3.40</code>).</li>
+<li><strong>Comparison with 16 chromosome/arm-loss models
+(<code>arm_loss_bundle_2026-09-29</code>):</strong> Benchmarking against
+acute RPTEC Yq vs. 3p loss (<code>GSE130306</code>), ReDACT trisomy
+corrections, and RPE1 monosomies shows that ribosomal-protein
+downregulation is a general feature of autosomal arm/chromosome loss,
+whereas interferon suppression and early-vs-late culture inversions
+distinguish specific karyotypic and temporal trajectories
+(<code>Supp Fig 3.41</code>).</li>
 </ul>
 </div>
-<div id="atac-seq-multiomic" class="section level2">
-<h2>§4 ATAC-seq + multiomic</h2>
+<div id="chromatin-accessibility-multi-omic-integration-04_atacseq_chromatin" class="section level2">
+<h2>§4 Chromatin Accessibility &amp; Multi-Omic Integration
+(<code>04_atacseq_chromatin/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>:
-<code>TODO: differential accessibility in LOY vs CTRL is enriched for Polycomb-target promoters; motif analysis implicates the derepressed-program transcription factors.</code></li>
-<li><strong>Read more</strong>: <a href="04_atacseq_multiomic/">§4
-ATAC-seq + multiomic</a>.</li>
+<li><strong>Thesis section:</strong> Chapter 3, §3.3.3.1
+(<code>Fig 3.9–3.10</code>, <code>Supp Fig 3.3</code>,
+<code>Supp Fig 3.21–3.28</code>).</li>
+<li><strong>Widespread chromatin compaction:</strong> Across 6 HT1080
+ATAC-seq libraries (<code>sgCTRL</code> and <code>LOY</code> at passages
+11, 12, and 21; 105,647 consensus autosomal/non-PAR X peaks), Y
+depletion induces <strong>758 differentially accessible regions (DARs)
+at <span class="math inline">\(\mathrm{FDR} &lt; 0.05\)</span></strong>,
+skewed <strong>~7:1 toward chromatin closing</strong> (<strong>663
+closed vs. 95 opened peaks</strong>; <code>Fig 3.9</code>).
+Accessibility shifts are independent of autosomal DNA copy number (<span class="math inline">\(\rho = -0.05\)</span>;
+<code>Supp Fig 3.23</code>).</li>
+<li><strong>Motif &amp; footprinting landscape:</strong>
+<code>chromVAR</code>, HOMER, and TOBIAS footprinting show decreased
+accessibility at <strong>AP-1 (<code>FOS</code>/<code>JUN</code>),
+<code>CTF</code>/<code>NFIC</code>, and <code>IRF</code></strong> motifs
+in closing distal/promoter regions, and relative retention/enrichment of
+<strong>GC-rich <code>KLF</code>/<code>SP</code>, <code>ETS</code>, and
+<code>Forkhead</code></strong> motifs
+(<code>Supp Fig 3.24–3.27</code>).</li>
+<li><strong>Concordant promoter closing &amp; Polycomb target
+enrichment:</strong> Downregulated HT1080 DEGs are <strong>&gt;30-fold
+more likely to exhibit promoter closing</strong> than non-DE genes, and
+mean TSS accessibility drops by 21% even across downregulated genes
+lacking a discrete DAR call (<code>Fig 3.10</code>). Promoters that are
+jointly closed and transcriptionally repressed are significantly
+enriched for canonical <strong>PRC2 (<em>EZH2</em>/<em>SUZ12</em>) and
+H3K27me3 targets</strong> even after strict covariate matching on
+baseline accessibility, GC content, and CpG density
+(<code>Fig 3.10</code>, <code>Supp Fig 3.28</code>).</li>
 </ul>
 </div>
-<div id="depmap-pan-cancer" class="section level2">
-<h2>§5 DepMap pan-cancer</h2>
+<div id="lentiviral-uty-and-kdm5d-add-back-rescue-05_uty_kdm5d_addback" class="section level2">
+<h2>§5 Lentiviral <em>UTY</em> and <em>KDM5D</em> Add-Back Rescue
+(<code>05_uty_kdm5d_addback/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>:
-<code>TODO: LOY+ DepMap lines show selective dependency on SAGA complex members (TADA2B, KAT2A/B, SUPT3H, ...).</code></li>
-<li><strong>Read more</strong>: <a href="05_depmap_pancancer/">§5 DepMap
-pan-cancer</a>.</li>
+<li><strong>Thesis section:</strong> Chapter 3, §3.3.4
+(<code>Fig 3.14–3.15</code>, <code>Supp Fig 3.42–3.44</code>).</li>
+<li><strong>Design &amp; construct verification:</strong> 18 RNA-seq
+libraries across 6 HT1080 populations (<code>Parental</code>,
+<code>sgCTRL</code>, untransduced <code>LOY</code>,
+<code>LOY + Empty Vector</code>, <code>LOY + UTY</code>,
+<code>LOY + KDM5D</code>, and descendant <code>LOY + UTY + KDM5D</code>
+across 3 matched collection occasions) confirm robust transgene
+expression while non-transduced MSY genes remain absent
+(<code>Fig 3.14</code>).</li>
+<li><strong>Selective partial rescue by <em>UTY</em>:</strong>
+Re-expressing <strong><em>UTY</em></strong> alone or in combination with
+<em>KDM5D</em> reverses <strong>51.1%</strong> (<span class="math inline">\(P = 1.9 \times 10^{-4}\)</span>) and
+<strong>35.1%</strong> (<span class="math inline">\(P = 0.0031\)</span>)
+of the independently derived 150-gene batch-1 HT1080 LOY signature (and
+significantly shifts the frozen-100-gene signature and directional
+<code>fry</code> tests), whereas <strong><em>KDM5D</em> expression alone
+produces no signature recovery</strong> (<code>-5.5%</code>, <span class="math inline">\(P = 0.65\)</span>; <code>Fig 3.15</code>,
+<code>Supp Fig 3.43</code>).</li>
+<li><strong>Recovery by baseline ATAC-seq promoter class:</strong>
+<em>UTY</em> rescue preferentially re-induces baseline-downregulated
+genes whose promoters closed upon Y depletion (<strong>36 of 39 joint
+RNA-down / ATAC-closed genes</strong> shift upward in
+<code>LOY + UTY</code> vs. <code>LOY + EV</code>;
+<code>Supp Fig 3.43d</code>, <code>Supp Fig 3.44</code>).</li>
 </ul>
 </div>
-<div id="tcga" class="section level2">
-<h2>§6 TCGA</h2>
+<div id="isogenic-genome-wide-brunello-crispr-screens-06_crispr_screens" class="section level2">
+<h2>§6 Isogenic Genome-Wide Brunello CRISPR Screens
+(<code>06_crispr_screens/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>:
-<code>TODO: the LOY transcriptional signature is detectable in TCGA tumors; LOY status concords across calling methods; LOY+ tumors enrich for ...</code>.</li>
-<li><strong>Read more</strong>: <a href="06_tcga/">§6 TCGA</a>.</li>
+<li><strong>Thesis section:</strong> Chapter 4, §4.3.1, §4.3.5, §4.3.6
+(<code>Fig 4.2–4.4</code>, <code>Fig 4.7–4.8</code>,
+<code>Supp Fig 4.5–4.11</code>, <code>Supp Fig 4.13–4.16</code>).</li>
+<li><strong>HT1080 genome-wide Brunello screen:</strong> Screening
+matched <code>sgCTRL</code> and <code>LOY</code> HT1080 populations
+(76,441 targeting guides + 1,000 NTCs; <code>D0</code>,
+<code>D12</code>, <code>D21</code>; primary unpaired <code>drugZ</code>
+plus <code>MAGeCK</code> and baseline-adjusted <code>IsogenicZ</code>)
+identifies <strong><em>DDX3X</em></strong> as the #1 genome-wide LOY
+synthetic lethal hit (<span class="math inline">\(\mathrm{normZ} =
+-11.45\)</span>, <span class="math inline">\(\mathrm{FDR} = 2.13 \times
+10^{-26}\)</span>; <code>Fig 4.2–4.3</code>). Beyond <em>DDX3X</em>, the
+screen nominates coordinated vulnerabilities in:
+<ul>
+<li><strong>SAGA coactivator complex (6 of 20 subunits):</strong>
+<em>TAF6L</em> (<span class="math inline">\(\mathrm{normZ} =
+-4.87\)</span>, <span class="math inline">\(\mathrm{FDR} =
+0.0067\)</span>), <em>TADA2B</em> (<span class="math inline">\(\mathrm{normZ} = -4.29\)</span>, <span class="math inline">\(\mathrm{FDR} = 0.046\)</span>), <em>SUPT20H</em>
+(<span class="math inline">\(\mathrm{normZ} = -4.19\)</span>, <span class="math inline">\(\mathrm{FDR} = 0.056\)</span>), <em>ATXN7L3</em>
+(<span class="math inline">\(\mathrm{normZ} = -3.91\)</span>, <span class="math inline">\(\mathrm{FDR} = 0.125\)</span>), <em>TADA1</em>
+(<span class="math inline">\(\mathrm{normZ} = -3.77\)</span>, <span class="math inline">\(\mathrm{FDR} = 0.165\)</span>), and exploratory
+<em>TAF5L</em> (<code>Fig 4.3–4.4</code>).</li>
+<li><strong>Mediator &amp; chromatin regulators:</strong> <em>MED12</em>
+(<span class="math inline">\(\mathrm{normZ} = -5.06\)</span>, <span class="math inline">\(\mathrm{FDR} = 0.0040\)</span>), X-linked
+<em>BCORL1</em>.</li>
+<li><strong>Lipid, sterol &amp; selenoprotein metabolism:</strong>
+<em>SREBF2</em>, <em>SREBF1</em>, <em>SCLY</em>, <em>ACSL4</em>.</li>
+<li><strong>Mitochondrial &amp; adhesion factors:</strong> X-linked
+<em>TIMM8A</em> (<span class="math inline">\(\mathrm{normZ} =
+-5.73\)</span>, <span class="math inline">\(\mathrm{FDR} = 2.02 \times
+10^{-4}\)</span>), <em>LLGL1</em>, <em>ITGB5</em>.</li>
+</ul></li>
+<li><strong>A549 genome-wide Brunello screen &amp; rules of gametolog
+recovery:</strong> In A549 (<code>Fig 4.7–4.8</code>), endpoint and
+trimmed-<code>P3</code> <code>IsogenicZ</code> analyses recover
+<strong><em>EIF1AX</em></strong> (rank 8, <span class="math inline">\(\mathrm{normZ} = -4.09\)</span>) alongside
+<strong><em>L3MBTL2</em></strong> (PRC1.6 subunit) and
+<strong><em>UBR5</em></strong>. Comparing HT1080 and A549 establishes
+why different gametologs score across screens: parental HT1080 is
+unusually tolerant of <em>DDX3X</em> loss (<code>Chronos +0.18</code>)
+while <em>EIF1AX</em> and <em>RPS4X</em> guides deplete to the count
+floor before <code>D0</code> (<code>Supp Fig 4.7</code>,
+<code>Supp Fig 4.9</code>), whereas parental A549 already depends
+strongly on <em>DDX3X</em> (<code>Chronos -0.98</code>), leaving wider
+dynamic range for <em>EIF1AX</em>.</li>
+<li><strong>Multi-omic integration:</strong> Integrating Chapter 3
+RNA-seq, promoter ATAC-seq, and <em>UTY</em>/<em>KDM5D</em> rescue
+profiles proves that HT1080 candidate dependencies are
+<strong>not</strong> transcriptionally downregulated or promoter-closed
+at baseline (<span class="math inline">\(\rho = -0.005\)</span>;
+<code>Supp Fig 4.11</code>), ruling out self-silencing and pointing to
+functional reliance on SAGA/Mediator coactivators.</li>
+<li><strong>27-screen external isogenic benchmark &amp; technical QC
+audits:</strong> Reprocessing 27 published isogenic CRISPR screens
+(Desjardins et al., 2026; Feng et al., 2022) shows that
+<strong><em>DDX3X</em> sensitization is unique to LOY (0/27 external
+contrasts)</strong>, whereas SAGA subunit sensitization recurs in 13q
+arm-loss and <em>KEAP1</em>-mutant models (<code>Supp Fig 4.15</code>).
+Technical audits identify systematic non-detection of Brunello guides
+with <code>TCTC</code>/<code>AGACG</code> 5′ prefixes and recurring
+PCR-jackpotted guides shared between HT1080 <code>D0</code> and A549
+<code>P3</code> (<span class="math inline">\(\rho = 0.997\)</span>;
+<code>Supp Fig 4.6</code>), and show across 29 screens that baseline
+<code>T0</code>/<code>D0</code> divergence predicts when
+<code>IsogenicZ</code> and <code>drugZ</code> rankings diverge (<span class="math inline">\(\rho = 0.61\)</span>;
+<code>Supp Fig 4.16</code>).</li>
 </ul>
 </div>
-<div id="single-cell-loy-atlas" class="section level2">
-<h2>§7 Single-cell LOY atlas</h2>
+<div id="reciprocal-two-colour-spectral-flow-competition-assays-07_competitive_growth_assays" class="section level2">
+<h2>§7 Reciprocal Two-Colour Spectral Flow Competition Assays
+(<code>07_competitive_growth_assays/</code>)</h2>
 <ul>
-<li><strong>Headline</strong>:
-<code>TODO: cell-resolution LOY calling in prostate ccRCC etc. reveals ...; cross-cancer comparison shows ...</code>.</li>
-<li><strong>Read more</strong>: <a href="07_scrnaseq_loy_atlas/">§7
-scRNA-seq LOY atlas</a>.</li>
+<li><strong>Thesis section:</strong> Chapter 4, §4.3.2–4.3.4
+(<code>Fig 4.5–4.6</code>, <code>Supp Fig 4.12</code>).</li>
+<li><strong>Assay calibration &amp; baseline co-culture
+fitness:</strong> Reciprocal <code>eGFP</code>/<code>mCherry</code>
+co-cultures of HT1080 <code>sgCTRL</code> and <code>LOY</code> cells
+quantified on the <code>BD FACSDiscover A8</code> spectral flow
+cytometer with explicit autofluorescence unmixing achieve near-unity
+linearity across 9-point mixing series (<span class="math inline">\(R^2
+&gt; 0.996\)</span>; <code>Fig 4.5</code>). In unperturbed co-cultures,
+Y-depleted HT1080 cells display a modest baseline proliferative
+advantage over <code>sgCTRL</code> across both colour orientations.</li>
+<li><strong>Targeted knockout validation:</strong> After Cas9 RNP
+knockout (verified by genomic PCR and ddPCR), interim
+<code>D0</code>-to-<code>D4</code> reciprocal log-odds shifts
+(<code>Fig 4.6</code>, <code>Supp Fig 4.12</code>) confirm selective
+fitness penalties in <code>LOY</code> relative to <code>sgCTRL</code>
+following <strong><em>DDX3X</em></strong> or
+<strong><em>TADA2B</em></strong> perturbation in both dye-swap
+orientations, whereas <em>SREBF1</em> shows smaller
+orientation-sensitive shifts at <code>D4</code>.</li>
 </ul>
 </div>
-<div id="functional-screens" class="section level2">
-<h2>§8 Functional screens</h2>
-<ul>
-<li><strong>Headline</strong>: CRISPR synthetic-lethal screens in A549
-and HT1080 plus the HT1080 drug screen converge on
-<code>TODO: hit set / pathway</code>.</li>
-<li><strong>Read more</strong>: <a href="08_functional_screens/">§8
-Functional screens</a> — 8.1 CRISPR A549 · 8.2 CRISPR HT1080 · 8.3 Drug
-HT1080 (Ben Snider, Craig Lab) · 8.4 integration.</li>
-</ul>
-</div>
-</div>
-<div id="mechanism-in-one-figure" class="section level1">
-<h1>Mechanism in one figure</h1>
-<p><code>TODO: insert the canonical mechanism schematic when ready (likely Figure 1 or graphical abstract).</code></p>
-<p>For the long form, see the mechanism notebooks:</p>
-<ul>
-<li><a href="mechanism/"><code>mechanism/th01</code></a> — KDM5D/UTY
-loss → H3K4me3 accumulation.</li>
-<li><a href="mechanism/"><code>mechanism/th02</code></a> — PRC2
-redistribution.</li>
-<li><a href="mechanism/"><code>mechanism/th03</code></a> — Polycomb
-derepression of neural/dev genes.</li>
-<li><a href="mechanism/"><code>mechanism/th04</code></a> — SAGA/STAGA
-addiction (synthetic lethality).</li>
-</ul>
-</div>
-<div id="what-to-read-first-for-a-new-lab-member" class="section level1">
-<h1>What to read first (for a new lab member)</h1>
-<ol style="list-style-type: decimal">
-<li><a href="background.html">Background</a> — the <em>why</em>.</li>
-<li>This document — the <em>what</em> and <em>so what</em>.</li>
-<li><a href="project_plan.html">Project plan</a> — the <em>when</em> and
-<em>what’s next</em>.</li>
-<li><a href="mechanism/"><code>mechanism/th04_saga_synthetic_lethality.Rmd</code></a>
-— the punch line of the manuscript.</li>
-<li>The numbered analyses in the order most relevant to your interest
-(data types are in <a href="README.md"><code>analysis/README.md</code></a>).</li>
-</ol>
-</div>
-<div id="document-status" class="section level1">
-<h1>Document status</h1>
-<ul>
-<li><strong>Audience</strong>: PIs, lab members, anyone needing a
-10-minute primer.</li>
-<li><strong>Owner</strong>: Mike Vermeulen.</li>
-<li><strong>Status</strong>: built up as analyses are migrated. Re-knit
-this whenever a numbered section gets a headline finding worth folding
-in.</li>
-<li><strong>Last knit</strong>: see header date.</li>
-</ul>
 </div>
 </div>
 

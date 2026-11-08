@@ -1,27 +1,15 @@
-# methods/
+# `analysis/methods/` — Thesis Materials & Methods and Supplementary Methods
 
-Per-assay / per-technology methods writeups. Each file documents the wet-lab
-or computational protocol used so the corresponding analysis `.Rmd` can stay
-focused on results and interpretation. These are the documents reviewers will
-look at first when asking "how was this generated?".
+This directory contains the authoritative wet-lab and computational **Materials and Methods** and **Supplementary Materials and Methods** from **Chapter 3** and **Chapter 4** of the thesis (`draftv2`), along with standalone protocol notebooks.
 
-Survey of existing repo content turned up no dedicated methods files — methods
-are currently embedded inline in analysis `.Rmd`s. These pull them out into
-canonical, citable references.
+---
 
-## Planned methods writeups
+## Canonical Thesis Methods Documents
 
-| File                                  | Topic |
-|---------------------------------------|-------|
-| `m01_genome_engineering.Rmd`          | CRISPR-Cas9 generation of isogenic LOY lines (transfection, selection, clone picking). TODO. |
-| `m02_sgRNA_design.Rmd`                | sgRNA design pipeline for chrY targeting; off-target scoring. TODO. |
-| `m03_ddPCR.Rmd`                       | ddPCR protocol for chrY copy-number validation. TODO. |
-| `m04_lpWGS.Rmd`                       | Low-pass WGS library prep, T2T alignment, mosdepth coverage analysis. TODO. |
-| `m05_bulk_rnaseq.Rmd`                 | Bulk RNA-seq library prep + STAR two-pass / featureCounts / DESeq2 + VIPER. TODO. |
-| `m06_chipseq.Rmd`                     | ChIP-seq sample prep + computational pipeline. TODO. |
-| `m07_atacseq.Rmd`                     | ATAC-seq sample prep + MACS2 / ataqv QC pipeline. TODO. |
-| `m08_scrnaseq.Rmd`                    | scRNA-seq processing pipeline (Seurat, integration, LOY calling at cell resolution). TODO. |
-| `m09_crispr_functional_screen.Rmd`    | Brunello screen design, transduction, MAGeCK + BAGEL analysis. TODO. |
-| `m10_drug_screen.Rmd`                 | Compound screen design, normalization, hit calling. HT1080 only. **Performed by Ben Snider (Craig Lab).** TODO. |
-| `m11_depmap_processing.Rmd`           | DepMap data acquisition, LOY classification, Boruta feature selection. TODO. |
-| `m12_tcga_processing.Rmd`             | TCGA cohort assembly, LOY calling methods + concordance. TODO. |
+| File | Thesis Scope | Contents |
+|---|---|---|
+| [`chapter3_methods.md`](chapter3_methods.md) | **Chapter 3, §3.2** | **§3.2.1** Guide design and `T2T-CHM13v2.0` target annotation (`CP`, `CN`, `Q53`, `P47`, `P51`) · **§3.2.2** Cell culture, Cas9 RNP delivery, panobinostat/KU-55933 modulation, RT-qPCR, multiplex ddPCR, and `T2T-CHM13v2.0` Y-PAR-masked lpWGS · **§3.2.3** `STAR v2` Y-PAR-masked / `GENCODE v49` bulk RNA-seq across 44 libraries, baseline `limma-voom` DE (`HT1080`, `A549`, `DU145`), `fgsea` & fixed-correlation `CAMERA` ($\rho = 0.01$), HT1080 ATAC-seq & RNA/ATAC integration, cross-line synthesis, and reanalysis of 18 external Y-loss/mosaic and 16 chromosome/arm-loss datasets · **§3.2.4** Lentiviral *UTY* (`G418`) and *KDM5D* (`puromycin`) rescue, Western blotting, signature recovery, and baseline promoter-class recovery. |
+| [`chapter3_supplementary_methods.md`](chapter3_supplementary_methods.md) | **Chapter 3, §S3.1–S3.4** | **§S3.1** 44-library molecular sample inventory, ddPCR mixing linearity (`Supp Fig 3.7`), and extended Y-PAR-masked lpWGS bin filtering · **§S3.2** Provider RNA integrity (`RINe`), 44-library RNA-seq QC (`Supp Fig 3.1–3.2`), extended PCA/covariate sensitivity, and `STRING` / `Metascape` network construction · **§S3.3** HT1080 ATAC-seq QC (`Supp Fig 3.3`), `csaw`/loess/passage sensitivities, `chromVAR`/`HOMER`/`TOBIAS` footprinting, DepMap *GRHL2* co-expression, and external Y-loss/arm-loss dataset specifications · **§S3.4** Frozen 100-gene HT1080 LOY signature and matched promoter-control selection. |
+| [`chapter4_methods.md`](chapter4_methods.md) | **Chapter 4, §4.2** | **§4.2.1** Public DepMap (`24Q4`/`26Q1`), Sanger Project Score, and DepMap NextGen 3D Y-status classification, Random Forest/Boruta models, context-stratified genetic searches, 25-benchmark empirical power simulations, and pan-cancer/subset drug screens (PRISM, GDSC1/2, CTD2) · **§4.2.2** Genome-wide Brunello CRISPR–Cas9 screening in matched `sgCTRL` and `LOY` HT1080 and A549 populations · **§4.2.3** Read counting, `D0`/`P3` PCR-jackpot and 5′ prefix (`TCTC`/`AGACG`) audits, and differential-dependency scoring (`drugZ`, `MAGeCK` RRA, and `IsogenicZ`) · **§4.2.4** Pathway enrichment, `STRING`/DepMap co-dependency networks, multi-omic integration with Chapter 3 RNA/ATAC/add-back data, and comparison with 27 external isogenic CRISPR screens · **§4.2.5** Reciprocal two-colour (`eGFP`/`mCherry`) spectral flow-cytometry competitive growth assays on the `BD FACSDiscover A8`. |
+| [`chapter4_supplementary_methods.md`](chapter4_supplementary_methods.md) | **Chapter 4, §S4.1–S4.5** | **§S4.1** Extended DepMap Y-status definitions, 3D NextGen organoid/neurosphere replication rules, context-stratified eligibility families, and drug-screen models · **§S4.2** Brunello library transduction parameters, custom dual-indexing primers, and A549 `P4` reconstruction / trimmed-`P3` sensitivity · **§S4.3** 173-guide `D0` PCR-jackpot diagnosis, 618-guide 5′ prefix non-detection audit, and `drugZ`/`IsogenicZ` formulations · **§S4.4** External 27-screen isogenic register and BioGRID ORCS curation · **§S4.5** `CytoFLEX S` pilot development, `BD FACSDiscover A8` spectral unmixing, detector saturation flags, and `D0`-to-`D4` gating audits. |
+| [`m05_bulk_rnaseq.Rmd`](m05_bulk_rnaseq.Rmd) | Standalone Notebook | Self-contained R Markdown reference for the `STAR v2` Y-PAR-masked / `GENCODE v49` bulk RNA-seq pipeline (`m05_bulk_rnaseq.html`). |

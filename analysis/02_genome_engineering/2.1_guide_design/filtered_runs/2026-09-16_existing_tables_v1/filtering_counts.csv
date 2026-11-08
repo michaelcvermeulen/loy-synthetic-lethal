@@ -1,0 +1,8 @@
+stage,kind,guides,description
+input,input,14723,Distinct 20-nt guide sequences
+exact_non_y_filter,filter,6901,Exact non-Y matches <= 0
+exact_y_abundance_filter,filter,6901,Exact Y matches >= 10
+required_mismatch_counts_available,data_coverage,215,Eligible guides with both one- and two-mismatch counts
+required_mismatch_counts_missing,data_coverage,6686,Eligible guides lacking either count; missing is not zero
+one_mismatch_filter,filter_within_assessed_guides,215,Non-Y one-mismatch sites <= 0
+two_mismatch_filter,filter_within_assessed_guides,215,Non-Y two-mismatch sites <= 0

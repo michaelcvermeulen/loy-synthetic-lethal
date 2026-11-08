@@ -1,0 +1,104 @@
+loy_reanalysis_v1 export: what was checked when the archive was built
+======================================================================
+
+Built 2026-10-07 on the cluster (node frnt131, interactive SLURM job 12321152).
+Source: /global/home/hpc5173/projects/PRISM/data/CCLE/26Q1, read only. Nothing there was changed.
+Archive: loy_reanalysis_v1_export_2026-10-07.zip
+
+1. Contents
+
+   8,890 files copied from the collection (2,401,560,128 bytes), plus
+   EXPORT_README.md, MANIFEST.sha256 and this file.
+
+     scripts/loy_reanalysis_v1                                    57 files
+     derived/loy_reanalysis_v1                                   908 files
+     results/loy_reanalysis_v1                                 7,902 files
+     results/rna_y_vulnerabilities_v1/style_snapshots/
+       thesis-figure-style-v0.3                                   17 files
+     README.md and five files in docs/                             6 files
+
+   No source file changed size or modification time while the archive was written.
+
+2. Integrity of the archive
+
+   - Zip test: no errors.
+   - Unpacked to a scratch folder: all 8,891 files listed in MANIFEST.sha256 match.
+   - The step that adds this file repeats the zip test and hashes every manifest entry
+     again inside the archive. It writes the archive's .sha256 file only if both pass.
+
+3. Against the analysis's own record
+
+   - The analysis hashed its files three times, each before a set of new stages ran.
+     Compared with the files here:
+       extension_baseline_sha256.txt (before stages 25 to 30): 459 of 461 the same
+       nextgen_baseline_sha256.txt (before stages 31 to 33):   659 of 662 the same
+       driver_type_baseline_sha256.txt (before stages 34 to 36): 780 of 783 the same
+     The files that differ are report.html and report.pdf, which were rendered again
+     with each new section, and, for the last two lists, extension_parameters.json,
+     which gained the settings of the later stages. Every listed file is in the export.
+   - derived/loy_reanalysis_v1/final/: 350 of its 354 files are byte-identical to the
+     table of the same name in derived/loy_reanalysis_v1/ or its extension/ folder.
+     The other four (forest_y_status_features and forest_y_status_summary, as CSV and
+     RDS) exist only in final/; stage 22 assembles them from forest_y_status/.
+   - results/loy_reanalysis_v1/validation_summary.json reads passed = true over 115
+     checks, last run 2026-10-06T17:44:19-0400. Those checks were not rerun for this
+     export.
+
+4. Against the export of 2026-10-05
+
+   - Of the 4,255 files that export copied, 4,237 are byte-identical here and none is
+     missing. That covers every file it held under derived/, the 36 files of Figures 1
+     to 12 and their 34 source-data files.
+   - 18 files changed: README.md, docs/DATA_GUIDE.md, docs/LOY_REANALYSIS_OUTPUTS.md;
+     in results/loy_reanalysis_v1/: README.md, progress_ledger.md, report.Rmd,
+     report.html, report.pdf, submission_ledger.tsv, validation_summary.json; in
+     scripts/loy_reanalysis_v1/: 21_figures.R, 22_render.R, 22_report.Rmd,
+     23_validate_outputs.R, README.md, extension_helpers.R, extension_parameters.json,
+     tests/test_extension_helpers.R.
+   - 4,635 files are new: 4,193 code snapshots, 164 logs, 133 tables and records in
+     derived/loy_reanalysis_v1/extension/, 118 files in final/, 6 figure files, 12
+     source-data files, 7 scripts, and 2 files in docs/ (SHA256SUMS_nextgen_inputs,
+     and SHA256SUMS, which the earlier export left out).
+
+5. Figure stage run from the unpacked copy
+
+   Command, run twice:
+
+     LOY_REANALYSIS_ROOT=<unpacked folder> Rscript --vanilla \
+       <unpacked folder>/scripts/loy_reanalysis_v1/21_figures.R
+
+   Both runs ended with exit status 0 in about 60 seconds, logged "freeze verified"
+   and "figures written: 42 files". The 88 figure and source-data files in the
+   collection had the same checksums before and after.
+
+   - figure_source_data/: all 46 files byte-identical to the stored ones, in both runs.
+   - Figures 1, 3, 4, 7, 9, 10, 11, 13 and 14: PNG and SVG byte-identical to the stored
+     ones. Their PDFs differ from the stored ones in 181 to 630 bytes and are the same
+     size to within two bytes. A PDF carries a date stamp; the difference was not
+     examined further.
+   - Figures 2, 5, 6 and 12 differ from the stored ones and from one run to the next.
+     Their code draws jittered points or repelled labels without a seed (21_figures.R
+     lines 176, 559, 573, 683 and 702). The data plotted are identical. Point jitter
+     and label positions are drawn afresh each time. How large the visible difference
+     is was not measured.
+   - Figure 8 differs from the stored one in nine lines of its SVG, which place five
+     repelled labels and four leader lines. The two runs gave the same PNG and SVG.
+     These labels are also placed without a seed (line 796), so two runs need not agree.
+   - The only new file a run creates is results/loy_reanalysis_v1/.fontconfig/fonts.conf.
+
+   The figures in this archive are the stored ones. By their file dates, Figures 1 to
+   10 were drawn on 2026-10-03, Figures 11 and 12 on 2026-10-04, Figure 13 on
+   2026-10-05 and Figure 14 on 2026-10-06. The redrawn ones were discarded.
+
+   Ran with R 4.5.3 and data.table 1.17.8, jsonlite 2.0.0, digest 0.6.39,
+   ggplot2 4.0.2, patchwork 1.3.2, ggrepel 0.9.8, svglite 2.2.2, ragg 1.5.2,
+   systemfonts 1.3.2.
+
+6. Not checked
+
+   - The scripts were not run on any machine other than the cluster.
+   - The report (stage 22) was not rendered from this copy.
+   - No stage that reads raw/ was rerun.
+   - The checksum lists of the inputs record what was on the cluster. They were not
+     compared with the publishers' files for this export.
+   - These are checks on computation and file integrity. None is biological validation.

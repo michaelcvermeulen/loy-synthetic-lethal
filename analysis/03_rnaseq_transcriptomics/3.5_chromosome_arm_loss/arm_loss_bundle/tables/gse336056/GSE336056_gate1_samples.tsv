@@ -1,0 +1,13 @@
+sample	n_cells	median_nCount	median_nCount_c	median_nFeature	pct_under500	n_male	n_female	sex	x_share	sex_metadata	group	fy	pct_chrY0	pct_chrY1	pct_chrY2plus	n_cells_thr	pct_chrY0_thr	n_LOY_thr	likely_raw
+sg3p_D5_HTO3	3510	46495	46495	7947	0	3510	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9903	0.97	0.66	98.38	3494	0.69	24	FALSE
+sg3p_D5_HTO2	2691	46671	46671	7938	0	2691	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9911	0.89	0.74	98.36	2667	0.41	11	FALSE
+sgNTC_D10_HTO6	2579	22202	22202	5776	0	2579	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9891	1.09	0.39	98.53	2545	0.28	7	FALSE
+sgYq_D10_HTO5	1983	22614	22614	5817	0	1983	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9854	1.46	0.86	97.68	1941	0.52	10	FALSE
+sgNTC_D5_HTO5	1982	38578	38578	7562	0	1982	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9945	0.55	0.66	98.79	1965	0.25	5	FALSE
+sgYq_D5_HTO2	1976	43380	43380	7846	0	1976	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9904	0.96	0.61	98.43	1967	0.71	14	FALSE
+sg3p_D10_HTO3	1952	22066	22066	5704	0	1952	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9913	0.87	0.31	98.82	1929	0.31	6	FALSE
+sg3p_D10_HTO2	1887	23134	23134	5896	0	1887	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9926	0.74	0.74	98.52	1856	0.05	1	FALSE
+sgYq_D10_HTO4	1792	22745	22745	5851	0	1792	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9883	1.17	0.39	98.44	1771	0.51	9	FALSE
+sgNTC_D5_HTO6	1660	39397	39397	7676	0	1660	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.991	0.9	0.72	98.37	1651	0.55	9	FALSE
+sgYq_D5_HTO3	1632	43137	43137	7846	0	1632	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9877	1.23	0.43	98.35	1623	0.74	12	FALSE
+sgNTC_D10_HTO1	1479	22002	22002	5766	0	1479	0	male	0		none (primary RPTEC, CRISPR-engineered)	0.9932	0.68	0.81	98.51	1451	0.14	2	FALSE

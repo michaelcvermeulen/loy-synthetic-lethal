@@ -5,11 +5,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="generator" content="pandoc" />
 
-        <meta name="author" content="Mike Vermeulen" />
+        <meta name="author" content="Michael Cory Vermeulen" />
     
-        <meta name="date" content="2026-05-22" />
+        <meta name="date" content="2026-11-08" />
     
-    <title>Background: Loss of Y chromosome (LOY) as a synthetic lethal vulnerability</title>
+    <title>Background: Molecular Consequences and Synthetic Lethal Dependencies of Loss of the Y Chromosome in Cancer</title>
 
         <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -2756,34 +2756,32 @@ margin-left: 0 !important;
    </div>
    
         
-      <h1 class="title">Background: Loss of Y chromosome (LOY) as a
-synthetic lethal vulnerability</h1>
+      <h1 class="title">Background: Molecular Consequences and Synthetic
+Lethal Dependencies of Loss of the Y Chromosome in Cancer</h1>
       
          <!-- readthedown authors -->
    <div id="sidebar">
-    <h2><a href="#content">Background: Loss of Y chromosome (LOY) as a
-synthetic lethal vulnerability</a></h2>
+    <h2><a href="#content">Background: Molecular Consequences and
+Synthetic Lethal Dependencies of Loss of the Y Chromosome in
+Cancer</a></h2>
     <div id="toc">
       <ul>
-      <li><a href="#why-loss-of-y-chromosome-matters" id="toc-why-loss-of-y-chromosome-matters">Why loss of Y chromosome
-      matters</a></li>
-      <li><a href="#the-xy-paralog-problem" id="toc-the-xy-paralog-problem">The X–Y paralog problem</a></li>
-      <li><a href="#mechanistic-model" id="toc-mechanistic-model">Mechanistic model</a>
-      <ul>
-      <li><a href="#predictions-that-drive-the-experimental-program" id="toc-predictions-that-drive-the-experimental-program">Predictions
-      that drive the experimental program</a></li>
-      </ul></li>
-      <li><a href="#why-this-matters-clinically" id="toc-why-this-matters-clinically">Why this matters
-      clinically</a></li>
-      <li><a href="#glossary" id="toc-glossary">Glossary</a></li>
-      <li><a href="#document-status" id="toc-document-status">Document
-      status</a></li>
+      <li><a href="#somatic-loss-of-the-y-chromosome-loy-in-cancer" id="toc-somatic-loss-of-the-y-chromosome-loy-in-cancer">Somatic
+      Loss of the Y Chromosome (LOY) in Cancer</a></li>
+      <li><a href="#architecture-of-the-human-y-chromosome-t2t-chm13v2.0" id="toc-architecture-of-the-human-y-chromosome-t2t-chm13v2.0">Architecture
+      of the Human Y Chromosome (<code>T2T-CHM13v2.0</code>)</a></li>
+      <li><a href="#the-xy-gametolog-buffering-problem" id="toc-the-xy-gametolog-buffering-problem">The X–Y Gametolog
+      Buffering Problem</a></li>
+      <li><a href="#central-thesis-hypotheses-and-experimental-framework" id="toc-central-thesis-hypotheses-and-experimental-framework">Central
+      Thesis Hypotheses and Experimental Framework</a></li>
+      <li><a href="#key-mechanistic-conclusions" id="toc-key-mechanistic-conclusions">Key Mechanistic
+      Conclusions</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
-                  <p class="author"><span class="glyphicon glyphicon-user"></span> Mike
-Vermeulen</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2026-05-22</p>
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Michael
+Cory Vermeulen</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2026-11-08</p>
           </div>
    </div>
      
@@ -2793,176 +2791,304 @@ Vermeulen</p>
    
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
-<div id="why-loss-of-y-chromosome-matters" class="section level1">
-<h1>Why loss of Y chromosome matters</h1>
-<p>Mosaic loss of the Y chromosome (LOY) is one of the most common
-somatic mutations in aging men, detectable in peripheral blood and in a
-substantial fraction of solid tumors arising in male patients. Across
-cancer types LOY is associated with worse outcomes, but the mechanistic
-basis for that association — and whether it represents an exploitable
-vulnerability — has been unclear.</p>
-<p>This project argues that LOY is not just a passenger of genome
-instability, but a <strong>context-specific liability</strong> that
-creates a synthetic lethal dependency on a defined chromatin module. The
-argument rests on three observations developed across the analyses in
-this repository:</p>
+<div id="somatic-loss-of-the-y-chromosome-loy-in-cancer" class="section level1">
+<h1>Somatic Loss of the Y Chromosome (LOY) in Cancer</h1>
+<p>Somatic loss of the Y chromosome (LOY) is the most common human
+sex-chromosome aneuploidy, occurring both as age-associated mosaicism in
+peripheral leukocytes (<code>mLOY</code>) and as a frequent clonal or
+subclonal somatic alteration across male solid tumours and
+haematological malignancies. In pan-cancer genomic cohorts such as The
+Cancer Genome Atlas (TCGA), LOY spans a wide prevalence
+gradient—exceeding 40–75% in papillary renal cell carcinoma
+(<code>KIRP</code>), oesophageal carcinoma (<code>ESCA</code>), head and
+neck squamous cell carcinoma (<code>HNSC</code>), bladder urothelial
+carcinoma (<code>BLCA</code>), and lung squamous/adenocarcinoma
+(<code>LUSC</code>/<code>LUAD</code>)—and correlates with shorter
+progression-free or overall survival in multiple tumour types.</p>
+<p>Despite its clinical prevalence, two fundamental questions have
+remained unresolved in the cancer genomics literature:</p>
 <ol style="list-style-type: decimal">
-<li>Loss of Y removes a small set of broadly expressed paralogs of
-essential chromatin regulators on the X chromosome — most notably
-<em>KDM5D</em> and <em>UTY</em>.</li>
-<li>The resulting imbalance reshapes the H3K4me3 / H3K27me3 / Polycomb
-axis in a stereotyped, reproducible way across male cell lines.</li>
-<li>The reshaped chromatin state creates a dependency on the SAGA/STAGA
-coactivator complex that can be exploited therapeutically.</li>
+<li><strong>What are the direct, cell-intrinsic transcriptional and
+chromatin consequences of losing chromosome Y?</strong> Published
+studies have reported seemingly contradictory phenotypes—ranging from
+extensive epithelial–mesenchymal transition (EMT), extracellular matrix
+(ECM) remodelling, and immune evasion in clonal models (Abdel-Hafiz et
+al., 2023; Celli et al., 2024; Dorsch et al., 2026; Schlüter et al.,
+2026) to minimal autosomal transcriptional perturbation beyond
+sex-chromosome dosage in renal cell carcinoma (Waterhölter et al.,
+2026). Because prior experimental models relied on single-cell cloning,
+spontaneous sublines, or constitutively integrated Cas9 vectors,
+subclonal copy-number drift and clonal selection bottlenecks have
+confounded the direct effect of Y loss.</li>
+<li><strong>Which genetic and pharmacological vulnerabilities are
+selectively exposed by LOY?</strong> While correlative analyses of
+heterogeneous cell-line panels (DepMap, Project Score) consistently
+recover four X-linked paralog dependencies (<em>DDX3X</em>,
+<em>EIF1AX</em>, <em>RPS4X</em>, and <em>ZFX</em>), whether LOY also
+generates context-specific dependencies in chromatin coactivator,
+transcriptional, or metabolic modules—and why such hits do not emerge in
+stratified public cohorts—has lacked systematic investigation in matched
+isogenic genomes.</li>
 </ol>
-<p><code>TODO: refine wording; insert prevalence figures with citations once literature review is finalized.</code></p>
+<hr />
 </div>
-<div id="the-xy-paralog-problem" class="section level1">
-<h1>The X–Y paralog problem</h1>
-<p><code>KDM5D</code> and <code>UTY</code> are Y-linked paralogs of
-<code>KDM5C</code> and <code>KDM6A</code>, respectively. The paralog
-pairs share substrate specificities — KDM5C/D demethylate H3K4me2/3, and
-KDM6A/UTY demethylate H3K27me3 — but their expression levels, tissue
-distributions, and catalytic efficiencies differ.</p>
+<div id="architecture-of-the-human-y-chromosome-t2t-chm13v2.0" class="section level1">
+<h1>Architecture of the Human Y Chromosome
+(<code>T2T-CHM13v2.0</code>)</h1>
+<p>The complete telomere-to-telomere human Y assembly
+(<code>T2T-CHM13v2.0</code> / HG002, 62.46 Mb) resolves both
+pseudoautosomal regions (<code>PAR1</code> at the distal Yp tip, ~2.77
+Mb; <code>PAR2</code> at the distal Yq tip, ~330 kb) and the
+male-specific region of the Y (<code>MSY</code>), which comprises:</p>
+<ul>
+<li><strong>Euchromatic <code>Yp</code> and <code>Yq11</code>:</strong>
+Houses single-copy X-degenerate genes (the ancestral X–Y gametologs)
+alongside ampliconic gene families (<em>TSPY</em> tandem array on Yp;
+<em>RBMY</em>, <em>DAZ</em>, <em>CDY</em> across palindromes P1–P8 on
+Yq).</li>
+<li><strong>Centromeric <code>DYZ3</code> (<span class="math inline">\(\alpha\)</span>-satellite) and heterochromatic
+<code>Yq12</code> (<code>DYZ1</code> / <code>HSat3</code> and
+<code>DYZ2</code>):</strong> Massive repetitive arrays that provide
+high-copy target substrates for programmable Cas9 cleavage without
+cutting autosomes or the X chromosome.</li>
+</ul>
+<p>Crucially, because standard short-read reference genomes include
+identical <code>PAR1</code> and <code>PAR2</code> sequences on both chrX
+and chrY, unmasked alignments discard multimapping PAR reads
+(<code>MAPQ = 0</code>). Throughout this repository (Chapters 3 and 4),
+both <code>lpWGS</code> and <code>STAR v2</code> RNA-seq pipelines use
+<strong>Y-PAR-masked references</strong> so that all pseudoautosomal
+reads map uniquely to the X-coordinate PAR intervals while preserving
+male-specific Y (<code>MSY</code>) quantification.</p>
+<hr />
+</div>
+<div id="the-xy-gametolog-buffering-problem" class="section level1">
+<h1>The X–Y Gametolog Buffering Problem</h1>
+<p>Twelve ubiquitous X-degenerate MSY genes pair with non-inactivated
+(XCI-escaping) paralogs on the X chromosome that perform conserved
+housekeeping functions in translation, RNA splicing, transcription,
+deubiquitination, and histone demethylation:</p>
 <table>
 <colgroup>
 <col width="25%" />
-<col width="30%" />
-<col width="32%" />
-<col width="11%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Y-linked gene</th>
-<th>X-linked paralog</th>
-<th>Substrate</th>
-<th>Notes</th>
+<th>Y-linked Gametolog</th>
+<th>X-linked Paralog</th>
+<th>Regional Location</th>
+<th>Core Molecular Function</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><em>KDM5D</em></td>
-<td><em>KDM5C</em></td>
-<td>H3K4me2/3</td>
-<td>TODO: relative activity, expression patterns.</td>
+<td><em>RPS4Y1</em></td>
+<td><em>RPS4X</em></td>
+<td>Distal Yp (~2.54 Mb, proximal to <code>PAR1</code>)</td>
+<td>40S ribosomal subunit protein eS4</td>
 </tr>
 <tr class="even">
-<td><em>UTY</em></td>
+<td><em>ZFY</em></td>
+<td><em>ZFX</em></td>
+<td>Distal Yp (~2.93 Mb)</td>
+<td>C2H2 zinc-finger transcription factor</td>
+</tr>
+<tr class="odd">
+<td><em>TBL1Y</em></td>
+<td><em>TBL1X</em></td>
+<td>Yp (~6.91 Mb)</td>
+<td>NCoR/SMRT corepressor WD40 subunit</td>
+</tr>
+<tr class="even">
+<td><em>USP9Y</em></td>
+<td><em>USP9X</em></td>
+<td>Proximal Yq11 (~12.71 Mb)</td>
+<td>Deubiquitinating peptidase (DUB)</td>
+</tr>
+<tr class="odd">
+<td><em>DDX3Y</em></td>
+<td><em>DDX3X</em></td>
+<td>Proximal Yq11 (~12.91 Mb)</td>
+<td>DEAD-box ATP-dependent RNA helicase; translation initiation</td>
+</tr>
+<tr class="even">
+<td><em>UTY</em> (<em>KDM6C</em>)</td>
 <td><em>KDM6A</em> (<em>UTX</em>)</td>
-<td>H3K27me3</td>
-<td>UTY catalytic activity contested; demethylase-independent functions
-described. TODO: synthesize.</td>
+<td>Proximal Yq11 (~13.23 Mb)</td>
+<td>TPR/JmjC chromatin regulator; COMPASS/BAF scaffolding &amp; phase
+separation</td>
+</tr>
+<tr class="odd">
+<td><em>TMSB4Y</em></td>
+<td><em>TMSB4X</em></td>
+<td>Yq11 (~13.70 Mb)</td>
+<td>Actin-monomer sequestering peptide</td>
+</tr>
+<tr class="even">
+<td><em>NLGN4Y</em></td>
+<td><em>NLGN4X</em></td>
+<td>Yq11 (~14.52 Mb)</td>
+<td>Synaptic / cell-surface adhesion protein</td>
+</tr>
+<tr class="odd">
+<td><em>PRKY</em></td>
+<td><em>PRKX</em></td>
+<td>Yp (~7.27 Mb)</td>
+<td>cAMP-dependent serine/threonine kinase</td>
+</tr>
+<tr class="even">
+<td><em>KDM5D</em> (<em>JARID1D</em>)</td>
+<td><em>KDM5C</em> (<em>JARID1C</em>)</td>
+<td>Euchromatic Yq11 (~19.70 Mb)</td>
+<td>JmjC H3K4me2/3 demethylase; PRC1.6/NuRD/Sin3 interactors</td>
+</tr>
+<tr class="odd">
+<td><em>TXLNGY</em> (<em>CYorf15B</em>)</td>
+<td><em>TXLNG</em></td>
+<td>Yq11 (~19.56 Mb)</td>
+<td>Taxilin syntaxin-binding family (pseudogene on Y)</td>
+</tr>
+<tr class="even">
+<td><em>EIF1AY</em></td>
+<td><em>EIF1AX</em></td>
+<td>Distal euchromatic Yq11 (~20.58 Mb)</td>
+<td>Translation initiation factor eIF1A (43S pre-initiation
+complex)</td>
 </tr>
 </tbody>
 </table>
-<p>The clinical relevance of paralog dosage has been studied piecemeal
-in other contexts (escape from X-inactivation, sex differences in cancer
-incidence). This project tests whether <strong>loss of the Y-linked
-paralogs alone</strong>, on an otherwise stable genetic background, is
-sufficient to produce a coherent chromatin and transcriptional
-phenotype.</p>
-<p><code>TODO: brief lit review of prior LOY mechanism work — what&#39;s been demonstrated, what&#39;s still contested.</code></p>
+<p>Across HT1080, A549, and DU145, losing chromosome Y eliminates or
+depletes Y-linked gametolog expression <strong>without triggering
+compensatory transcriptional upregulation of their X-linked
+paralogs</strong> (Chapter 3, §3.3.3.4). Consequently, total combined
+X+Y gametolog dosage drops directly upon Y loss, exposing cells to
+synthetic lethality when the remaining X-linked paralog is inhibited or
+knocked out.</p>
+<p>At the same time, our structural characterization reveals that Cas9
+cleavage of Y repeats does not always eliminate the entire chromosome:
+while A549 undergoes whole-Y loss, HT1080 and especially DU145
+completely lose euchromatic <code>Yq</code>
+(<em>USP9Y</em>–<em>EIF1AY</em>) and proximal <code>Yp</code>
+(<em>AMELY</em> at ~6.5 Mb) while partially retaining a distal
+male-specific <code>Yp</code> block (~2.46–4.80 Mb) encoding
+<em>RPS4Y1</em> and <em>ZFY</em>. This regional retention explains why
+single-locus <em>AMELY</em>/<em>AMELX</em> assays misclassify partial Y
+deletions as complete LOY and directly impacts which X–Y paralogs score
+as synthetic lethal in downstream screens.</p>
+<hr />
 </div>
-<div id="mechanistic-model" class="section level1">
-<h1>Mechanistic model</h1>
-<p>We propose the following sequence:</p>
-<ol style="list-style-type: decimal">
-<li><strong>LOY removes KDM5D and UTY.</strong> In male cells with
-active Y, both genes contribute to chromatin homeostasis. Loss is
-permanent and clonal.</li>
-<li><strong>H3K4me3 accumulates at Polycomb-marked loci</strong> as
-KDM5C alone cannot compensate for the lost H3K4me3-erasing
-activity.</li>
-<li><strong>PRC2 redistributes</strong> away from its canonical neural
-and developmental targets, depositing H3K27me3 on a perturbed set of
-loci.</li>
-<li><strong>Polycomb-silenced genes are derepressed</strong> — neural
-and developmental programs that should be off in somatic male tissue
-become aberrantly expressed.</li>
-<li><strong>The derepressed program creates SAGA/STAGA
-addiction</strong>: maintaining the “wrong-program” transcriptional
-state requires coactivator scaffolding that wild-type cells do not
-depend on. This is the <strong>synthetic lethal</strong> axis the
-manuscript exploits.</li>
-</ol>
-<div id="predictions-that-drive-the-experimental-program" class="section level2">
-<h2>Predictions that drive the experimental program</h2>
+<div id="central-thesis-hypotheses-and-experimental-framework" class="section level1">
+<h1>Central Thesis Hypotheses and Experimental Framework</h1>
+<p>The thesis is organized around three linked investigations (Chapters
+2–4):</p>
 <table>
 <colgroup>
-<col width="67%" />
-<col width="32%" />
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Prediction</th>
-<th>Analysis section that tests it</th>
+<th>Thesis Chapter</th>
+<th>Central Question &amp; Approach</th>
+<th>Repository Modules</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>LOY-engineered isogenic lines have a clean LOY genotype.</td>
-<td><a href="01_genome_engineering/">§1 Genome engineering</a></td>
+<td><strong>Chapter 2</strong> (<em>npj Syst Biol Appl</em> 2025)</td>
+<td>Can pan-cancer integration of DepMap CRISPR screens, TCGA mutual
+exclusivity, and PRISM drug profiling identify clinically actionable
+synthetic lethalities—and do small molecules phenocopy knockout of their
+nominal targets?</td>
+<td>Contextual foundation; LOY extension in <a href="01_depmap_prism_public/"><code>01_depmap_prism_public/</code></a></td>
 </tr>
 <tr class="even">
-<td>LOY induces a reproducible transcriptional signature.</td>
-<td><a href="02_rnaseq/">§2 RNA-seq</a></td>
+<td><strong>Chapter 3</strong> (Isogenic LOY Models &amp; Multi-Omic
+Profiling)</td>
+<td>Can transient repeat-targeting Cas9 RNP delivery generate pooled,
+clone-free isogenic LOY models across cancer lineages, and what are the
+conserved versus lineage-specific transcriptional,
+chromatin-accessibility, and <em>UTY</em>/<em>KDM5D</em>-reversible
+consequences of Y depletion?</td>
+<td><a href="02_genome_engineering/"><code>02_genome_engineering/</code></a> ·
+<a href="03_rnaseq_transcriptomics/"><code>03_rnaseq_transcriptomics/</code></a>
+· <a href="04_atacseq_chromatin/"><code>04_atacseq_chromatin/</code></a>
+· <a href="05_uty_kdm5d_addback/"><code>05_uty_kdm5d_addback/</code></a></td>
 </tr>
 <tr class="odd">
-<td>The signature involves derepression of Polycomb-silenced genes.</td>
-<td><a href="02_rnaseq/">§2 RNA-seq</a> + <a href="03_chipseq_public/">§3 ChIP-seq</a></td>
-</tr>
-<tr class="even">
-<td>LOY remodels chromatin accessibility consistent with
-derepression.</td>
-<td><a href="04_atacseq_multiomic/">§4 ATAC-seq + multiomic</a></td>
-</tr>
-<tr class="odd">
-<td>LOY+ cancer lines are selectively dependent on SAGA/STAGA.</td>
-<td><a href="05_depmap_pancancer/">§5 DepMap</a> + <a href="08_functional_screens/">§8 Functional screens</a></td>
-</tr>
-<tr class="even">
-<td>The signature is detectable in patient tumors.</td>
-<td><a href="06_tcga/">§6 TCGA</a> + <a href="07_scrnaseq_loy_atlas/">§7
-scRNA-seq atlas</a></td>
+<td><strong>Chapter 4</strong> (Public Cohort Power Limits, Isogenic
+CRISPR Screens &amp; Competition Validation)</td>
+<td>Why do public panels recover only four X–Y gametologs, what paralog
+and non-paralog dependencies (including SAGA, Mediator, and
+sterol/selenoprotein pathways) emerge in matched isogenic Brunello
+CRISPR screens, how specific are they across 27 external isogenic
+screens, and do top candidates validate in reciprocal spectral
+competition assays?</td>
+<td><a href="01_depmap_prism_public/"><code>01_depmap_prism_public/</code></a>
+· <a href="06_crispr_screens/"><code>06_crispr_screens/</code></a> · <a href="07_competitive_growth_assays/"><code>07_competitive_growth_assays/</code></a></td>
 </tr>
 </tbody>
 </table>
+<hr />
 </div>
-</div>
-<div id="why-this-matters-clinically" class="section level1">
-<h1>Why this matters clinically</h1>
-<p><code>TODO: paragraph on translational implications — SAGA-pathway compounds in preclinical development, patient stratification by LOY status, intersection with sex-disparities-in-cancer literature.</code></p>
-</div>
-<div id="glossary" class="section level1">
-<h1>Glossary</h1>
-<ul>
-<li><strong>LOY</strong> — Loss of Y chromosome; mosaic in blood, clonal
-in tumor lineages.</li>
-<li><strong>PRC2</strong> — Polycomb Repressive Complex 2; deposits
-H3K27me3.</li>
-<li><strong>SAGA / STAGA</strong> — Spt-Ada-Gcn5 Acetyltransferase /
-SPT3-TAFII31-GCN5L Acetyltransferase; transcriptional coactivator
-complexes.</li>
-<li><strong>Paralog buffering</strong> — the concept that paralogs
-compensate for one another’s loss; relevant here because Y/X paralog
-buffering is incomplete.</li>
-<li><code>TODO: extend glossary as terminology stabilizes in the manuscript.</code></li>
-</ul>
-</div>
-<div id="document-status" class="section level1">
-<h1>Document status</h1>
-<ul>
-<li><strong>Audience</strong>: thesis committee (CM5), manuscript
-reviewers, lab members.</li>
-<li><strong>Owner</strong>: Mike Vermeulen.</li>
-<li><strong>Status</strong>: draft skeleton — <code>TODO</code> markers
-indicate sections needing primary literature integration and refined
-wording.</li>
-<li><strong>Last knit</strong>: see header date.</li>
-</ul>
+<div id="key-mechanistic-conclusions" class="section level1">
+<h1>Key Mechanistic Conclusions</h1>
+<ol style="list-style-type: decimal">
+<li><strong>Absence of X-paralog compensation and practical rules of
+gametolog synthetic lethality:</strong> Y loss reduces summed
+<code>PAR1</code> expression by 23–33% and removes Yq gametologs without
+X-paralog transcriptional compensation. In genome-wide CRISPR screens,
+which X–Y gametolog scores depends on (i) <strong>parental baseline
+dependency and Y dosage</strong> (HT1080 is tolerant of <em>DDX3X</em>
+loss at baseline [<code>Chronos +0.18</code>], unmasking <em>DDX3X</em>
+at <code>normZ = -11.45</code>, whereas parental A549 already depends
+strongly on <em>DDX3X</em> [<code>Chronos -0.98</code>] and instead
+recovers <em>EIF1AX</em>), (ii) <strong>pre-D0 dropout kinetics</strong>
+of pan-essential housekeeping genes (<em>EIF1AX</em>, <em>RPS4X</em>),
+and (iii) <strong>regional Yp retention</strong> (<em>RPS4Y1</em>,
+<em>ZFY</em>).</li>
+<li><strong>Lineage-dependent autosomal rewiring vs. conserved
+cell-intrinsic interferon suppression:</strong> Pairwise autosomal
+gene-level fold-change correlations across HT1080, DU145, and A549 are
+near zero (<span class="math inline">\(\rho = -0.06\)</span> to <span class="math inline">\(0.11\)</span>), reconciling why different tumour
+lineages display distinct gene-level programmes (e.g., <em>GRHL2</em>
+and luminal epithelial suppression in DU145 vs. mesenchymal/synaptic/ECM
+remodelling in HT1080). At the pathway level, however, type I and type
+II interferon and inflammatory signalling are recurrently suppressed
+across our models and 18 external Y-loss/mosaic datasets—demonstrating a
+cell-intrinsic innate immune dampening effect of Y depletion.</li>
+<li><strong>Promoter chromatin closing at Polycomb targets and causal
+<em>UTY</em> rescue:</strong> Rather than causing global Polycomb
+derepression, Y depletion in HT1080 drives an ~7:1 skew toward chromatin
+closing (663 closed vs. 95 opened ATAC-seq peaks), with jointly closed
+and downregulated promoters significantly enriched for PRC2
+(<em>EZH2</em>/<em>SUZ12</em>) and H3K27me3 occupancy after matching for
+baseline accessibility, GC content, and CpG density. Lentiviral
+re-expression of <em>UTY</em> (alone or with <em>KDM5D</em>), but not
+<em>KDM5D</em> alone, partially reverses the 150-gene (51% / 35%) and
+frozen-100-gene LOY transcriptional signatures and increases expression
+at 36 of 39 jointly closed/repressed genes.</li>
+<li><strong>Coactivator (SAGA / Mediator) and metabolic vulnerabilities
+beyond X–Y paralogs:</strong> In HT1080, Y depletion creates coordinated
+sensitivity to knockout of six of 20 SAGA subunits (<em>TAF6L</em>,
+<em>TADA2B</em>, <em>SUPT20H</em>, <em>ATXN7L3</em>, <em>TADA1</em>,
+<em>TAF5L</em>), Mediator (<em>MED12</em>), and SREBP
+sterol/selenoprotein pathways (<em>SREBF2</em>, <em>SREBF1</em>,
+<em>SCLY</em>, <em>ACSL4</em>). Multi-omic integration proves these
+vulnerabilities are not driven by transcriptional silencing or promoter
+closure of the candidate genes themselves (<span class="math inline">\(\rho = -0.005\)</span>), and cross-screen
+benchmarking across 27 external isogenic CRISPR screens shows that while
+<em>DDX3X</em> dependency is strictly unique to LOY, SAGA sensitization
+represents a convergent coactivator vulnerability shared with select
+aneuploid (13q loss) and oncogenic (<em>KEAP1</em>-mutant) states.</li>
+</ol>
 <pre><code>## R version 4.5.2 (2025-10-31 ucrt)
 ## Platform: x86_64-w64-mingw32/x64
-## Running under: Windows 11 x64 (build 26200)
+## Running under: Windows 11 x64 (build 26300)
 ## 
 ## Matrix products: default
 ##   LAPACK version 3.12.1
@@ -2976,17 +3102,15 @@ wording.</li>
 ## tzcode source: internal
 ## 
 ## attached base packages:
-## [1] stats     graphics  grDevices datasets  utils     methods   base     
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] digest_0.6.39       R6_2.6.1            bookdown_0.46      
-##  [4] fastmap_1.2.0       xfun_0.57           cachem_1.1.0       
-##  [7] knitr_1.51          htmltools_0.5.9     rmarkdown_2.31     
-## [10] lifecycle_1.0.5     cli_3.6.6           sass_0.4.10        
-## [13] renv_1.2.3          jquerylib_0.1.4     compiler_4.5.2     
-## [16] tools_4.5.2         evaluate_1.0.5      bslib_0.11.0       
-## [19] rmdformats_1.0.4    yaml_2.3.12         BiocManager_1.30.27
-## [22] jsonlite_2.0.0      rlang_1.2.0</code></pre>
+##  [1] digest_0.6.39    R6_2.6.1         bookdown_0.46    fastmap_1.2.0   
+##  [5] xfun_0.57        cachem_1.1.0     knitr_1.51       htmltools_0.5.9 
+##  [9] rmarkdown_2.31   lifecycle_1.0.5  cli_3.6.6        sass_0.4.10     
+## [13] jquerylib_0.1.4  compiler_4.5.2   tools_4.5.2      evaluate_1.0.5  
+## [17] bslib_0.11.0     rmdformats_1.0.4 yaml_2.3.12      otel_0.2.0      
+## [21] jsonlite_2.0.0   rlang_1.2.0</code></pre>
 </div>
 </div>
 

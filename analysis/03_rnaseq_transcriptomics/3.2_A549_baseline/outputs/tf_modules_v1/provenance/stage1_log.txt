@@ -1,0 +1,36 @@
+       contrast n_new n_saved matched max_abs_score_diff max_abs_p_diff
+1 LOY_vs_sgCTRL   675     675     675       5.329071e-15   5.551115e-16
+overall / collectri / ulm
+overall / collectri / mlm
+overall / collectri / wsum
+overall / collectri / viper
+overall / dorothea_ABC / ulm
+overall / dorothea_ABC / mlm
+overall / dorothea_ABC / wsum
+overall / dorothea_ABC / viper
+overall / tfactprofiler_all / ulm
+overall / tfactprofiler_fibroblast / ulm
+CTRL_vs_parental / collectri / ulm
+CTRL_vs_parental / collectri / mlm
+CTRL_vs_parental / collectri / wsum
+CTRL_vs_parental / collectri / viper
+CTRL_vs_parental / dorothea_ABC / ulm
+CTRL_vs_parental / dorothea_ABC / mlm
+CTRL_vs_parental / dorothea_ABC / wsum
+CTRL_vs_parental / dorothea_ABC / viper
+
+not_significant    overall_only          robust       supported 
+            665               6               3               1 
+   source ulm_score      ulm_FDR methods_agree     R4 loo_same_sign     R6
+   <char>     <num>        <num>         <int> <lgcl>         <int> <lgcl>
+1:  HNF1A  4.703771 0.0005780244             4   TRUE             8   TRUE
+2:  HNF1B  4.502412 0.0009115229             4   TRUE             8   TRUE
+3:  NCOR1 -3.380714 0.0488831200             3   TRUE             8   TRUE
+4:  FOXA2  5.078042 0.0001297201             4  FALSE             8   TRUE
+     fry_FDR      tier
+       <num>    <char>
+1: 0.9978995    robust
+2: 0.9978995    robust
+3: 0.9978995    robust
+4: 0.9978995 supported
+Stage 1-2 completed

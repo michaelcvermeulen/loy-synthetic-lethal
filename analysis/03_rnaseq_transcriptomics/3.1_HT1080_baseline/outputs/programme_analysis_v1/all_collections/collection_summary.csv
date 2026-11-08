@@ -1,0 +1,51 @@
+contrast,collection,description,tested,finite_P,FDR05,higher,lower
+AUG_2025,C1,Positional,256,256,36,11,25
+AUG_2025,C2,Curated,5048,5048,346,51,295
+AUG_2025,C3,Regulatory targets,3172,3172,307,10,297
+AUG_2025,C4,Computational,913,913,70,26,44
+AUG_2025,C5,Ontology,8208,8208,273,31,242
+AUG_2025,C6,Oncogenic,187,187,33,6,27
+AUG_2025,C7,Immunologic,5062,5062,354,6,348
+AUG_2025,C8,Cell type,738,738,135,22,113
+AUG_2025,C9,Cell perturbation,62,62,7,0,7
+AUG_2025,H,Hallmark,50,50,6,0,6
+CTRL_vs_parental,C1,Positional,253,253,25,11,14
+CTRL_vs_parental,C2,Curated,4995,4995,370,103,267
+CTRL_vs_parental,C3,Regulatory targets,3165,3165,116,101,15
+CTRL_vs_parental,C4,Computational,905,905,86,35,51
+CTRL_vs_parental,C5,Ontology,8119,8119,197,102,95
+CTRL_vs_parental,C6,Oncogenic,187,187,27,19,8
+CTRL_vs_parental,C7,Immunologic,5055,5055,190,73,117
+CTRL_vs_parental,C8,Cell type,735,735,149,37,112
+CTRL_vs_parental,C9,Cell perturbation,62,62,21,9,12
+CTRL_vs_parental,H,Hallmark,50,50,7,2,5
+MAY_2026,C1,Positional,256,256,66,18,48
+MAY_2026,C2,Curated,5048,5048,828,26,802
+MAY_2026,C3,Regulatory targets,3172,3172,670,13,657
+MAY_2026,C4,Computational,913,913,191,1,190
+MAY_2026,C5,Ontology,8208,8208,559,44,515
+MAY_2026,C6,Oncogenic,187,187,54,7,47
+MAY_2026,C7,Immunologic,5062,5062,1155,9,1146
+MAY_2026,C8,Cell type,738,738,256,6,250
+MAY_2026,C9,Cell perturbation,62,62,12,1,11
+MAY_2026,H,Hallmark,50,50,14,0,14
+interaction,C1,Positional,256,256,16,8,8
+interaction,C2,Curated,5048,5048,414,17,397
+interaction,C3,Regulatory targets,3172,3172,71,1,70
+interaction,C4,Computational,913,913,160,2,158
+interaction,C5,Ontology,8208,8208,188,41,147
+interaction,C6,Oncogenic,187,187,21,2,19
+interaction,C7,Immunologic,5062,5062,332,3,329
+interaction,C8,Cell type,738,738,153,1,152
+interaction,C9,Cell perturbation,62,62,7,3,4
+interaction,H,Hallmark,50,50,9,0,9
+overall,C1,Positional,256,256,63,16,47
+overall,C2,Curated,5048,5048,672,22,650
+overall,C3,Regulatory targets,3172,3172,652,10,642
+overall,C4,Computational,913,913,136,1,135
+overall,C5,Ontology,8208,8208,521,27,494
+overall,C6,Oncogenic,187,187,46,5,41
+overall,C7,Immunologic,5062,5062,945,3,942
+overall,C8,Cell type,738,738,222,10,212
+overall,C9,Cell perturbation,62,62,12,0,12
+overall,H,Hallmark,50,50,12,0,12

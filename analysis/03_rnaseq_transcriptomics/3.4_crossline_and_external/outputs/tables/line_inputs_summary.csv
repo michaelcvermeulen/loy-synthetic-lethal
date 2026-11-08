@@ -1,0 +1,4 @@
+line,primary_genes,significant_genes_FDR05,thesis_genes,gene_sets_tested,gene_sets_BH05
+"HT1080",25526,1003,662,23696,808
+"A549",22792,0,0,23457,1366
+"DU145",18767,147,23,23252,154

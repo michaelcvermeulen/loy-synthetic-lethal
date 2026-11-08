@@ -1,0 +1,6 @@
+community,pathways,representative_pathway,direction,both_periods_supported,leading_genes,consistent_DE_genes,promoter_tested_genes,promoter_concordant_genes,promoter_discordant_genes,consistent_linked_TFs,concordant_chromVAR_TFs,concordant_chromVAR_TF_names,status
+DOWN_C03,11,REACTOME_HEMOSTASIS,DOWN,7,270,34,191,6,0,42,1,GATA4,provisional_review_candidate_not_final_theme_selection
+DOWN_C02,14,REACTOME_EXTRACELLULAR_MATRIX_ORGANIZATION,DOWN,5,120,24,79,3,0,35,1,GATA4,provisional_review_candidate_not_final_theme_selection
+DOWN_C04,10,GOBP_LEUKOCYTE_MIGRATION,DOWN,3,96,13,62,3,0,29,1,GATA4,provisional_review_candidate_not_final_theme_selection
+DOWN_C08,6,GOBP_POSITIVE_REGULATION_OF_TYPE_II_INTERFERON_PRODUCTION,DOWN,3,281,24,197,1,0,30,0,,provisional_review_candidate_not_final_theme_selection
+DOWN_C31,2,GOBP_POSITIVE_REGULATION_OF_PHOSPHATIDYLINOSITOL_3_KINASE_PROTEIN_KINASE_B_SIGNAL_TRANSDUCTION,DOWN,2,67,13,49,2,0,25,1,GATA4,provisional_review_candidate_not_final_theme_selection

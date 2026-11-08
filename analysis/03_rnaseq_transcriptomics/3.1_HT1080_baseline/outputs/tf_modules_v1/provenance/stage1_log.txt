@@ -1,0 +1,165 @@
+           contrast n_new  n_v1 matched max_abs_score_diff max_abs_p_diff
+             <char> <int> <int>   <int>              <num>          <num>
+1:          overall   687   687     687       5.329071e-15   5.551115e-16
+2:         AUG_2025   687   687     687       5.107026e-15   5.551115e-16
+3:         MAY_2026   687   687     687       5.329071e-15   5.551115e-16
+4:      interaction   687   687     687       5.329071e-15   5.551115e-16
+5: CTRL_vs_parental   680   680     680       5.329071e-15   5.551115e-16
+overall / collectri / ulm
+overall / collectri / mlm
+overall / collectri / wsum
+overall / collectri / viper
+overall / dorothea_ABC / ulm
+overall / dorothea_ABC / mlm
+overall / dorothea_ABC / wsum
+overall / dorothea_ABC / viper
+overall / tfactprofiler_all / ulm
+overall / tfactprofiler_fibroblast / ulm
+AUG_2025 / collectri / ulm
+AUG_2025 / collectri / mlm
+AUG_2025 / collectri / wsum
+AUG_2025 / collectri / viper
+AUG_2025 / dorothea_ABC / ulm
+AUG_2025 / dorothea_ABC / mlm
+AUG_2025 / dorothea_ABC / wsum
+AUG_2025 / dorothea_ABC / viper
+AUG_2025 / tfactprofiler_all / ulm
+AUG_2025 / tfactprofiler_fibroblast / ulm
+MAY_2026 / collectri / ulm
+MAY_2026 / collectri / mlm
+MAY_2026 / collectri / wsum
+MAY_2026 / collectri / viper
+MAY_2026 / dorothea_ABC / ulm
+MAY_2026 / dorothea_ABC / mlm
+MAY_2026 / dorothea_ABC / wsum
+MAY_2026 / dorothea_ABC / viper
+MAY_2026 / tfactprofiler_all / ulm
+MAY_2026 / tfactprofiler_fibroblast / ulm
+interaction / collectri / ulm
+interaction / collectri / mlm
+interaction / collectri / wsum
+interaction / collectri / viper
+interaction / dorothea_ABC / ulm
+interaction / dorothea_ABC / mlm
+interaction / dorothea_ABC / wsum
+interaction / dorothea_ABC / viper
+CTRL_vs_parental / collectri / ulm
+CTRL_vs_parental / collectri / mlm
+CTRL_vs_parental / collectri / wsum
+CTRL_vs_parental / collectri / viper
+CTRL_vs_parental / dorothea_ABC / ulm
+CTRL_vs_parental / dorothea_ABC / mlm
+CTRL_vs_parental / dorothea_ABC / wsum
+CTRL_vs_parental / dorothea_ABC / viper
+
+consistent_only not_significant          robust       supported 
+              4             633              28              22 
+    source ulm_score      ulm_FDR methods_agree     R4 lopo_same_sign     R6
+    <char>     <num>        <num>         <int> <lgcl>          <int> <lgcl>
+ 1:   PAX6 -5.838289 3.667173e-06             4   TRUE              6   TRUE
+ 2: NFE2L2 -5.111531 7.370800e-05             4   TRUE              6   TRUE
+ 3:    SRF -5.243951 5.442020e-05             4   TRUE              6   TRUE
+ 4:    SP1 -4.910208 1.572248e-04             4   TRUE              6   TRUE
+ 5:  STAT1 -4.012667 2.391081e-03             4   TRUE              6   TRUE
+ 6:     AR -4.361837 8.895391e-04             3   TRUE              6   TRUE
+ 7:   ESR1 -4.374220 8.895391e-04             3   TRUE              6   TRUE
+ 8:    MYC -4.131300 1.553775e-03             3   TRUE              6   TRUE
+ 9:   JUNB -4.422527 8.412047e-04             3   TRUE              6   TRUE
+10:    AP1 -4.507129 6.477756e-04             3   TRUE              6   TRUE
+11:  RUNX1 -3.980142 2.497245e-03             3   TRUE              6   TRUE
+12:    MYB -3.967190 2.504948e-03             4   TRUE              6   TRUE
+13:  CEBPA -3.911902 2.866965e-03             3   TRUE              6   TRUE
+14:   JUND -4.293307 1.103460e-03             3   TRUE              6   TRUE
+15:  CEBPG -4.199915 1.415872e-03             3   TRUE              6   TRUE
+16:   TP63 -3.225967 2.106350e-02             4   TRUE              6   TRUE
+17:  SMAD4 -3.408712 1.283147e-02             4   TRUE              6   TRUE
+18:  SMAD1 -4.143047 1.553775e-03             3   TRUE              6   TRUE
+19:  STAT6 -4.225278 1.371003e-03             3   TRUE              6   TRUE
+20:  FOXO3 -3.276431 1.898790e-02             3   TRUE              6   TRUE
+21:   KAT7 -3.849887 3.538380e-03             3   TRUE              6   TRUE
+22:   RARA -3.720759 5.469942e-03             3   TRUE              6   TRUE
+23:  CEBPB -4.003276 2.391081e-03             3   TRUE              6   TRUE
+24:    JUN -4.180287 1.433443e-03             3   TRUE              6   TRUE
+25:   ETS2 -3.784075 4.426416e-03             3   TRUE              6   TRUE
+26:  CREB1 -3.269734 1.898790e-02             3   TRUE              6   TRUE
+27: TFAP2A -2.922753 4.501233e-02             3   TRUE              6   TRUE
+28:    FOS -2.995558 3.767601e-02             3   TRUE              6   TRUE
+29:    SP7 -4.560737 6.477756e-04             4  FALSE              6   TRUE
+30:   DLX5 -4.521859 6.477756e-04             4   TRUE              6  FALSE
+31:   KLF1 -3.541903 9.427583e-03             4   TRUE              6  FALSE
+32:   RFX1 -3.583297 8.340136e-03             4   TRUE              6  FALSE
+33:    DBP -3.412397 1.283147e-02             4   TRUE              6  FALSE
+34:  GATA4 -3.637953 7.006284e-03             3  FALSE              6   TRUE
+35:   HOPX -3.105894 2.836306e-02             4   TRUE              6  FALSE
+36:  MEF2A -3.253976 1.957099e-02             4   TRUE              6  FALSE
+37:  BACH1 -3.482162 1.104111e-02             4   TRUE              6  FALSE
+38:  HOXD3 -3.346871 1.561924e-02             4   TRUE              6  FALSE
+39:   NFE2 -3.007943 3.691290e-02             4   TRUE              6  FALSE
+40:  HAND1 -3.126056 2.743554e-02             4   TRUE              6  FALSE
+41:   TCF3 -3.421867 1.283147e-02             3   TRUE              6  FALSE
+42:  FOXE1 -3.065805 3.176456e-02             4   TRUE              6  FALSE
+43: ZNF384 -3.912608 2.866965e-03             3   TRUE              6  FALSE
+44:   ATF5 -3.033286 3.465765e-02             3   TRUE              6  FALSE
+45:  PRRX1 -2.953441 4.155553e-02             3   TRUE              6  FALSE
+46: ZNF148 -3.289009 1.869331e-02             3   TRUE              6  FALSE
+47:  ATOH7 -3.437131 1.264186e-02             3   TRUE              6  FALSE
+48:  RUNX2 -2.954646 4.155553e-02             3   TRUE              6  FALSE
+49:    SCX -3.676614 6.257933e-03             3   TRUE              6  FALSE
+50:  SMAD3 -2.909682 4.606845e-02             3   TRUE              6  FALSE
+    source ulm_score      ulm_FDR methods_agree     R4 lopo_same_sign     R6
+    <char>     <num>        <num>         <int> <lgcl>          <int> <lgcl>
+         fry_FDR      tier
+           <num>    <char>
+ 1: 0.0002439598    robust
+ 2: 0.0589992792    robust
+ 3: 0.0341424634    robust
+ 4: 0.1451677374    robust
+ 5: 0.0805683873    robust
+ 6: 0.1303874748    robust
+ 7: 0.1202505440    robust
+ 8: 0.5234050477    robust
+ 9: 0.0154036553    robust
+10: 0.1079710889    robust
+11: 0.0171579744    robust
+12: 0.1397114138    robust
+13: 0.0141980948    robust
+14: 0.0104286792    robust
+15: 0.0087877722    robust
+16: 0.0381380914    robust
+17: 0.0249507685    robust
+18: 0.0056569647    robust
+19: 0.0550624273    robust
+20: 0.2629035207    robust
+21: 0.0265158528    robust
+22: 0.0154036553    robust
+23: 0.0695197910    robust
+24: 0.1397114138    robust
+25: 0.0030598007    robust
+26: 0.0827487805    robust
+27: 0.1451677374    robust
+28: 0.1765019734    robust
+29: 0.0030598007 supported
+30: 0.0102818783 supported
+31: 0.0173208997 supported
+32: 0.0147632499 supported
+33: 0.0152042571 supported
+34: 0.0087877722 supported
+35: 0.1541359422 supported
+36: 0.0381380914 supported
+37: 0.0228633599 supported
+38: 0.0519323916 supported
+39: 0.0393945488 supported
+40: 0.0092415858 supported
+41: 0.0381380914 supported
+42: 0.0087877722 supported
+43: 0.0731804659 supported
+44: 0.0796479566 supported
+45: 0.0827487805 supported
+46: 0.0049270860 supported
+47: 0.0087877722 supported
+48: 0.0256810851 supported
+49: 0.0049270860 supported
+50: 0.0571663866 supported
+         fry_FDR      tier
+           <num>    <char>
+Stage 1-2 completed

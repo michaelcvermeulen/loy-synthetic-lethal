@@ -1,0 +1,27 @@
+db_version,gs_collection,gs_subcollection,gs_collection_name,num_genesets
+2026.1.Hs,C1,"",Positional,302
+2026.1.Hs,C2,CGP,Chemical and Genetic Perturbations,3555
+2026.1.Hs,C2,CP,Canonical Pathways,19
+2026.1.Hs,C2,CP:BIOCARTA,BioCarta Pathways,292
+2026.1.Hs,C2,CP:KEGG_LEGACY,KEGG Legacy Pathways,186
+2026.1.Hs,C2,CP:KEGG_MEDICUS,KEGG Medicus Pathways,658
+2026.1.Hs,C2,CP:PID,PID Pathways,196
+2026.1.Hs,C2,CP:REACTOME,Reactome Pathways,1839
+2026.1.Hs,C2,CP:WIKIPATHWAYS,WikiPathways,925
+2026.1.Hs,C3,MIR:MIRDB,miRDB,2377
+2026.1.Hs,C3,MIR:MIR_LEGACY,MIR_Legacy,221
+2026.1.Hs,C3,TFT:GTRD,GTRD,506
+2026.1.Hs,C3,TFT:TFT_LEGACY,TFT_Legacy,610
+2026.1.Hs,C4,3CA,Curated Cancer Cell Atlas gene sets ,148
+2026.1.Hs,C4,CGN,Cancer Gene Neighborhoods,427
+2026.1.Hs,C4,CM,Cancer Modules,431
+2026.1.Hs,C5,GO:BP,GO Biological Process,7538
+2026.1.Hs,C5,GO:CC,GO Cellular Component,1080
+2026.1.Hs,C5,GO:MF,GO Molecular Function,1872
+2026.1.Hs,C5,HPO,Human Phenotype Ontology,5793
+2026.1.Hs,C6,"",Oncogenic Signature,189
+2026.1.Hs,C7,IMMUNESIGDB,ImmuneSigDB,4872
+2026.1.Hs,C7,VAX,HIPC Vaccine Response,347
+2026.1.Hs,C8,"",Cell Type Signature,866
+2026.1.Hs,C9,"",Computational Perturbation Signature,62
+2026.1.Hs,H,"",Hallmark,50

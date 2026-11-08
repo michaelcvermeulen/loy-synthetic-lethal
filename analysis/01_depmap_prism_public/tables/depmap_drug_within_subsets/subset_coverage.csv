@@ -1,0 +1,673 @@
+dataset,class,context_id,label,tests,n_LOY_min,n_LOY_max,n_Y_positive_min,n_Y_positive_max
+ctrp,amplification,amplification__BCL2L1,BCL2L1,406,12,18,5,6
+ctrp,amplification,amplification__CCND1,CCND1,502,7,29,7,20
+ctrp,amplification,amplification__CDK4,CDK4,377,5,5,5,7
+ctrp,amplification,amplification__CDK6,CDK6,174,8,11,5,5
+ctrp,amplification,amplification__EGFR,EGFR,467,7,19,5,11
+ctrp,amplification,amplification__FGFR1,FGFR1,335,7,11,5,5
+ctrp,amplification,amplification__KRAS,KRAS,468,5,16,5,10
+ctrp,amplification,amplification__MCL1,MCL1,429,5,8,5,10
+ctrp,amplification,amplification__MYC,MYC,501,9,36,5,18
+ctrp,amplification,amplification__MYCL,MYCL,1,5,5,5,5
+ctrp,amplification,amplification__NKX2_1,NKX2-1,431,5,7,5,7
+ctrp,amplification,amplification__TERT,TERT,461,5,8,5,13
+ctrp,amplification,amplification__YAP1,YAP1,383,5,6,5,6
+ctrp,deletion,deletion__CDKN2A,CDKN2A,545,5,72,6,69
+ctrp,deletion,deletion__CDKN2B,CDKN2B,545,5,60,6,58
+ctrp,deletion,deletion__FHIT,FHIT,439,9,16,5,7
+ctrp,deletion,deletion__MTAP,MTAP,537,11,55,7,45
+ctrp,deletion,deletion__PTEN,PTEN,439,5,7,5,8
+ctrp,disease,disease__Acute_Myeloid_Leukemia,Acute Myeloid Leukemia,268,5,5,11,19
+ctrp,disease,disease__Adult_Type_Diffuse_Glioma,Adult-Type Diffuse Glioma,385,5,6,14,20
+ctrp,disease,disease__Bladder_Urothelial_Carcinoma,Bladder Urothelial Carcinoma,319,5,6,5,5
+ctrp,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,468,5,12,5,12
+ctrp,disease,disease__Esophagogastric_Adenocarcinoma,Esophagogastric Adenocarcinoma,408,9,12,5,6
+ctrp,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,468,5,16,5,10
+ctrp,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,463,5,8,5,7
+ctrp,disease,disease__Lung_Neuroendocrine_Tumor,Lung Neuroendocrine Tumor,304,5,7,5,12
+ctrp,disease,disease__Mature_B_Cell_Neoplasms,Mature B-Cell Neoplasms,463,5,11,6,21
+ctrp,disease,disease__Melanoma,Melanoma,409,5,5,15,21
+ctrp,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,537,8,38,6,22
+ctrp,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,443,5,8,5,7
+ctrp,driver,driver__ACVR2A,ACVR2A,396,5,6,7,9
+ctrp,driver,driver__APC,APC,496,7,17,6,14
+ctrp,driver,driver__ARID1A,ARID1A,499,6,17,5,17
+ctrp,driver,driver__ARID2,ARID2,402,5,7,5,6
+ctrp,driver,driver__ASXL1,ASXL1,432,5,8,5,14
+ctrp,driver,driver__BCOR,BCOR,412,5,8,5,11
+ctrp,driver,driver__BRAF,BRAF,497,5,12,5,20
+ctrp,driver,driver__BRCA2,BRCA2,115,5,5,5,7
+ctrp,driver,driver__CDKN2A,CDKN2A,537,5,24,6,25
+ctrp,driver,driver__CIC,CIC,372,5,5,5,8
+ctrp,driver,driver__CREBBP,CREBBP,499,6,14,5,14
+ctrp,driver,driver__EGFR,EGFR,399,5,6,5,6
+ctrp,driver,driver__EP300,EP300,468,5,9,6,13
+ctrp,driver,driver__EP400,EP400,391,5,6,5,10
+ctrp,driver,driver__FAT1,FAT1,341,5,5,8,12
+ctrp,driver,driver__FBXW7,FBXW7,415,5,8,5,7
+ctrp,driver,driver__HLA_A,HLA-A,471,5,8,5,10
+ctrp,driver,driver__HLA_B,HLA-B,369,5,10,5,6
+ctrp,driver,driver__KMT2B,KMT2B,365,5,6,5,11
+ctrp,driver,driver__KMT2C,KMT2C,475,5,10,7,17
+ctrp,driver,driver__KMT2D,KMT2D,534,5,26,5,28
+ctrp,driver,driver__KRAS,KRAS,537,9,42,5,25
+ctrp,driver,driver__LRP1B,LRP1B,434,5,14,5,7
+ctrp,driver,driver__MGA,MGA,384,5,5,5,9
+ctrp,driver,driver__MSH6,MSH6,201,5,6,6,8
+ctrp,driver,driver__NF1,NF1,474,5,11,6,13
+ctrp,driver,driver__NF2,NF2,287,5,5,5,6
+ctrp,driver,driver__NOTCH1,NOTCH1,438,5,7,5,13
+ctrp,driver,driver__NRAS,NRAS,430,5,8,10,22
+ctrp,driver,driver__PBRM1,PBRM1,432,5,6,5,8
+ctrp,driver,driver__PIK3CA,PIK3CA,494,5,11,5,15
+ctrp,driver,driver__PTEN,PTEN,473,5,10,7,25
+ctrp,driver,driver__RB1,RB1,533,5,16,5,22
+ctrp,driver,driver__SDHA,SDHA,467,5,10,5,9
+ctrp,driver,driver__SETD2,SETD2,432,5,7,5,8
+ctrp,driver,driver__SMARCA4,SMARCA4,488,5,13,5,15
+ctrp,driver,driver__SPEN,SPEN,29,5,5,5,6
+ctrp,driver,driver__STK11,STK11,434,5,9,5,7
+ctrp,driver,driver__TERT,TERT,537,5,28,7,48
+ctrp,driver,driver__TP53,TP53,538,12,136,14,147
+ctrp,driver,driver__ZFHX3,ZFHX3,94,5,6,5,5
+ctrp,driver,driver__ZNF292,ZNF292,378,5,6,5,7
+ctrp,genomic,genomic__MSI,MSI,431,5,7,9,19
+ctrp,genomic,genomic__WGD,WGD,502,31,128,22,109
+ctrp,lineage,lineage__Bladder_Urinary_Tract,Bladder/Urinary Tract,392,5,7,5,6
+ctrp,lineage,lineage__Bowel,Bowel,468,5,12,5,12
+ctrp,lineage,lineage__CNS_Brain,CNS/Brain,408,5,7,15,23
+ctrp,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,408,20,26,5,6
+ctrp,lineage,lineage__Head_and_Neck,Head and Neck,468,5,16,5,10
+ctrp,lineage,lineage__Kidney,Kidney,472,5,9,5,8
+ctrp,lineage,lineage__Liver,Liver,470,5,8,5,9
+ctrp,lineage,lineage__Lung,Lung,537,9,46,7,36
+ctrp,lineage,lineage__Lymphoid,Lymphoid,507,5,18,8,40
+ctrp,lineage,lineage__Myeloid,Myeloid,401,5,6,12,23
+ctrp,lineage,lineage__Skin,Skin,409,5,5,15,21
+ctrp,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,495,7,15,5,10
+ctrp,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,475,6,10,7,14
+ctrp,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,545,8,87,7,76
+ctrp,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,500,7,32,5,14
+ctrp,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,406,9,12,5,6
+ctrp,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,537,11,51,5,38
+ctrp,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,414,5,7,5,14
+ctrp,molecular_subtype,molecular_subtype__NRAS_p_Q61,NRAS p.Q61,387,5,6,8,13
+ctrp,molecular_subtype,molecular_subtype__PIK3CA_p_E545,PIK3CA p.E545,361,5,6,5,6
+ctrp,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,499,5,15,12,32
+ctrp,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,498,6,16,7,24
+ctrp,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,534,32,139,31,139
+ctrp,molecular_subtype,molecular_subtype__VHL_LoF,VHL_LoF,363,5,5,5,7
+ctrp,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,454,5,10,5,12
+ctrp,subtype,subtype__Glioblastoma_IDH_Wildtype,"Glioblastoma, IDH-Wildtype",292,5,5,9,14
+ctrp,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,474,6,18,6,10
+ctrp,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,409,5,9,5,7
+ctrp,subtype,subtype__Small_Cell_Lung_Cancer,Small Cell Lung Cancer,304,5,7,5,12
+gdsc1,amplification,amplification__BCL2L1,BCL2L1,264,12,16,5,5
+gdsc1,amplification,amplification__CCND1,CCND1,320,6,26,6,20
+gdsc1,amplification,amplification__CDK4,CDK4,263,5,6,5,5
+gdsc1,amplification,amplification__CDK6,CDK6,168,8,11,5,6
+gdsc1,amplification,amplification__EGFR,EGFR,279,7,15,9,14
+gdsc1,amplification,amplification__FGFR1,FGFR1,261,9,11,5,5
+gdsc1,amplification,amplification__KRAS,KRAS,272,15,19,7,9
+gdsc1,amplification,amplification__MCL1,MCL1,320,7,12,7,16
+gdsc1,amplification,amplification__MET,MET,192,5,7,5,5
+gdsc1,amplification,amplification__MYC,MYC,320,13,45,7,22
+gdsc1,amplification,amplification__MYCL,MYCL,267,5,6,5,6
+gdsc1,amplification,amplification__MYCN,MYCN,319,6,10,6,13
+gdsc1,amplification,amplification__NKX2_1,NKX2-1,269,5,7,5,6
+gdsc1,amplification,amplification__TERT,TERT,279,9,14,6,14
+gdsc1,deletion,deletion__CDKN2A,CDKN2A,320,16,67,26,76
+gdsc1,deletion,deletion__CDKN2B,CDKN2B,320,13,58,18,64
+gdsc1,deletion,deletion__FHIT,FHIT,279,9,15,5,8
+gdsc1,deletion,deletion__KDM6A,KDM6A,265,7,9,5,5
+gdsc1,deletion,deletion__MTAP,MTAP,320,12,52,17,49
+gdsc1,deletion,deletion__PTEN,PTEN,268,7,9,5,6
+gdsc1,deletion,deletion__TP53,TP53,86,5,6,5,5
+gdsc1,disease,disease__Acute_Myeloid_Leukemia,Acute Myeloid Leukemia,313,5,8,12,15
+gdsc1,disease,disease__Adult_Type_Diffuse_Glioma,Adult-Type Diffuse Glioma,267,5,5,16,20
+gdsc1,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,279,5,11,7,11
+gdsc1,disease,disease__Esophagogastric_Adenocarcinoma,Esophagogastric Adenocarcinoma,85,11,15,5,5
+gdsc1,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,279,5,13,5,10
+gdsc1,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,267,5,6,5,6
+gdsc1,disease,disease__Lung_Neuroendocrine_Tumor,Lung Neuroendocrine Tumor,320,11,19,5,15
+gdsc1,disease,disease__Mature_B_Cell_Neoplasms,Mature B-Cell Neoplasms,313,6,9,17,24
+gdsc1,disease,disease__Melanoma,Melanoma,278,5,8,8,14
+gdsc1,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,279,16,34,9,17
+gdsc1,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,272,8,11,6,13
+gdsc1,driver,driver__ACVR2A,ACVR2A,268,5,6,8,13
+gdsc1,driver,driver__APC,APC,279,6,13,8,12
+gdsc1,driver,driver__ARID1A,ARID1A,320,5,17,9,22
+gdsc1,driver,driver__ARID2,ARID2,271,5,7,5,7
+gdsc1,driver,driver__ASXL1,ASXL1,272,5,7,8,13
+gdsc1,driver,driver__BCOR,BCOR,270,5,6,10,13
+gdsc1,driver,driver__BRAF,BRAF,320,6,15,6,17
+gdsc1,driver,driver__CDKN2A,CDKN2A,320,6,28,5,27
+gdsc1,driver,driver__CIC,CIC,272,6,7,5,9
+gdsc1,driver,driver__CREBBP,CREBBP,320,6,14,10,20
+gdsc1,driver,driver__EGFR,EGFR,250,5,5,6,8
+gdsc1,driver,driver__EP300,EP300,278,5,9,9,20
+gdsc1,driver,driver__EP400,EP400,270,5,6,8,10
+gdsc1,driver,driver__FAT1,FAT1,271,5,6,8,12
+gdsc1,driver,driver__FBXW7,FBXW7,271,6,9,5,8
+gdsc1,driver,driver__HLA_A,HLA-A,283,5,10,5,11
+gdsc1,driver,driver__HLA_B,HLA-B,267,5,7,5,7
+gdsc1,driver,driver__KMT2B,KMT2B,224,5,7,14,25
+gdsc1,driver,driver__KMT2C,KMT2C,278,5,8,11,17
+gdsc1,driver,driver__KMT2D,KMT2D,320,9,25,14,32
+gdsc1,driver,driver__KRAS,KRAS,320,8,40,8,20
+gdsc1,driver,driver__LRP1B,LRP1B,279,7,17,7,11
+gdsc1,driver,driver__MGAM,MGAM,126,5,6,5,5
+gdsc1,driver,driver__NF1,NF1,320,5,16,5,12
+gdsc1,driver,driver__NF2,NF2,269,5,8,5,6
+gdsc1,driver,driver__NOTCH1,NOTCH1,318,5,8,7,13
+gdsc1,driver,driver__NRAS,NRAS,288,5,8,10,17
+gdsc1,driver,driver__PBRM1,PBRM1,269,5,7,5,9
+gdsc1,driver,driver__PDS5B,PDS5B,263,5,5,9,13
+gdsc1,driver,driver__PIK3CA,PIK3CA,279,6,12,10,15
+gdsc1,driver,driver__PTCH1,PTCH1,271,6,8,5,8
+gdsc1,driver,driver__PTEN,PTEN,319,5,13,10,27
+gdsc1,driver,driver__RB1,RB1,320,13,28,9,22
+gdsc1,driver,driver__ROS1,ROS1,164,5,6,5,5
+gdsc1,driver,driver__SDHA,SDHA,309,5,10,5,10
+gdsc1,driver,driver__SETD2,SETD2,246,5,7,5,9
+gdsc1,driver,driver__SMAD4,SMAD4,272,6,10,5,7
+gdsc1,driver,driver__SMARCA4,SMARCA4,272,7,10,12,16
+gdsc1,driver,driver__SPEN,SPEN,196,5,5,5,7
+gdsc1,driver,driver__STK11,STK11,272,6,8,6,9
+gdsc1,driver,driver__TERT,TERT,320,8,25,8,43
+gdsc1,driver,driver__TET2,TET2,226,5,7,5,6
+gdsc1,driver,driver__TGFBR2,TGFBR2,248,5,5,6,9
+gdsc1,driver,driver__TP53,TP53,320,50,153,69,152
+gdsc1,driver,driver__VHL,VHL,189,5,5,7,8
+gdsc1,driver,driver__ZFHX3,ZFHX3,272,6,8,5,8
+gdsc1,driver,driver__ZNF292,ZNF292,200,5,5,8,12
+gdsc1,genomic,genomic__MSI,MSI,272,5,7,17,23
+gdsc1,genomic,genomic__WGD,WGD,320,40,134,52,131
+gdsc1,lineage,lineage__Bone,Bone,268,5,5,13,17
+gdsc1,lineage,lineage__Bowel,Bowel,279,5,11,8,12
+gdsc1,lineage,lineage__CNS_Brain,CNS/Brain,271,5,6,18,23
+gdsc1,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,240,20,29,5,6
+gdsc1,lineage,lineage__Head_and_Neck,Head and Neck,279,5,13,6,11
+gdsc1,lineage,lineage__Kidney,Kidney,272,9,12,6,14
+gdsc1,lineage,lineage__Liver,Liver,267,5,6,5,7
+gdsc1,lineage,lineage__Lung,Lung,320,21,52,16,34
+gdsc1,lineage,lineage__Lymphoid,Lymphoid,313,12,16,40,47
+gdsc1,lineage,lineage__Myeloid,Myeloid,313,5,8,15,19
+gdsc1,lineage,lineage__Skin,Skin,278,5,9,8,14
+gdsc1,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,279,5,12,5,8
+gdsc1,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,279,7,13,8,12
+gdsc1,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,320,15,77,21,65
+gdsc1,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,272,24,31,8,10
+gdsc1,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,224,8,10,5,5
+gdsc1,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,320,8,40,11,30
+gdsc1,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,279,7,11,6,14
+gdsc1,molecular_subtype,molecular_subtype__NRAS_p_Q61,NRAS p.Q61,272,5,7,8,10
+gdsc1,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,320,7,19,10,29
+gdsc1,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,320,14,28,10,24
+gdsc1,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,320,51,155,68,144
+gdsc1,molecular_subtype,molecular_subtype__VHL_LoF,VHL_LoF,189,5,5,7,8
+gdsc1,subtype,subtype__Acute_Myeloid_Leukemia,Acute Myeloid Leukemia,164,5,5,10,12
+gdsc1,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,279,5,9,7,11
+gdsc1,subtype,subtype__Glioblastoma_IDH_Wildtype,"Glioblastoma, IDH-Wildtype",267,5,5,8,10
+gdsc1,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,279,10,15,7,10
+gdsc1,subtype,subtype__Melanoma,Melanoma,205,5,5,8,10
+gdsc1,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,272,5,9,6,8
+gdsc1,subtype,subtype__Renal_Cell_Carcinoma,Renal Cell Carcinoma,246,5,7,5,6
+gdsc1,subtype,subtype__Small_Cell_Lung_Cancer,Small Cell Lung Cancer,320,10,18,5,15
+gdsc2,amplification,amplification__CCND1,CCND1,157,7,20,10,15
+gdsc2,amplification,amplification__EGFR,EGFR,156,11,12,10,13
+gdsc2,amplification,amplification__FGFR1,FGFR1,99,9,10,5,5
+gdsc2,amplification,amplification__KRAS,KRAS,157,9,17,5,6
+gdsc2,amplification,amplification__MCL1,MCL1,156,8,11,8,11
+gdsc2,amplification,amplification__MYC,MYC,157,17,41,8,17
+gdsc2,amplification,amplification__MYCL,MYCL,17,5,5,6,6
+gdsc2,amplification,amplification__MYCN,MYCN,156,6,7,8,11
+gdsc2,amplification,amplification__NKX2_1,NKX2-1,154,5,7,5,6
+gdsc2,amplification,amplification__TERT,TERT,157,6,13,8,13
+gdsc2,deletion,deletion__CDKN2A,CDKN2A,158,12,57,17,61
+gdsc2,deletion,deletion__CDKN2B,CDKN2B,158,11,50,14,52
+gdsc2,deletion,deletion__FHIT,FHIT,156,10,13,5,7
+gdsc2,deletion,deletion__MTAP,MTAP,158,11,44,11,41
+gdsc2,disease,disease__Acute_Myeloid_Leukemia,Acute Myeloid Leukemia,155,5,7,9,12
+gdsc2,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,157,8,11,8,11
+gdsc2,disease,disease__Esophagogastric_Adenocarcinoma,Esophagogastric Adenocarcinoma,154,11,14,5,6
+gdsc2,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,156,7,8,5,7
+gdsc2,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,155,5,6,5,5
+gdsc2,disease,disease__Lung_Neuroendocrine_Tumor,Lung Neuroendocrine Tumor,157,5,12,6,13
+gdsc2,disease,disease__Mature_B_Cell_Neoplasms,Mature B-Cell Neoplasms,155,5,6,16,19
+gdsc2,disease,disease__Melanoma,Melanoma,156,5,6,6,10
+gdsc2,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,157,16,29,9,14
+gdsc2,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,155,6,8,5,7
+gdsc2,driver,driver__ACVR2A,ACVR2A,156,6,6,10,13
+gdsc2,driver,driver__APC,APC,158,7,13,6,11
+gdsc2,driver,driver__ARID1A,ARID1A,157,10,14,9,20
+gdsc2,driver,driver__ARID2,ARID2,156,5,7,5,7
+gdsc2,driver,driver__ASXL1,ASXL1,153,5,7,9,12
+gdsc2,driver,driver__BCOR,BCOR,156,6,6,9,12
+gdsc2,driver,driver__BRAF,BRAF,157,5,13,9,14
+gdsc2,driver,driver__CDKN2A,CDKN2A,158,8,22,9,22
+gdsc2,driver,driver__CIC,CIC,156,6,6,6,8
+gdsc2,driver,driver__CREBBP,CREBBP,157,5,12,10,18
+gdsc2,driver,driver__EGFR,EGFR,156,5,5,5,6
+gdsc2,driver,driver__EP300,EP300,156,6,9,14,17
+gdsc2,driver,driver__EP400,EP400,156,5,6,6,8
+gdsc2,driver,driver__FAT1,FAT1,156,5,5,8,11
+gdsc2,driver,driver__FBXW7,FBXW7,156,7,8,6,8
+gdsc2,driver,driver__HLA_A,HLA-A,156,9,9,8,10
+gdsc2,driver,driver__KMT2B,KMT2B,156,5,7,15,19
+gdsc2,driver,driver__KMT2C,KMT2C,156,5,6,14,16
+gdsc2,driver,driver__KMT2D,KMT2D,157,9,18,13,28
+gdsc2,driver,driver__KRAS,KRAS,158,12,36,11,18
+gdsc2,driver,driver__LRP1B,LRP1B,156,10,12,6,9
+gdsc2,driver,driver__MGAM,MGAM,153,5,5,5,5
+gdsc2,driver,driver__NF1,NF1,156,11,14,7,11
+gdsc2,driver,driver__NOTCH1,NOTCH1,156,5,7,9,12
+gdsc2,driver,driver__NRAS,NRAS,156,7,8,12,14
+gdsc2,driver,driver__PBRM1,PBRM1,17,5,5,7,7
+gdsc2,driver,driver__PIK3CA,PIK3CA,157,5,11,7,14
+gdsc2,driver,driver__PTCH1,PTCH1,156,5,6,6,7
+gdsc2,driver,driver__PTEN,PTEN,156,7,10,16,22
+gdsc2,driver,driver__RB1,RB1,157,10,21,8,22
+gdsc2,driver,driver__SDHA,SDHA,156,7,9,7,11
+gdsc2,driver,driver__SMAD4,SMAD4,155,9,9,5,7
+gdsc2,driver,driver__SMARCA4,SMARCA4,157,7,9,9,16
+gdsc2,driver,driver__SPEN,SPEN,156,5,5,5,6
+gdsc2,driver,driver__STK11,STK11,156,6,6,5,8
+gdsc2,driver,driver__TERT,TERT,158,6,21,10,36
+gdsc2,driver,driver__TET2,TET2,82,5,5,5,6
+gdsc2,driver,driver__TGFBR2,TGFBR2,156,5,5,6,7
+gdsc2,driver,driver__TP53,TP53,158,32,129,35,129
+gdsc2,driver,driver__ZFHX3,ZFHX3,156,6,7,7,8
+gdsc2,driver,driver__ZNF292,ZNF292,85,5,5,8,9
+gdsc2,genomic,genomic__MSI,MSI,156,5,6,19,22
+gdsc2,genomic,genomic__WGD,WGD,158,32,117,24,107
+gdsc2,lineage,lineage__Bowel,Bowel,157,8,11,8,12
+gdsc2,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,156,21,26,5,7
+gdsc2,lineage,lineage__Head_and_Neck,Head and Neck,156,7,8,5,8
+gdsc2,lineage,lineage__Kidney,Kidney,156,7,9,5,8
+gdsc2,lineage,lineage__Liver,Liver,155,5,6,6,6
+gdsc2,lineage,lineage__Lung,Lung,158,7,42,5,29
+gdsc2,lineage,lineage__Lymphoid,Lymphoid,158,5,13,10,39
+gdsc2,lineage,lineage__Myeloid,Myeloid,155,5,7,12,16
+gdsc2,lineage,lineage__Skin,Skin,156,5,6,6,10
+gdsc2,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,158,7,12,5,8
+gdsc2,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,156,9,10,7,9
+gdsc2,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,158,19,65,17,54
+gdsc2,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,158,10,28,5,10
+gdsc2,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,99,8,10,5,5
+gdsc2,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,158,8,34,7,27
+gdsc2,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,156,7,10,8,12
+gdsc2,molecular_subtype,molecular_subtype__NRAS_p_Q61,NRAS p.Q61,156,6,7,8,9
+gdsc2,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,156,11,14,15,22
+gdsc2,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,157,10,21,9,24
+gdsc2,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,158,34,134,30,118
+gdsc2,subtype,subtype__Acute_Myeloid_Leukemia,Acute Myeloid Leukemia,17,5,5,11,11
+gdsc2,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,157,6,9,8,11
+gdsc2,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,157,9,13,5,9
+gdsc2,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,155,5,5,5,6
+gdsc2,subtype,subtype__Small_Cell_Lung_Cancer,Small Cell Lung Cancer,157,5,11,6,13
+prism_REP1M,amplification,amplification__BCL2L1,BCL2L1,1265,16,16,8,8
+prism_REP1M,amplification,amplification__CCND1,CCND1,1265,27,27,20,20
+prism_REP1M,amplification,amplification__CDK4,CDK4,1265,5,5,8,8
+prism_REP1M,amplification,amplification__CDK6,CDK6,1265,9,10,7,7
+prism_REP1M,amplification,amplification__EGFR,EGFR,1265,25,25,13,13
+prism_REP1M,amplification,amplification__FGFR1,FGFR1,1265,11,11,6,6
+prism_REP1M,amplification,amplification__KRAS,KRAS,1265,16,17,11,11
+prism_REP1M,amplification,amplification__MCL1,MCL1,1265,8,9,9,9
+prism_REP1M,amplification,amplification__MDM2,MDM2,1265,5,5,8,8
+prism_REP1M,amplification,amplification__MET,MET,1265,7,7,7,7
+prism_REP1M,amplification,amplification__MYC,MYC,1265,39,39,26,26
+prism_REP1M,amplification,amplification__NKX2_1,NKX2-1,1265,9,9,7,7
+prism_REP1M,amplification,amplification__TERT,TERT,1265,13,13,15,15
+prism_REP1M,amplification,amplification__YAP1,YAP1,1265,8,8,10,10
+prism_REP1M,deletion,deletion__CDKN2A,CDKN2A,1265,71,73,80,81
+prism_REP1M,deletion,deletion__CDKN2B,CDKN2B,1265,60,61,64,65
+prism_REP1M,deletion,deletion__FHIT,FHIT,1265,21,21,11,11
+prism_REP1M,deletion,deletion__MTAP,MTAP,1265,57,58,52,52
+prism_REP1M,deletion,deletion__PTEN,PTEN,1265,5,5,10,10
+prism_REP1M,disease,disease__Adult_Type_Diffuse_Glioma,Adult-Type Diffuse Glioma,1265,6,6,25,25
+prism_REP1M,disease,disease__Bladder_Urothelial_Carcinoma,Bladder Urothelial Carcinoma,1265,5,5,9,9
+prism_REP1M,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,1265,11,11,10,10
+prism_REP1M,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,1265,17,17,12,12
+prism_REP1M,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,1265,9,9,6,6
+prism_REP1M,disease,disease__Lung_Neuroendocrine_Tumor,Lung Neuroendocrine Tumor,1265,7,9,7,7
+prism_REP1M,disease,disease__Mature_B_Cell_Neoplasms,Mature B-Cell Neoplasms,1265,8,8,16,16
+prism_REP1M,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,1265,35,35,22,22
+prism_REP1M,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,1265,8,8,6,6
+prism_REP1M,driver,driver__ACVR2A,ACVR2A,1265,7,7,10,10
+prism_REP1M,driver,driver__APC,APC,1265,16,18,11,11
+prism_REP1M,driver,driver__ARID1A,ARID1A,1265,19,19,17,17
+prism_REP1M,driver,driver__ARID2,ARID2,1265,7,7,5,5
+prism_REP1M,driver,driver__ASXL1,ASXL1,1265,5,6,11,12
+prism_REP1M,driver,driver__BCOR,BCOR,1265,8,8,11,11
+prism_REP1M,driver,driver__BRAF,BRAF,1265,10,11,18,18
+prism_REP1M,driver,driver__CDKN2A,CDKN2A,1265,23,23,28,29
+prism_REP1M,driver,driver__CIC,CIC,1265,5,5,10,10
+prism_REP1M,driver,driver__CREBBP,CREBBP,1265,11,12,16,16
+prism_REP1M,driver,driver__EGFR,EGFR,1265,6,6,5,6
+prism_REP1M,driver,driver__EP300,EP300,1265,8,8,13,13
+prism_REP1M,driver,driver__EP400,EP400,1265,6,6,12,13
+prism_REP1M,driver,driver__FAT1,FAT1,1265,9,9,13,13
+prism_REP1M,driver,driver__FBXW7,FBXW7,1265,11,11,8,8
+prism_REP1M,driver,driver__HLA_A,HLA-A,1265,11,11,15,16
+prism_REP1M,driver,driver__HLA_B,HLA-B,1265,8,8,6,6
+prism_REP1M,driver,driver__KMT2B,KMT2B,1265,9,9,13,13
+prism_REP1M,driver,driver__KMT2C,KMT2C,1265,8,8,20,20
+prism_REP1M,driver,driver__KMT2D,KMT2D,1265,22,23,27,28
+prism_REP1M,driver,driver__KRAS,KRAS,1265,50,50,24,24
+prism_REP1M,driver,driver__LRP1B,LRP1B,1265,13,14,10,10
+prism_REP1M,driver,driver__MGA,MGA,948,5,5,7,7
+prism_REP1M,driver,driver__MGAM,MGAM,946,5,5,6,7
+prism_REP1M,driver,driver__MSH6,MSH6,1265,5,5,5,5
+prism_REP1M,driver,driver__NF1,NF1,1265,13,13,13,13
+prism_REP1M,driver,driver__NF2,NF2,1265,6,6,5,5
+prism_REP1M,driver,driver__NOTCH1,NOTCH1,1265,6,6,9,10
+prism_REP1M,driver,driver__NRAS,NRAS,1265,6,6,16,19
+prism_REP1M,driver,driver__PBRM1,PBRM1,1265,5,5,8,8
+prism_REP1M,driver,driver__PIK3CA,PIK3CA,1265,16,16,14,14
+prism_REP1M,driver,driver__PTEN,PTEN,1265,11,12,24,24
+prism_REP1M,driver,driver__RB1,RB1,1265,22,24,19,19
+prism_REP1M,driver,driver__SDHA,SDHA,1265,7,8,9,9
+prism_REP1M,driver,driver__SETD2,SETD2,1265,6,7,7,7
+prism_REP1M,driver,driver__SMAD4,SMAD4,1265,9,10,6,6
+prism_REP1M,driver,driver__SMARCA4,SMARCA4,1265,12,12,16,17
+prism_REP1M,driver,driver__STK11,STK11,1265,6,7,9,9
+prism_REP1M,driver,driver__TERT,TERT,1265,37,37,62,62
+prism_REP1M,driver,driver__TGFBR2,TGFBR2,1265,5,5,9,9
+prism_REP1M,driver,driver__TP53,TP53,1265,144,147,146,149
+prism_REP1M,driver,driver__VHL,VHL,1265,5,5,7,7
+prism_REP1M,driver,driver__ZNF292,ZNF292,1265,7,7,8,8
+prism_REP1M,genomic,genomic__MSI,MSI,1265,6,6,19,20
+prism_REP1M,genomic,genomic__WGD,WGD,1265,134,138,131,133
+prism_REP1M,lineage,lineage__Biliary_Tract,Biliary Tract,1265,6,6,7,7
+prism_REP1M,lineage,lineage__Bladder_Urinary_Tract,Bladder/Urinary Tract,1265,6,6,10,10
+prism_REP1M,lineage,lineage__Bowel,Bowel,1265,11,11,10,10
+prism_REP1M,lineage,lineage__CNS_Brain,CNS/Brain,1265,7,7,30,31
+prism_REP1M,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,1265,28,30,5,5
+prism_REP1M,lineage,lineage__Head_and_Neck,Head and Neck,1265,17,17,12,12
+prism_REP1M,lineage,lineage__Kidney,Kidney,1265,9,9,10,10
+prism_REP1M,lineage,lineage__Liver,Liver,1265,10,10,8,8
+prism_REP1M,lineage,lineage__Lung,Lung,1265,43,45,31,31
+prism_REP1M,lineage,lineage__Lymphoid,Lymphoid,1265,14,14,29,31
+prism_REP1M,lineage,lineage__Myeloid,Myeloid,1264,5,5,16,17
+prism_REP1M,lineage,lineage__Skin,Skin,1265,5,6,22,22
+prism_REP1M,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,1265,15,17,8,8
+prism_REP1M,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,1265,7,8,14,14
+prism_REP1M,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,1265,88,90,93,94
+prism_REP1M,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,1265,39,39,13,13
+prism_REP1M,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,1265,13,13,7,7
+prism_REP1M,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,1265,54,54,45,45
+prism_REP1M,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,1265,10,10,14,14
+prism_REP1M,molecular_subtype,molecular_subtype__NRAS_p_Q61,NRAS p.Q61,1265,5,5,10,12
+prism_REP1M,molecular_subtype,molecular_subtype__PIK3CA_p_E545,PIK3CA p.E545,1265,7,7,5,5
+prism_REP1M,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,1265,14,15,33,33
+prism_REP1M,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,1265,19,21,19,19
+prism_REP1M,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,1265,143,146,141,143
+prism_REP1M,molecular_subtype,molecular_subtype__VHL_LoF,VHL_LoF,1265,5,5,7,7
+prism_REP1M,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,1265,8,8,10,10
+prism_REP1M,subtype,subtype__Glioblastoma_IDH_Wildtype,"Glioblastoma, IDH-Wildtype",1265,6,6,17,17
+prism_REP1M,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,1265,17,17,11,11
+prism_REP1M,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,1265,11,11,9,9
+prism_REP1M,subtype,subtype__Small_Cell_Lung_Cancer,Small Cell Lung Cancer,1265,7,9,7,7
+prism_REP300,amplification,amplification__BCL2L1,BCL2L1,225,16,16,8,8
+prism_REP300,amplification,amplification__CCND1,CCND1,225,27,27,20,20
+prism_REP300,amplification,amplification__CDK4,CDK4,225,5,5,8,8
+prism_REP300,amplification,amplification__CDK6,CDK6,225,10,10,6,6
+prism_REP300,amplification,amplification__EGFR,EGFR,225,25,25,13,13
+prism_REP300,amplification,amplification__FGFR1,FGFR1,225,11,11,6,6
+prism_REP300,amplification,amplification__KRAS,KRAS,225,17,17,11,11
+prism_REP300,amplification,amplification__MCL1,MCL1,225,9,9,9,9
+prism_REP300,amplification,amplification__MDM2,MDM2,225,5,5,8,8
+prism_REP300,amplification,amplification__MET,MET,225,7,7,7,7
+prism_REP300,amplification,amplification__MYC,MYC,225,39,39,24,24
+prism_REP300,amplification,amplification__NKX2_1,NKX2-1,225,9,9,6,6
+prism_REP300,amplification,amplification__TERT,TERT,225,13,13,15,15
+prism_REP300,amplification,amplification__YAP1,YAP1,225,8,8,10,10
+prism_REP300,deletion,deletion__CDKN2A,CDKN2A,225,71,71,78,78
+prism_REP300,deletion,deletion__CDKN2B,CDKN2B,225,59,59,62,62
+prism_REP300,deletion,deletion__FHIT,FHIT,225,21,21,11,11
+prism_REP300,deletion,deletion__MTAP,MTAP,225,57,57,50,50
+prism_REP300,deletion,deletion__PTEN,PTEN,225,5,5,10,10
+prism_REP300,disease,disease__Adult_Type_Diffuse_Glioma,Adult-Type Diffuse Glioma,225,6,6,24,24
+prism_REP300,disease,disease__Bladder_Urothelial_Carcinoma,Bladder Urothelial Carcinoma,225,5,5,9,9
+prism_REP300,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,225,10,10,10,10
+prism_REP300,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,225,17,17,12,12
+prism_REP300,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,225,9,9,6,6
+prism_REP300,disease,disease__Lung_Neuroendocrine_Tumor,Lung Neuroendocrine Tumor,225,7,7,6,6
+prism_REP300,disease,disease__Mature_B_Cell_Neoplasms,Mature B-Cell Neoplasms,225,6,6,15,15
+prism_REP300,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,225,35,35,22,22
+prism_REP300,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,225,7,7,6,6
+prism_REP300,driver,driver__ACVR2A,ACVR2A,225,7,7,10,10
+prism_REP300,driver,driver__APC,APC,225,17,17,11,11
+prism_REP300,driver,driver__ARID1A,ARID1A,225,19,19,17,17
+prism_REP300,driver,driver__ARID2,ARID2,225,7,7,5,5
+prism_REP300,driver,driver__ASXL1,ASXL1,225,6,6,10,10
+prism_REP300,driver,driver__BCOR,BCOR,225,8,8,10,10
+prism_REP300,driver,driver__BRAF,BRAF,225,11,11,17,17
+prism_REP300,driver,driver__CDKN2A,CDKN2A,225,22,22,29,29
+prism_REP300,driver,driver__CIC,CIC,225,5,5,10,10
+prism_REP300,driver,driver__CREBBP,CREBBP,225,11,11,14,14
+prism_REP300,driver,driver__EGFR,EGFR,225,6,6,6,6
+prism_REP300,driver,driver__EP300,EP300,225,8,8,13,13
+prism_REP300,driver,driver__EP400,EP400,225,6,6,13,13
+prism_REP300,driver,driver__FAT1,FAT1,225,9,9,13,13
+prism_REP300,driver,driver__FBXW7,FBXW7,225,11,11,8,8
+prism_REP300,driver,driver__HLA_A,HLA-A,225,10,10,15,15
+prism_REP300,driver,driver__HLA_B,HLA-B,225,8,8,6,6
+prism_REP300,driver,driver__KMT2B,KMT2B,225,8,8,13,13
+prism_REP300,driver,driver__KMT2C,KMT2C,225,8,8,20,20
+prism_REP300,driver,driver__KMT2D,KMT2D,225,20,20,27,27
+prism_REP300,driver,driver__KRAS,KRAS,225,49,49,23,23
+prism_REP300,driver,driver__LRP1B,LRP1B,225,13,13,10,10
+prism_REP300,driver,driver__MSH6,MSH6,225,5,5,5,5
+prism_REP300,driver,driver__NF1,NF1,225,13,13,12,12
+prism_REP300,driver,driver__NF2,NF2,225,6,6,5,5
+prism_REP300,driver,driver__NOTCH1,NOTCH1,225,6,6,10,10
+prism_REP300,driver,driver__NRAS,NRAS,225,6,6,17,17
+prism_REP300,driver,driver__PBRM1,PBRM1,225,5,5,8,8
+prism_REP300,driver,driver__PIK3CA,PIK3CA,225,16,16,14,14
+prism_REP300,driver,driver__PTEN,PTEN,225,12,12,24,24
+prism_REP300,driver,driver__RB1,RB1,225,22,22,18,18
+prism_REP300,driver,driver__SDHA,SDHA,225,7,7,8,8
+prism_REP300,driver,driver__SETD2,SETD2,225,6,6,7,7
+prism_REP300,driver,driver__SMAD4,SMAD4,225,10,10,5,5
+prism_REP300,driver,driver__SMARCA4,SMARCA4,225,12,12,17,17
+prism_REP300,driver,driver__STK11,STK11,225,7,7,9,9
+prism_REP300,driver,driver__TERT,TERT,225,37,37,62,62
+prism_REP300,driver,driver__TGFBR2,TGFBR2,225,5,5,9,9
+prism_REP300,driver,driver__TP53,TP53,225,144,144,142,142
+prism_REP300,driver,driver__ZNF292,ZNF292,225,7,7,8,8
+prism_REP300,genomic,genomic__MSI,MSI,225,6,6,20,20
+prism_REP300,genomic,genomic__WGD,WGD,225,136,136,126,126
+prism_REP300,lineage,lineage__Biliary_Tract,Biliary Tract,225,6,6,7,7
+prism_REP300,lineage,lineage__Bladder_Urinary_Tract,Bladder/Urinary Tract,225,6,6,10,10
+prism_REP300,lineage,lineage__Bowel,Bowel,225,10,10,10,10
+prism_REP300,lineage,lineage__CNS_Brain,CNS/Brain,225,7,7,29,29
+prism_REP300,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,225,30,30,5,5
+prism_REP300,lineage,lineage__Head_and_Neck,Head and Neck,225,17,17,12,12
+prism_REP300,lineage,lineage__Kidney,Kidney,225,8,8,10,10
+prism_REP300,lineage,lineage__Liver,Liver,225,10,10,8,8
+prism_REP300,lineage,lineage__Lung,Lung,225,43,43,30,30
+prism_REP300,lineage,lineage__Lymphoid,Lymphoid,225,12,12,29,29
+prism_REP300,lineage,lineage__Myeloid,Myeloid,225,5,5,14,14
+prism_REP300,lineage,lineage__Skin,Skin,225,6,6,22,22
+prism_REP300,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,225,16,16,8,8
+prism_REP300,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,225,8,8,13,13
+prism_REP300,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,225,88,88,93,93
+prism_REP300,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,225,38,38,13,13
+prism_REP300,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,225,12,12,7,7
+prism_REP300,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,225,53,53,45,45
+prism_REP300,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,225,10,10,13,13
+prism_REP300,molecular_subtype,molecular_subtype__NRAS_p_Q61,NRAS p.Q61,225,5,5,11,11
+prism_REP300,molecular_subtype,molecular_subtype__PIK3CA_p_E545,PIK3CA p.E545,225,7,7,5,5
+prism_REP300,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,225,15,15,33,33
+prism_REP300,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,225,20,20,18,18
+prism_REP300,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,225,143,143,137,137
+prism_REP300,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,225,7,7,10,10
+prism_REP300,subtype,subtype__Glioblastoma_IDH_Wildtype,"Glioblastoma, IDH-Wildtype",225,6,6,16,16
+prism_REP300,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,225,17,17,11,11
+prism_REP300,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,225,11,11,9,9
+prism_REP300,subtype,subtype__Small_Cell_Lung_Cancer,Small Cell Lung Cancer,225,7,7,6,6
+prism_REPPRIMARY,amplification,amplification__BCL2L1,BCL2L1,1986,11,13,5,5
+prism_REPPRIMARY,amplification,amplification__CCND1,CCND1,2403,21,25,15,20
+prism_REPPRIMARY,amplification,amplification__EGFR,EGFR,2403,14,18,9,12
+prism_REPPRIMARY,amplification,amplification__KRAS,KRAS,2395,9,15,5,8
+prism_REPPRIMARY,amplification,amplification__MET,MET,2253,5,5,5,5
+prism_REPPRIMARY,amplification,amplification__MYC,MYC,2403,23,31,6,9
+prism_REPPRIMARY,amplification,amplification__NKX2_1,NKX2-1,2401,5,7,5,7
+prism_REPPRIMARY,amplification,amplification__TERT,TERT,2403,6,9,8,11
+prism_REPPRIMARY,amplification,amplification__YAP1,YAP1,1965,5,5,5,6
+prism_REPPRIMARY,deletion,deletion__CDKN2A,CDKN2A,2403,51,60,36,45
+prism_REPPRIMARY,deletion,deletion__CDKN2B,CDKN2B,2403,42,51,30,37
+prism_REPPRIMARY,deletion,deletion__FHIT,FHIT,2403,13,16,5,7
+prism_REPPRIMARY,deletion,deletion__MTAP,MTAP,2403,40,47,20,25
+prism_REPPRIMARY,deletion,deletion__PTEN,PTEN,2204,5,6,5,6
+prism_REPPRIMARY,disease,disease__Adult_Type_Diffuse_Glioma,Adult-Type Diffuse Glioma,2396,5,5,13,18
+prism_REPPRIMARY,disease,disease__Bladder_Urothelial_Carcinoma,Bladder Urothelial Carcinoma,2251,5,5,5,5
+prism_REPPRIMARY,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,2403,5,8,6,11
+prism_REPPRIMARY,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,2403,9,13,8,10
+prism_REPPRIMARY,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,2263,8,9,5,6
+prism_REPPRIMARY,disease,disease__Melanoma,Melanoma,1790,5,5,15,18
+prism_REPPRIMARY,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,2403,26,32,15,21
+prism_REPPRIMARY,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,2402,5,7,5,6
+prism_REPPRIMARY,driver,driver__ACVR2A,ACVR2A,2403,5,6,6,9
+prism_REPPRIMARY,driver,driver__APC,APC,2403,8,11,6,10
+prism_REPPRIMARY,driver,driver__ARID1A,ARID1A,2403,8,13,7,11
+prism_REPPRIMARY,driver,driver__ASXL1,ASXL1,2143,5,5,5,6
+prism_REPPRIMARY,driver,driver__BRAF,BRAF,2403,6,10,9,13
+prism_REPPRIMARY,driver,driver__CDKN2A,CDKN2A,2403,17,20,16,20
+prism_REPPRIMARY,driver,driver__CREBBP,CREBBP,2402,6,9,5,7
+prism_REPPRIMARY,driver,driver__EP300,EP300,2403,7,9,5,7
+prism_REPPRIMARY,driver,driver__FAT1,FAT1,2401,5,6,6,9
+prism_REPPRIMARY,driver,driver__FBXW7,FBXW7,2136,5,7,5,6
+prism_REPPRIMARY,driver,driver__KMT2C,KMT2C,2403,6,8,10,13
+prism_REPPRIMARY,driver,driver__KMT2D,KMT2D,2403,11,14,10,13
+prism_REPPRIMARY,driver,driver__KRAS,KRAS,2403,29,36,13,19
+prism_REPPRIMARY,driver,driver__LRP1B,LRP1B,2403,7,12,5,6
+prism_REPPRIMARY,driver,driver__NF1,NF1,2403,7,9,7,11
+prism_REPPRIMARY,driver,driver__NF2,NF2,2120,5,5,5,5
+prism_REPPRIMARY,driver,driver__PIK3CA,PIK3CA,2403,8,10,8,12
+prism_REPPRIMARY,driver,driver__PTEN,PTEN,2401,5,6,9,15
+prism_REPPRIMARY,driver,driver__RB1,RB1,2403,9,11,8,10
+prism_REPPRIMARY,driver,driver__SDHA,SDHA,2402,5,6,5,7
+prism_REPPRIMARY,driver,driver__SETD2,SETD2,2391,5,6,5,7
+prism_REPPRIMARY,driver,driver__SMARCA4,SMARCA4,2403,8,10,9,13
+prism_REPPRIMARY,driver,driver__STK11,STK11,2401,5,7,5,7
+prism_REPPRIMARY,driver,driver__TERT,TERT,2403,20,27,35,43
+prism_REPPRIMARY,driver,driver__TP53,TP53,2403,85,103,68,90
+prism_REPPRIMARY,driver,driver__ZNF292,ZNF292,2218,5,6,5,5
+prism_REPPRIMARY,genomic,genomic__MSI,MSI,2197,5,5,7,10
+prism_REPPRIMARY,genomic,genomic__WGD,WGD,2403,85,102,71,88
+prism_REPPRIMARY,lineage,lineage__Bladder_Urinary_Tract,Bladder/Urinary Tract,2402,5,6,5,6
+prism_REPPRIMARY,lineage,lineage__Bowel,Bowel,2403,5,8,6,11
+prism_REPPRIMARY,lineage,lineage__CNS_Brain,CNS/Brain,2402,5,6,14,19
+prism_REPPRIMARY,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,2087,16,21,5,5
+prism_REPPRIMARY,lineage,lineage__Head_and_Neck,Head and Neck,2403,9,13,8,10
+prism_REPPRIMARY,lineage,lineage__Kidney,Kidney,2403,5,7,6,9
+prism_REPPRIMARY,lineage,lineage__Liver,Liver,2403,8,9,5,8
+prism_REPPRIMARY,lineage,lineage__Lung,Lung,2403,28,34,18,24
+prism_REPPRIMARY,lineage,lineage__Skin,Skin,1790,5,5,15,18
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,2403,8,11,5,8
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,2403,5,9,7,11
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,2403,64,77,47,55
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,2403,22,29,7,12
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,2392,8,11,5,5
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,2403,39,45,16,20
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,2403,6,8,7,12
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,2403,9,11,14,20
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,2403,9,11,9,12
+prism_REPPRIMARY,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,2403,88,104,67,85
+prism_REPPRIMARY,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,2203,5,6,6,11
+prism_REPPRIMARY,subtype,subtype__Glioblastoma_IDH_Wildtype,"Glioblastoma, IDH-Wildtype",2396,5,5,8,12
+prism_REPPRIMARY,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,2403,12,15,7,11
+prism_REPPRIMARY,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,2403,5,7,5,7
+prism_secondary,amplification,amplification__BCL2L1,BCL2L1,172,6,15,5,8
+prism_secondary,amplification,amplification__CCND1,CCND1,1487,7,26,5,20
+prism_secondary,amplification,amplification__CDK6,CDK6,119,5,10,5,5
+prism_secondary,amplification,amplification__EGFR,EGFR,1462,5,21,5,11
+prism_secondary,amplification,amplification__FGFR1,FGFR1,134,6,10,5,5
+prism_secondary,amplification,amplification__KRAS,KRAS,1344,5,17,5,8
+prism_secondary,amplification,amplification__MCL1,MCL1,163,5,7,5,7
+prism_secondary,amplification,amplification__MYC,MYC,1466,6,37,5,19
+prism_secondary,amplification,amplification__NKX2_1,NKX2-1,1019,5,7,5,7
+prism_secondary,amplification,amplification__TERT,TERT,1453,5,9,5,12
+prism_secondary,amplification,amplification__YAP1,YAP1,146,5,6,5,8
+prism_secondary,deletion,deletion__CDKN2A,CDKN2A,1493,10,66,5,69
+prism_secondary,deletion,deletion__CDKN2B,CDKN2B,1493,9,54,5,54
+prism_secondary,deletion,deletion__FHIT,FHIT,1393,5,18,5,8
+prism_secondary,deletion,deletion__MTAP,MTAP,1490,11,51,6,44
+prism_secondary,deletion,deletion__PTEN,PTEN,124,5,5,5,9
+prism_secondary,disease,disease__Adult_Type_Diffuse_Glioma,Adult-Type Diffuse Glioma,1075,5,6,7,22
+prism_secondary,disease,disease__Bladder_Urothelial_Carcinoma,Bladder Urothelial Carcinoma,122,5,5,5,5
+prism_secondary,disease,disease__Colorectal_Adenocarcinoma,Colorectal Adenocarcinoma,1390,5,10,5,10
+prism_secondary,disease,disease__Head_and_Neck_Squamous_Cell_Carcinoma,Head and Neck Squamous Cell Carcinoma,1421,5,13,5,10
+prism_secondary,disease,disease__Hepatocellular_Carcinoma,Hepatocellular Carcinoma,156,5,9,5,6
+prism_secondary,disease,disease__Lung_Neuroendocrine_Tumor,Lung Neuroendocrine Tumor,153,5,9,5,8
+prism_secondary,disease,disease__Mature_B_Cell_Neoplasms,Mature B-Cell Neoplasms,92,5,6,5,7
+prism_secondary,disease,disease__Non_Small_Cell_Lung_Cancer,Non-Small Cell Lung Cancer,1489,8,33,5,22
+prism_secondary,disease,disease__Renal_Cell_Carcinoma,Renal Cell Carcinoma,780,5,7,5,5
+prism_secondary,driver,driver__ACVR2A,ACVR2A,1164,5,6,5,9
+prism_secondary,driver,driver__APC,APC,1427,5,15,5,10
+prism_secondary,driver,driver__ARID1A,ARID1A,1455,5,14,5,15
+prism_secondary,driver,driver__ARID2,ARID2,114,5,6,5,5
+prism_secondary,driver,driver__ASXL1,ASXL1,524,5,6,5,12
+prism_secondary,driver,driver__BCOR,BCOR,178,5,8,5,10
+prism_secondary,driver,driver__BRAF,BRAF,1467,5,10,5,16
+prism_secondary,driver,driver__CDKN2A,CDKN2A,1481,6,20,5,23
+prism_secondary,driver,driver__CIC,CIC,101,5,5,5,7
+prism_secondary,driver,driver__CREBBP,CREBBP,1316,5,11,5,13
+prism_secondary,driver,driver__EGFR,EGFR,141,5,6,5,6
+prism_secondary,driver,driver__EP300,EP300,1164,5,8,5,12
+prism_secondary,driver,driver__EP400,EP400,131,5,5,7,12
+prism_secondary,driver,driver__FAT1,FAT1,1232,5,7,5,10
+prism_secondary,driver,driver__FBXW7,FBXW7,759,5,9,5,7
+prism_secondary,driver,driver__HLA_A,HLA-A,151,5,6,6,12
+prism_secondary,driver,driver__HLA_B,HLA-B,128,5,7,5,6
+prism_secondary,driver,driver__KMT2B,KMT2B,148,5,5,6,10
+prism_secondary,driver,driver__KMT2C,KMT2C,1412,5,7,6,16
+prism_secondary,driver,driver__KMT2D,KMT2D,1474,5,20,5,24
+prism_secondary,driver,driver__KRAS,KRAS,1487,7,40,5,21
+prism_secondary,driver,driver__LRP1B,LRP1B,1343,5,14,5,8
+prism_secondary,driver,driver__MGAM,MGAM,23,5,5,5,6
+prism_secondary,driver,driver__NF1,NF1,1433,5,11,5,13
+prism_secondary,driver,driver__NF2,NF2,780,5,5,5,5
+prism_secondary,driver,driver__NOTCH1,NOTCH1,160,5,6,5,9
+prism_secondary,driver,driver__NRAS,NRAS,160,5,6,8,18
+prism_secondary,driver,driver__PIK3CA,PIK3CA,1415,5,12,5,12
+prism_secondary,driver,driver__PTEN,PTEN,1282,5,9,5,23
+prism_secondary,driver,driver__RB1,RB1,1456,5,20,5,17
+prism_secondary,driver,driver__SDHA,SDHA,1034,5,8,5,9
+prism_secondary,driver,driver__SETD2,SETD2,1241,5,7,5,7
+prism_secondary,driver,driver__SMARCA4,SMARCA4,1440,5,11,5,15
+prism_secondary,driver,driver__STK11,STK11,902,5,7,5,8
+prism_secondary,driver,driver__TERT,TERT,1491,5,28,6,48
+prism_secondary,driver,driver__TP53,TP53,1492,13,128,11,130
+prism_secondary,driver,driver__ZNF292,ZNF292,154,5,6,5,6
+prism_secondary,genomic,genomic__MSI,MSI,1000,5,5,5,17
+prism_secondary,genomic,genomic__WGD,WGD,1432,35,120,34,113
+prism_secondary,lineage,lineage__Bladder_Urinary_Tract,Bladder/Urinary Tract,932,5,6,5,6
+prism_secondary,lineage,lineage__Bowel,Bowel,1390,5,10,5,10
+prism_secondary,lineage,lineage__CNS_Brain,CNS/Brain,1343,5,7,5,26
+prism_secondary,lineage,lineage__Esophagus_Stomach,Esophagus/Stomach,136,14,27,5,5
+prism_secondary,lineage,lineage__Head_and_Neck,Head and Neck,1421,5,13,5,10
+prism_secondary,lineage,lineage__Kidney,Kidney,1123,5,8,5,8
+prism_secondary,lineage,lineage__Liver,Liver,1113,5,9,5,8
+prism_secondary,lineage,lineage__Lung,Lung,1490,8,43,5,32
+prism_secondary,lineage,lineage__Lymphoid,Lymphoid,187,5,12,7,21
+prism_secondary,lineage,lineage__Myeloid,Myeloid,68,5,5,11,16
+prism_secondary,molecular_subtype,molecular_subtype__APC_LoF,APC_LoF,1314,5,15,5,7
+prism_secondary,molecular_subtype,molecular_subtype__BRAF_p_V600E,BRAF p.V600E,1451,5,8,5,12
+prism_secondary,molecular_subtype,molecular_subtype__CDKN2A_LoF,CDKN2A_LoF,1493,11,82,7,76
+prism_secondary,molecular_subtype,molecular_subtype__KRAS_p_G12,KRAS p.G12,1437,9,32,5,11
+prism_secondary,molecular_subtype,molecular_subtype__KRAS_p_G12D,KRAS p.G12D,485,5,12,5,6
+prism_secondary,molecular_subtype,molecular_subtype__MTAP_LoF,MTAP_LoF,1489,12,49,6,36
+prism_secondary,molecular_subtype,molecular_subtype__NF1_LoF,NF1_LoF,1426,5,8,5,14
+prism_secondary,molecular_subtype,molecular_subtype__NRAS_p_Q61,NRAS p.Q61,122,5,5,5,12
+prism_secondary,molecular_subtype,molecular_subtype__PTEN_LoF,PTEN_LoF,1469,5,13,6,31
+prism_secondary,molecular_subtype,molecular_subtype__RB1_LoF,RB1_LoF,1465,5,19,5,19
+prism_secondary,molecular_subtype,molecular_subtype__TP53_LoF,TP53_LoF,1492,18,129,17,124
+prism_secondary,subtype,subtype__Colon_Adenocarcinoma,Colon Adenocarcinoma,955,5,8,5,10
+prism_secondary,subtype,subtype__Glioblastoma_IDH_Wildtype,"Glioblastoma, IDH-Wildtype",1073,5,6,5,14
+prism_secondary,subtype,subtype__Lung_Adenocarcinoma,Lung Adenocarcinoma,1473,5,16,5,11
+prism_secondary,subtype,subtype__Oral_Cavity_Squamous_Cell_Carcinoma,Oral Cavity Squamous Cell Carcinoma,601,5,7,5,7
+prism_secondary,subtype,subtype__Small_Cell_Lung_Cancer,Small Cell Lung Cancer,153,5,9,5,8

@@ -1,0 +1,53 @@
+seed: 42
+contrast: combined
+gsea_parameter: 1
+score_type: std
+selection: 'Post hoc display of discussed source-defined chromatin signatures; includes the EED knockdown DN arm and weaker SUZ12 UP result. Display selection does not change tests or BH families.'
+statistics: 'Use original fgsea NES and BH across 23696 eligible sets for the combined contrast. Do not recompute enrichment P values. Running ES and leading-edge membership must match the saved fgsea results.'
+rank: 'Original combined mean LOY-minus-sgCTRL log2 CPM difference, sorted descending with original rank_effect tie rule; 25461 fixed representative loci; equal August/May weights.'
+running_ES_limits: [-0.70, 0.50]
+figures:
+  Fig12_GSEA_PRC2_H3K27me3:
+    number: 12
+    title: 'PRC2 depletion-response and source H3K27me3 promoter gene sets'
+    sets:
+      - pathway: PRC2_EED_DN.V1_UP
+        title: 'EED knockdown: induced genes'
+        context: 'Human TIG3 fibroblasts | Bracken 2006'
+      - pathway: PRC2_EED_DN.V1_DN
+        title: 'EED knockdown: reduced genes'
+        context: 'Human TIG3 fibroblasts | Bracken 2006'
+      - pathway: PRC2_EZH2_UP.V1_UP
+        title: 'EZH2 knockdown: induced genes'
+        context: 'Human TIG3 fibroblasts | Bracken 2006'
+      - pathway: PRC2_SUZ12_UP.V1_UP
+        title: 'SUZ12 knockdown: induced genes'
+        context: 'Human TIG3 fibroblasts | Bracken 2006'
+      - pathway: MIKKELSEN_MEF_HCP_WITH_H3K27ME3
+        title: 'H3K27me3 at high-CpG promoters'
+        context: 'Mouse MEF | Mikkelsen 2007'
+      - pathway: MIKKELSEN_MCV6_HCP_WITH_H3K27ME3
+        title: 'H3K27me3 at high-CpG promoters'
+        context: 'Mouse MCV6, partial reprogramming | Mikkelsen 2008'
+  Fig13_GSEA_other_chromatin:
+    number: 13
+    title: 'HDAC, PRC1, SWI/SNF and additional source chromatin signatures'
+    sets:
+      - pathway: SENESE_HDAC2_TARGETS_DN
+        title: 'HDAC2 knockdown: reduced genes'
+        context: 'Human U2OS | Senese 2007'
+      - pathway: SENESE_HDAC1_AND_HDAC2_TARGETS_DN
+        title: 'HDAC1 + HDAC2 knockdown: reduced genes'
+        context: 'Human U2OS | Senese 2007'
+      - pathway: BMI1_DN_MEL18_DN.V1_UP
+        title: 'BMI1 + MEL18 knockdown: induced genes'
+        context: 'Human DAOY | Wiederschain 2007'
+      - pathway: WANG_SMARCE1_TARGETS_UP
+        title: 'SMARCE1 re-expression: induced genes'
+        context: 'Human BT549 | Wang 2005'
+      - pathway: ACEVEDO_LIVER_CANCER_WITH_H3K27ME3_UP
+        title: 'Promoters gaining H3K27me3 in liver tumors'
+        context: 'Human liver tumors vs normal | Acevedo 2008'
+      - pathway: PASINI_SUZ12_TARGETS_DN
+        title: 'Suz12 deficiency: reduced genes'
+        context: 'Mouse embryonic stem cells | Pasini 2007'

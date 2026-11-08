@@ -1,0 +1,104 @@
+{
+  "seed": 42,
+  "lines": {
+    "HT1080": {
+      "root": "HT1080/SEPT_11_2026_REANALYZE",
+      "effects": "outputs/tables/HT1080_LOY_vs_sgCTRL_all_gene_effects.csv",
+      "gene_de": "outputs/programme_analysis_v1/tables/gene_consistency.csv",
+      "gene_thesis_flag": "directionally_consistent",
+      "fgsea": "outputs/tables/fgsea_all_collections.csv",
+      "fgsea_contrast": "combined",
+      "collectri": "outputs/tables/collectri_ULM_effect_signatures.csv",
+      "cpm_model": "outputs/models/02_expression.rds",
+      "manifest": "outputs/tables/sample_manifest.csv"
+    },
+    "A549": {
+      "root": "A549/SEPT_18_2026_REANALYZE",
+      "effects": "outputs/tables/A549_LOY_vs_sgCTRL_all_gene_effects.csv",
+      "gene_de": "outputs/tables/DE_unpaired_voom_exploratory.csv",
+      "gene_thesis_flag": null,
+      "fgsea": "outputs/tables/fgsea_all_collections.csv",
+      "fgsea_contrast": null,
+      "collectri": "outputs/tables/collectri_ULM_effect_signatures.csv",
+      "cpm_long": "outputs/tables/core_CPM_all_genes.csv",
+      "manifest": "outputs/tables/sample_manifest.csv"
+    },
+    "DU145": {
+      "root": "LNCAP/SEPT_23_2026_REANALYZE",
+      "effects": "outputs/tables/DU145_LOY_vs_sgCTRL_all_gene_effects.csv",
+      "gene_de": "outputs/tables/DE_paired_voom_primary.csv",
+      "gene_thesis_flag": "thesis_DE",
+      "fgsea": "outputs/tables/fgsea_all_collections.csv",
+      "fgsea_contrast": null,
+      "collectri": "outputs/tables/collectri_ULM_effect_signatures.csv",
+      "cpm_long": "outputs/tables/core_CPM_all_genes.csv",
+      "manifest": "outputs/tables/sample_manifest.csv"
+    }
+  },
+  "msigdb_rds": "LNCAP/SEPT_23_2026_REANALYZE/resources/msigdb_all_collections.rds",
+  "grhl2_neighbourhood": "LNCAP/SEPT_23_2026_REANALYZE/followup_top_genes/cross_dataset/task3b_GRHL2_top200_neighbourhood.csv",
+  "external_registry": "config/external_datasets.csv",
+  "shared_rule": "BH < 0.05 in at least two lines and the same sign in all three",
+  "alpha": 0.05,
+  "gene_agreement_threshold": 0.5,
+  "gene_permutations": 1000,
+  "positional_fraction": 0.5,
+  "theme_min_fraction": 0.2,
+  "theme_ribosomal_fraction": 0.4,
+  "theme_histone_fraction": 0.3,
+  "polycomb_reference_sets": [
+    "BENPORATH_PRC2_TARGETS",
+    "BENPORATH_ES_WITH_H3K27ME3"
+  ],
+  "expressed_cpm_for_percent": 1,
+  "par_gene_min_cpm": 5,
+  "external_random_sets": 500,
+  "replication_sets": [
+    "HALLMARK_INTERFERON_ALPHA_RESPONSE",
+    "HALLMARK_INTERFERON_GAMMA_RESPONSE",
+    "HALLMARK_INFLAMMATORY_RESPONSE",
+    "ONDER_CDH1_TARGETS_2_DN",
+    "BMI1_DN.V1_UP",
+    "MEL18_DN.V1_UP",
+    "HALLMARK_G2M_CHECKPOINT",
+    "HALLMARK_E2F_TARGETS"
+  ],
+  "replication_genes": [
+    "PXDN"
+  ],
+  "y_polarity_genes": [
+    "DDX3Y",
+    "KDM5D",
+    "UTY",
+    "EIF1AY",
+    "USP9Y",
+    "TXLNGY",
+    "RPS4Y1",
+    "ZFY"
+  ],
+  "inflammatory_extended_sensitivity": {
+    "note": "Post hoc sensitivity added after inspecting results: many unassigned shared sets had cytokine/secreted leading edges just below the 20% interferon threshold.",
+    "hallmark_sets": [
+      "HALLMARK_INTERFERON_ALPHA_RESPONSE",
+      "HALLMARK_INTERFERON_GAMMA_RESPONSE",
+      "HALLMARK_INFLAMMATORY_RESPONSE",
+      "HALLMARK_TNFA_SIGNALING_VIA_NFKB",
+      "HALLMARK_IL6_JAK_STAT3_SIGNALING"
+    ]
+  },
+  "single_cell_mosaic_inclusion": {
+    "rule": "Tahoe-100M lines enter the replication panel only if the Y-mosaic mixture model calls them MOSAIC and the PAR median log2FC in the DMSO Y-/Y+ contrast is at most -0.5 (half-dosage expectation -1.0, attenuated by ambient RNA).",
+    "included": {
+      "A549": -0.82,
+      "HCT15": -0.73,
+      "SK-MEL-2": -0.64,
+      "J82": -0.56
+    },
+    "excluded": {
+      "COLO 205": "model call retained; PAR median -0.31",
+      "A-427": "model call retained; PAR median -0.27",
+      "SNU-423": "model call retained; PAR median -0.17"
+    },
+    "note": "Rule applied 23 Sep 2026 after inspecting PAR dosage but before computing any replication statistic for these lines. Tahoe tables are the report-backing versions in drug_screen/tahoe/.claude/results (corrected BH). GSE313572 uses the control (untreated) spheroid sample only; the 4B4 antibody-treated sample is not used."
+  }
+}

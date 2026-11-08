@@ -1,0 +1,12 @@
+{
+  "fixed_bins": "Original strict reference mask, wholly within non-PAR X, MSY Yp or euchromatic Yq; no sample-dependent selection",
+  "BED": "/mnt/a/Dropbox/LOY_paralogs/projects/WGS/reanalysis/Y_PAR_masked_20261027/a549_par_dosage_20261028/fixed_strict_nonPAR_XY_bins.bed",
+  "BED_sha256": "b03c182da474f2ebbe2728b507f94f3bcb2057c8035698f8e941e6f6b578e888",
+  "read_filter": "samtools bedcov -j -Q37 -G0x800: primary mapped, no QC-failed/marked duplicate records",
+  "normalizer": "The same 21,446 strict autosomal bins as in the PAR plots",
+  "fits": {
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/research/model_development/ht1080_du145_ypar_20261027/HT1080/masked/bins.csv": "354106efd4d9b4787c38ea9b906e8d79acd66b20e73361c86f29368c0e8b939d",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/research/model_development/ht1080_du145_ypar_20261027/DU145/masked/bins.csv": "c475b1dd54cecb33474cc890af0b9996d94c57dc78491ec155d8fe4bc47ab128"
+  },
+  "limitations": "Bulk relative dosage does not establish absolute chromosome counts or structural karyotype. X-adjusted predictions assume comparable autosomal scaling and complete loss of the Y PAR contribution; they are not estimates of actual Y-PAR loss."
+}

@@ -1,0 +1,8 @@
+GSE336056 sg3p arm: 3p-loss vs 3p-intact (MAST hurdle, bayesglm + ebayes)
+Cells: 649 3p-loss vs 8934 3p-intact, >= 10000 UMI, 4 HTO libraries (2 per day)
+Status: loss3p from chr3p_scan.R (3p l2r < log2(0.8) & |3q l2r| < 0.25 vs same-day sgNTC).
+Expression: log2(1 + 1e4 * counts / nUMI). Genes: detection >= 10% in either group.
+Pooled: ~ status + cngeneson + sample. Per-day: ~ status + cngeneson + sample (2 libs).
+Positive logFC = higher in 3p-loss. padj = BH within each fit.
+gene_class: chrY, PAR, chrX, chr3p (chr3 end < 90.5 Mb), autosomal.
+GSEA ranks: MAST logFC_pooled, autosomal + chrX only (chr3p/chrY/PAR/unannotated excluded).

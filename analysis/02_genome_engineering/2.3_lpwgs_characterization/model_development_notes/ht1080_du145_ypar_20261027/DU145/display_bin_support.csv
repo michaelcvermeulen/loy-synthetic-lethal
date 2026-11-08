@@ -1,0 +1,4 @@
+region,bins,minimum_control_primary_reads,median_control_primary_reads,bins_also_passing_original_strict_mask,bins_with_difficulty_overlap_ge20,minimum_reference_mappability,maximum_percent_of_control
+distal MSY Yp,23,158,210.0,2,21,34.679,81.6185659438932
+proximal MSY Yp,44,58,155.5,5,39,32.9,54.05380688059726
+euchromatic Yq,101,51,140.0,51,50,36.247,15.173710623478309

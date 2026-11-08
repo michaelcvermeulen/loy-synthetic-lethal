@@ -1,0 +1,10 @@
+{
+  "sample": "CTRL_21",
+  "condition": "CTRL",
+  "source_nonY_fragments": 19839684,
+  "target_fragments": 13595165,
+  "sampling_probability": 0.6852510856523722,
+  "seed": 20260910,
+  "actual_reads": 27193290,
+  "actual_fragments": 13596645
+}

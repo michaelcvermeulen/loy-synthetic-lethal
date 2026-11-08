@@ -1,0 +1,6 @@
+absolute_log2FC_cutoff,fold_change,passage_aware_total,passage_aware_higher,passage_aware_lower,batch_condition_total,batch_condition_higher,batch_condition_lower,both_models_pass_FDR_and_own_LFC
+0.0,1.0,4674,2214,2460,1003,397,606,1000
+0.5,1.4142135623730951,2531,1198,1333,928,363,565,923
+1.0,2.0,1307,516,791,662,229,433,651
+1.5,2.8284271247461903,750,244,506,442,129,313,419
+2.0,4.0,428,130,298,266,70,196,247

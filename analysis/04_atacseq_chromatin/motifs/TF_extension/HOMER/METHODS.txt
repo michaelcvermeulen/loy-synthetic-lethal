@@ -1,0 +1,3 @@
+Targets: edgeR FDR <0.05 and |log2FC| >1; no refitting. Passage adjustment remains sensitivity, not confirmed technical batch.
+Controls: tested consensus FDR >=0.20, no N bases, same 5%-GC bins and logCPM deciles; up to 10 controls per target without replacement. Unsupported target strata are explicitly excluded.
+HOMER applies its additional sequence-composition normalization. Fold enrichment is target motif percentage / background motif percentage.

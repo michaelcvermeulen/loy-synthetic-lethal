@@ -1,0 +1,13 @@
+{
+  "source": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\research\\depmap_loy_reanalysis_v1\\loy_reanalysis_v1_export_2026-10-07\\derived\\loy_reanalysis_v1\\context_drug_screen.csv.gz",
+  "source_sha256": "fea61f3c338c3b9220caee21ef01b2d183958aac4aa08fd4ef1f539a3bf7d3b1",
+  "retained": "Finite inside_p rows for binary subsets only; no interaction results retained in the reporting table.",
+  "tests": 495079,
+  "subsets": 121,
+  "hits": 1,
+  "excluded": "Four continuous genomic interactions, all binary-context interactions, and 1894 binary rows without an estimable within-subset P value.",
+  "eligibility": "Original export gate retained: at least five measured responses per Y group both inside and outside the subset. No expansion of the fitted comparison set.",
+  "fdr": "Original inside_fdr_class, BH across finite compound-dataset-subset tests in each context class, unchanged; numerical reproduction verified.",
+  "direction": "Positive raw within-subset effect indicates higher response values / lower drug sensitivity in LOY.",
+  "code": "A:\\Dropbox\\LOY_paralogs\\projects\\SEPT_11_2026_THESIS\\research\\depmap_loy_reanalysis_v1\\summarise_drug_within_subsets.py"
+}

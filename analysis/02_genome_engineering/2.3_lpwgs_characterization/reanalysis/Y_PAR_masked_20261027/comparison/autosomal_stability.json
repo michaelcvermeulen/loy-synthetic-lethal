@@ -1,0 +1,9 @@
+{
+  "common_autosomal_bins": 21446,
+  "coverage_pearson": 0.9999985857677376,
+  "median_absolute_depth_change": 0.0,
+  "p95_absolute_depth_change": 0.0,
+  "bins_with_changed_coverage": 529,
+  "percent_identical_bins": 97.53333955049894,
+  "maximum_absolute_depth_change": 0.02727999999999997
+}

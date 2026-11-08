@@ -1,0 +1,22 @@
+DrugZ Normalization Steps
+
+  1. Library Size Normalization (CPM-like)
+
+  norm_value = 1e7  # 10 million
+  normalized_counts = (norm_value * reads) / reads.sum()
+  Each sample is scaled so total counts = 10 million (similar to CPM).
+
+  2. Fold Change Calculation
+
+  fold_change = log2((normalized_treatment + pseudocount) / (normalized_control + pseudocount))
+
+  3. Z-score per Guide
+
+  Each guide's fold change is converted to a z-score based on empirical variance estimation (using a sliding window approach).
+
+  4. Gene-level normZ
+
+  normZ = zscore(sumZ / sqrt(numObs))
+  The summed z-scores are normalized by the number of observations.
+
+  So the raw counts you see in the file are normalized internally before any calculations. This means the absolute count differences between samples are adjusted for sequencing depth.

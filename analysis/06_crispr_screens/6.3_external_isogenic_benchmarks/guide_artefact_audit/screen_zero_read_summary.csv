@@ -1,0 +1,3 @@
+screen,n_retained_libraries,n_guides,zero_all_libraries,zero_all_percent,zero_all_D0_libraries,zero_all_endpoint_libraries,detected_at_D0_but_zero_all_endpoints,zero_at_D0_but_detected_at_endpoint
+HT1080,6,77441,236,0.30474813083508734,280,311,75,44
+A549,7,77441,307,0.39643083121343986,316,430,123,9

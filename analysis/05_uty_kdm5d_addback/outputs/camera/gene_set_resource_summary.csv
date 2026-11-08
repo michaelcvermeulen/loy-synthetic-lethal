@@ -1,0 +1,4 @@
+collection,msigdb_version,sets_in_resource,sets_tested,min_size,max_size,camera_gene_universe
+Hallmark,2026.1.Hs,50,50,10,500,17724
+Reactome,2026.1.Hs,1839,1340,10,500,17724
+GO_BP,2026.1.Hs,7538,4684,10,500,17724

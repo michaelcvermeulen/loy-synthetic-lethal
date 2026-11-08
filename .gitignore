@@ -1,6 +1,7 @@
 # --- Data file types -----------------------------------------------------
-# Raw and processed data are not tracked. Place them under data/ locally;
-# see data/README.md for the expected layout.
+# Large raw and binary processed data are not tracked. Place them under data/ locally;
+# see data/README.md for the expected layout. Curated summary tables (.csv/.tsv/.txt)
+# and genomic coordinate masks (.bed) under analysis/ and figures/ ARE tracked.
 *.rds
 *.RData
 *.rda
@@ -12,16 +13,12 @@
 *.fq.gz
 *.vcf
 *.vcf.gz
-*.bed
 *.bedGraph
 *.bw
 *.h5
 *.h5ad
 *.loom
 *.mtx
-*.csv
-*.tsv
-*.txt
 
 # --- data/ directory -----------------------------------------------------
 # Block everything under data/ except its README.

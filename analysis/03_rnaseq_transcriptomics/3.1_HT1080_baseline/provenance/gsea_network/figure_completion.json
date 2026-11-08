@@ -1,0 +1,50 @@
+{
+  "created_utc": "2026-09-14T18:32:32.312411+00:00",
+  "source_hashes": {
+    "outputs/tables/gsea_network/network_nodes.csv": "ebfbf258ab06bb67793ed5bfca03facee1e10d41f63e59f8734acffa1eed0a19",
+    "outputs/tables/gsea_network/network_edges.csv": "eca75cc1528a63c901eb93b0ee4665a5a8565c2c39f10e6324a43781791d3495",
+    "outputs/tables/gsea_network/communities.csv": "e1fb0e13dfced3e6586c1788ff9e8b83d01e606aebf17b059d8dbee181fa5ca4"
+  },
+  "script_sha256": "8fa3b3d2b8c5400c228f7f2d41ad0144ab720db3b9ff0688001b3ae6fa3597a3",
+  "nodes_rendered": 808,
+  "figure_checks": [
+    {
+      "figure": "HT1080_GSEA_leading_edge_network",
+      "dimensions_mm": [
+        183,
+        235
+      ],
+      "png_dpi": 600,
+      "embedded_fonts": [
+        "/ELUGPM+ArialMT",
+        "/ELUGPM+Arial-BoldMT"
+      ]
+    },
+    {
+      "figure": "HT1080_GSEA_full_membership_network",
+      "dimensions_mm": [
+        183,
+        235
+      ],
+      "png_dpi": 600,
+      "embedded_fonts": [
+        "/ELUGPM+ArialMT",
+        "/ELUGPM+Arial-BoldMT"
+      ]
+    }
+  ],
+  "outputs_sha256": {
+    "outputs/figures/gsea_network/HT1080_GSEA_leading_edge_network.pdf": "0394a47de8d7da7eaeccb2ccb89be432da5dfd855414b6fc87ce95939ef1445a",
+    "outputs/figures/gsea_network/HT1080_GSEA_leading_edge_network.svg": "bcd9f96032ddfffcb77578e7f1653f3fca9df41e81d89783a0e911ab0dbb32b9",
+    "outputs/figures/gsea_network/HT1080_GSEA_leading_edge_network.png": "021954363c94fc33a3154c73e184bd96b720e7264c1497dd339f175cfe8965b6",
+    "outputs/figures/gsea_network/HT1080_GSEA_full_membership_network.pdf": "b0260d7ec7f588fe0eecad690261fa73cdc27913914a61f7d000b2ebcf3afed4",
+    "outputs/figures/gsea_network/HT1080_GSEA_full_membership_network.svg": "311049384ffa80ce5c4359aca6897881e5d8795e136a4580f8f5ada74239d286",
+    "outputs/figures/gsea_network/HT1080_GSEA_full_membership_network.png": "ddc4687bf8fc50760f1cf41f9f308cc3d078e5f075528458378de58c759b1fa5",
+    "outputs/report/gsea_pathway_network.html": "591d57687f8100d8a80c46d31b48218f3c6a1fce35858ff851b0c71c96d3e9ea",
+    "outputs/captions/gsea_pathway_network.md": "602aa8474e4ea25b6f1a3f794670760ba8557dd30db7820e11cb83db90734af2",
+    "outputs/tables/gsea_network/plot_coordinates.csv": "efded7b97362805bf33581e4bbdcf9dcd1c6ae537f8d4b59c4679411e394b410"
+  },
+  "visual_review": "passed: both publication figures inspected; labels, dense communities and isolate strips readable; no missing glyphs",
+  "interactive_review": "passed: 16 browser checks and 10 local links",
+  "completed_utc": "2026-09-14T18:36:50.372454+00:00"
+}

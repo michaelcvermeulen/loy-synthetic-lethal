@@ -1,0 +1,13 @@
+{
+  "n_observations": 78,
+  "n_samples": 26,
+  "genes": [
+    "SLC25A6",
+    "CD99",
+    "VAMP7"
+  ],
+  "raw_counts_match": true,
+  "CPM_and_ratios_match": true,
+  "all_count_annotations_on_chrX": true,
+  "scope": "Checks table extraction and arithmetic; does not establish correctness of original alignment or PAR re-quantification."
+}

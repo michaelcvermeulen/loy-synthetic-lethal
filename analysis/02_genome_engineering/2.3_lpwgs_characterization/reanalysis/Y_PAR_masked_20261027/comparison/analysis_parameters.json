@@ -1,0 +1,15 @@
+{
+  "sample": "A549-CTRL2",
+  "minimum_base_quality": 0,
+  "MAPQ_thresholds": [
+    0,
+    30,
+    37
+  ],
+  "excluded_flags": 3844,
+  "coverage_definition": "Aligned-base depth; overlapping mates can both contribute; deletions/skips excluded from bedcov.",
+  "normalizer": "Median depth of 21,446 original-mask usable autosomal 100-kb bins; same bins both alignments.",
+  "interpretation": "Combined homologous PAR mapping/coverage diagnostic, not Y-specific retention, absolute copy number, or a LOY/control comparison.",
+  "PAR_lengths_differ_between_X_and_Y": true,
+  "old_PAR_read_ends_followed": 11853
+}

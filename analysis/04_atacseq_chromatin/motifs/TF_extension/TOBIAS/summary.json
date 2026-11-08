@@ -1,0 +1,8 @@
+{
+  "motifs": 879,
+  "finite_comparisons": 879,
+  "pooled_site_FDR005": 851,
+  "sample_level_inference": false,
+  "score_comparison": "LOY_CTRL",
+  "predicted_occupancy": true
+}

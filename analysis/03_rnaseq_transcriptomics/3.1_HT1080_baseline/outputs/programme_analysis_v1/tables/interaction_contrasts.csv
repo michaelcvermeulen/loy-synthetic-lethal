@@ -1,0 +1,5 @@
+coefficient,AUG_2025,MAY_2026,interaction
+"(Intercept)",0,0,0
+"batchMAY_2026",0,0,0
+"treatmentLOY",1,1,0
+"batchMAY_2026:treatmentLOY",0,1,1

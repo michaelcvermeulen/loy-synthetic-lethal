@@ -1,0 +1,16 @@
+Exploratory secondary analysis of the existing collection-occasion-blocked limma-voom fit; no refitting.
+Universe: all 23,992 primary tested genes; joins use unique stable gene IDs.
+Small/non-significant baseline: LOY-v-LXHA FDR >=0.05 AND abs(logFC)<0.5.
+CI-contained baseline: LOY-v-LXHA pointwise 95% CI entirely within [-0.5,0.5]. This is an alternative filter, not necessarily a subset of the non-significant filter.
+The 0.5 margin was chosen for this exploratory analysis to match the existing effect-size threshold; it is not a prospectively validated equivalence margin.
+Descriptive response: arm-v-LXHA FDR<0.05 AND abs(logFC)>=0.5. TREAT sensitivity: existing arm-v-LXHA TREAT FDR<0.05 at threshold 0.5.
+Original FDR values were calculated across all tested genes within each contrast, before this intersection. No FDR claim applies to the final combined selection rule.
+Pointwise CI containment is not multiplicity-adjusted equivalence testing. Nonsignificance alone does not prove similarity.
+LOY-v-LXHA and add-back-v-LXHA estimates share the LXHA comparator; selection and response estimates are statistically dependent.
+UTY only / combined only means passing the threshold only in that comparison; it does not establish different UTY and combined effects. Direct DUAL-v-UTY estimates are exported.
+Both counts are intersections irrespective of sign; both_same_direction separately records concordance.
+These are population-associated response candidates, not causal UTY targets or rescued LOY genes. Each condition is one established population sampled three times.
+Heatmap: all CI-contained descriptive candidates; TMM log2 CPM (prior.count=2), centered per gene on LXHA sample mean, unadjusted for occasion. Source values are unclipped.
+Effect figures: all 91 CI-contained descriptive candidates ordered by decreasing UTY-v-LXHA logFC, ties by stable gene ID; LOY, UTY, KDM5D and combined versus LXHA; original pointwise intervals. Four pages of up to 24 genes use the same x-axis limits, plus a full-length export.
+August signature membership is annotated but is not used in selecting candidates.
+Compact heatmap: all 91 candidates, mean TMM log2 CPM across three collections per population minus the gene-specific LXHA mean. The zero-valued LXHA reference column is omitted from the plot but retained in the source table. Rows ordered by decreasing UTY model logFC and split by its sign; no row scaling or occasion adjustment. Colors clipped at +/-2; source table retains unclipped values. UTY higher/lower labels describe effect sign, not separate significance calls.

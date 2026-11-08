@@ -1,0 +1,24 @@
+{
+  "elapsed_seconds": 6146.282594919205,
+  "command": [
+    "/tmp/atacseq-sept08-2026-tf-tools/tobias_venv/bin/TOBIAS",
+    "ATACorrect",
+    "--bam",
+    "/tmp/atacseq-sept08-2026-tf-tools/CTRL_matched_pool.bam",
+    "--genome",
+    "/tmp/atacseq-sept08-2026-tf-tools/hg38_primary.fa",
+    "--peaks",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/tested_consensus.bed",
+    "--blacklist",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/config/hg38-blacklist.v2.bed",
+    "--drop-chroms",
+    "chrM",
+    "chrY",
+    "--outdir",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/ATACseq/SEPT_08_2026_REPROCESS/motifs/TF_extension/TOBIAS/CTRL",
+    "--prefix",
+    "CTRL",
+    "--cores",
+    "8"
+  ]
+}

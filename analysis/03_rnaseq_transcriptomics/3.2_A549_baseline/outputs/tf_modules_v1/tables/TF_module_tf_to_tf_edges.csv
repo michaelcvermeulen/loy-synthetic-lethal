@@ -1,0 +1,3 @@
+from,to,target_gene,mor,target_t
+"HNF1B","HNF1A","HNF1A",1,2.54562691878845
+"FOXA2","HNF1A","HNF1A",1,2.54562691878845

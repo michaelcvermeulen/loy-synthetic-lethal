@@ -1,0 +1,40 @@
+seed: 42
+scope: descriptive_post_hoc_gene_driver_analysis_of_one_established_population_per_condition
+source_release: 2026.1.Hs
+source_study: Senese_2007_PMID17470557
+sources:
+  HDAC1: SENESE_HDAC1_TARGETS
+  HDAC2: SENESE_HDAC2_TARGETS
+  HDAC1_2: SENESE_HDAC1_AND_HDAC2_TARGETS
+  HDAC3: SENESE_HDAC3_TARGETS
+partition_rule: 'Use HDAC1, HDAC2 and double-knockdown membership. Any UP/DN disagreement takes precedence. Otherwise HDAC1-only and HDAC2-only mean absent from the other single knockdown, irrespective of double-knockdown overlap; shared means both single knockdowns. Double-only means neither single knockdown. HDAC3 is annotated separately.'
+score_rule: 'Within each sample rank raw counts on the fixed 25461 expressed representative gene IDs, average ties; percentile=100*(rank-1)/(N-1). Signed score=mean(source UP percentiles)-mean(source DN percentiles). Exclude within-source UP/DN ambiguous symbols from both arms. No LOY-based gene selection.'
+influence_rule: 'For an arm, order absolute combined log2 differences; for a signed pair order absolute combined differences divided by the original arm size. Break ties by symbol. Remove the same selected genes in all periods and timing matches, then recompute retained-arm means. Absolute contribution fractions use sum of absolute weighted effects, never the cancelling net effect.'
+top_contributors: [1, 3, 5]
+regulators: [HDAC1, HDAC2, HDAC3]
+abundance_thresholds_CPM: [1, 5]
+chromosome_concentration_threshold: 0.20
+chromosome_rule: 'For each arm, flag a chromosome with at least 20% of members OR absolute combined effect; show every flagged chromosome omission. No DNA copy-number interpretation.'
+# Reuse these exact masks first. Additional processes below are annotations only.
+existing_masks:
+  IFN: [HALLMARK_INTERFERON_ALPHA_RESPONSE, HALLMARK_INTERFERON_GAMMA_RESPONSE]
+  ECM_EMT: [HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION, REACTOME_EXTRACELLULAR_MATRIX_ORGANIZATION]
+  cell_cycle: [HALLMARK_E2F_TARGETS, HALLMARK_G2M_CHECKPOINT, HALLMARK_MYC_TARGETS_V1, HALLMARK_MYC_TARGETS_V2]
+process_annotations:
+  cell_cycle_mitosis: [HALLMARK_E2F_TARGETS, HALLMARK_G2M_CHECKPOINT, HALLMARK_MYC_TARGETS_V1, HALLMARK_MYC_TARGETS_V2, GOBP_MITOTIC_CELL_CYCLE]
+  apoptosis_p53: [HALLMARK_APOPTOSIS, HALLMARK_P53_PATHWAY]
+  differentiation_regulation: [GOBP_REGULATION_OF_CELL_DIFFERENTIATION]
+  adhesion_matrix: [GOBP_CELL_ADHESION, HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION, REACTOME_EXTRACELLULAR_MATRIX_ORGANIZATION]
+  immune_regulation_response: [GOBP_REGULATION_OF_IMMUNE_RESPONSE, HALLMARK_INFLAMMATORY_RESPONSE, HALLMARK_INTERFERON_ALPHA_RESPONSE, HALLMARK_INTERFERON_GAMMA_RESPONSE]
+  DNA_damage_repair: [GOBP_DNA_DAMAGE_RESPONSE, HALLMARK_DNA_REPAIR]
+shortlist:
+  scope: 'Post hoc assay-readout candidates from HDAC2 source arms; not validated targets or independent validation. Export all eligibility flags, including failures.'
+  min_mean_CPM: 1
+  max_absolute_prior_count_change: 0.25
+  max_nonresponse_effect: 0.10
+  DN_count: 4
+  UP_opposite_count: 2
+  UP_near_zero_count: 2
+  DN_rule: 'Outside existing IFN/ECM/cycle masks, all six differences negative, all LOO negative, both periods and prior025/RLE negative; rank eligible by combined difference ascending, then symbol.'
+  UP_opposite_rule: 'Same stability/abundance rules as DN but source-UP; rank by combined difference ascending, then symbol.'
+  UP_near_zero_rule: 'Outside existing masks; absolute combined, both period, all LOO, prior025 and RLE effects <=0.10. Rank by mean CPM descending, then symbol. Small effects are descriptive, not an equivalence test.'

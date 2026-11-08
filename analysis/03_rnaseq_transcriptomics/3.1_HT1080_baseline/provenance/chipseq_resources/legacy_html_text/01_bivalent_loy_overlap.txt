@@ -1,0 +1,674 @@
+GSE261834 — HT1080 Bivalent Genes × LOY DE Overlap
+Code
+Show All Code
+Hide All Code
+GSE261834 — HT1080 Bivalent Genes × LOY DE
+Overlap
+NEED-seq H3K4me3/H3K27me3 bivalent promoters vs
+bulk RNA-seq LOY DE
+2026-03-21
+library(GenomicRanges)
+## Loading required package: stats4
+## Loading required package: BiocGenerics
+## Loading required package: generics
+## 
+## Attaching package: 'generics'
+## The following objects are masked from 'package:base':
+## 
+##     as.difftime, as.factor, as.ordered, intersect, is.element, setdiff,
+##     setequal, union
+## 
+## Attaching package: 'BiocGenerics'
+## The following objects are masked from 'package:stats':
+## 
+##     IQR, mad, sd, var, xtabs
+## The following objects are masked from 'package:base':
+## 
+##     anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+##     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+##     get, grep, grepl, is.unsorted, lapply, Map, mapply, match, mget,
+##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+##     rbind, Reduce, rownames, sapply, saveRDS, table, tapply, unique,
+##     unsplit, which.max, which.min
+## Loading required package: S4Vectors
+## 
+## Attaching package: 'S4Vectors'
+## The following object is masked from 'package:utils':
+## 
+##     findMatches
+## The following objects are masked from 'package:base':
+## 
+##     expand.grid, I, unname
+## Loading required package: IRanges
+## 
+## Attaching package: 'IRanges'
+## The following object is masked from 'package:grDevices':
+## 
+##     windows
+## Loading required package: Seqinfo
+library(GenomeInfoDb)
+library(rtracklayer)
+library(EnsDb.Hsapiens.v86)
+## Loading required package: ensembldb
+## Loading required package: GenomicFeatures
+## Loading required package: AnnotationDbi
+## Loading required package: Biobase
+## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     'browseVignettes()'. To cite Bioconductor, see
+##     'citation("Biobase")', and for packages 'citation("pkgname")'.
+## Loading required package: AnnotationFilter
+## 
+## Attaching package: 'ensembldb'
+## The following object is masked from 'package:stats':
+## 
+##     filter
+library(ggplot2)
+library(ggrepel)
+library(patchwork)
+library(dplyr)
+## 
+## Attaching package: 'dplyr'
+## The following objects are masked from 'package:ensembldb':
+## 
+##     filter, select
+## The following object is masked from 'package:AnnotationDbi':
+## 
+##     select
+## The following object is masked from 'package:Biobase':
+## 
+##     combine
+## The following objects are masked from 'package:GenomicRanges':
+## 
+##     intersect, setdiff, union
+## The following object is masked from 'package:Seqinfo':
+## 
+##     intersect
+## The following objects are masked from 'package:IRanges':
+## 
+##     collapse, desc, intersect, setdiff, slice, union
+## The following objects are masked from 'package:S4Vectors':
+## 
+##     first, intersect, rename, setdiff, setequal, union
+## The following objects are masked from 'package:BiocGenerics':
+## 
+##     combine, intersect, setdiff, setequal, union
+## The following object is masked from 'package:generics':
+## 
+##     explain
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+library(tidyr)
+## 
+## Attaching package: 'tidyr'
+## The following object is masked from 'package:S4Vectors':
+## 
+##     expand
+library(data.table)
+## 
+## Attaching package: 'data.table'
+## The following objects are masked from 'package:dplyr':
+## 
+##     between, first, last
+## The following object is masked from 'package:GenomicRanges':
+## 
+##     shift
+## The following object is masked from 'package:IRanges':
+## 
+##     shift
+## The following objects are masked from 'package:S4Vectors':
+## 
+##     first, second
+library(eulerr)
+
+source("a:/multiome/scripts/ChIPseq/config_GSE261834.R")
+
+for (d in c(objects_dir, figures_dir, tables_dir)) {
+  if (!dir.exists(d)) dir.create(d, recursive = TRUE)
+}
+Load Peak Files
+# narrowPeak format: chr, start, end, name, score, strand, signalValue, pValue, qValue, peak
+# broadPeak format: chr, start, end, name, score, strand, signalValue, pValue, qValue
+
+np_cols <- c("chr", "start", "end", "name", "score", "strand",
+             "signalValue", "pValue", "qValue", "peak")
+bp_cols <- c("chr", "start", "end", "name", "score", "strand",
+             "signalValue", "pValue", "qValue")
+
+# Helper: read MACS2 peak file (handles .gz on Windows without zcat)
+read_peaks <- function(path, col_names) {
+  con <- gzfile(path, "rt")
+  df <- read.delim(con, header = FALSE, col.names = col_names, stringsAsFactors = FALSE)
+  close(con)
+  df
+}
+
+# H3K4me3 (narrowPeak)
+k4_df <- read_peaks(h3k4me3_peaks, np_cols)
+k4_gr_all <- GRanges(seqnames = k4_df$chr, ranges = IRanges(k4_df$start + 1, k4_df$end),
+                     signalValue = k4_df$signalValue, pValue = k4_df$pValue,
+                     qValue = k4_df$qValue)
+message(sprintf("H3K4me3 peaks (all): %d", length(k4_gr_all)))
+## H3K4me3 peaks (all): 18415
+# H3K27me3 (broadPeak)
+k27_df <- read_peaks(h3k27me3_peaks, bp_cols)
+k27_gr_all <- GRanges(seqnames = k27_df$chr, ranges = IRanges(k27_df$start + 1, k27_df$end),
+                      signalValue = k27_df$signalValue, pValue = k27_df$pValue,
+                      qValue = k27_df$qValue)
+message(sprintf("H3K27me3 peaks (all): %d", length(k27_gr_all)))
+## H3K27me3 peaks (all): 65454
+# Filter by mark-specific -log10(qValue) thresholds
+k4_gr  <- k4_gr_all[k4_gr_all$qValue >= min_log10_qval_k4]
+k27_gr <- k27_gr_all[k27_gr_all$qValue >= min_log10_qval_k27]
+message(sprintf("After q-value filter:"))
+## After q-value filter:
+message(sprintf("  H3K4me3: %d → %d peaks (-log10(q) >= %g)",
+                length(k4_gr_all), length(k4_gr), min_log10_qval_k4))
+##   H3K4me3: 18415 → 10392 peaks (-log10(q) >= 5)
+message(sprintf("  H3K27me3: %d → %d peaks (-log10(q) >= %g)",
+                length(k27_gr_all), length(k27_gr), min_log10_qval_k27))
+##   H3K27me3: 65454 → 16943 peaks (-log10(q) >= 2)
+k4_cov <- sum(width(k4_gr)) / 1e6
+k27_cov <- sum(width(k27_gr)) / 1e6
+message(sprintf("Genome-wide (after q-filter):"))
+## Genome-wide (after q-filter):
+message(sprintf("  H3K4me3: %d peaks, %.1f Mb, median width %d bp",
+                length(k4_gr), k4_cov, median(width(k4_gr))))
+##   H3K4me3: 10392 peaks, 5.2 Mb, median width 441 bp
+message(sprintf("  H3K27me3: %d peaks, %.1f Mb, median width %d bp",
+                length(k27_gr), k27_cov, median(width(k27_gr))))
+##   H3K27me3: 16943 peaks, 7.8 Mb, median width 307 bp
+Define Promoter Regions
+# Get gene-level GRanges from EnsDb
+gene_gr <- genes(EnsDb.Hsapiens.v86)
+
+# Keep standard chromosomes only and add chr prefix
+std_chr <- paste0("chr", c(1:22, "X", "Y"))
+seqlevelsStyle(gene_gr) <- "UCSC"
+gene_gr <- keepSeqlevels(gene_gr, std_chr, pruning.mode = "coarse")
+
+# Define promoters (TSS +/- 2.5kb)
+prom_gr <- promoters(gene_gr, upstream = promoter_upstream, downstream = promoter_downstream)
+
+# Map gene IDs to names
+prom_gr$gene_name <- gene_gr[names(prom_gr)]$gene_name
+
+# Deduplicate: keep one promoter per unique gene name
+prom_df <- as.data.frame(prom_gr)
+prom_df$gene_id <- names(prom_gr)
+prom_dedup <- prom_df %>%
+  distinct(gene_name, .keep_all = TRUE) %>%
+  dplyr::filter(!is.na(gene_name), gene_name != "")
+
+prom_unique <- GRanges(seqnames = prom_dedup$seqnames,
+                       ranges = IRanges(prom_dedup$start, prom_dedup$end),
+                       strand = prom_dedup$strand,
+                       gene_name = prom_dedup$gene_name,
+                       gene_id = prom_dedup$gene_id)
+
+message(sprintf("Promoter regions: %d genes (TSS +/- %d bp)", length(prom_unique),
+                promoter_upstream))
+## Promoter regions: 56234 genes (TSS +/- 2500 bp)
+Restrict Peaks to Promoter Regions
+# Keep only peaks that overlap at least one promoter
+k4_prom_idx  <- unique(subjectHits(findOverlaps(prom_unique, k4_gr)))
+k27_prom_idx <- unique(subjectHits(findOverlaps(prom_unique, k27_gr)))
+
+k4_gr  <- k4_gr[k4_prom_idx]
+k27_gr <- k27_gr[k27_prom_idx]
+
+message(sprintf("Promoter-restricted peaks:"))
+## Promoter-restricted peaks:
+message(sprintf("  H3K4me3: %d peaks (%.1f Mb)", length(k4_gr), sum(width(k4_gr)) / 1e6))
+##   H3K4me3: 8634 peaks (4.5 Mb)
+message(sprintf("  H3K27me3: %d peaks (%.1f Mb)", length(k27_gr), sum(width(k27_gr)) / 1e6))
+##   H3K27me3: 2891 peaks (1.5 Mb)
+Identify Marked Promoters
+# Find overlaps between promoters and promoter-restricted peaks
+k4_hits  <- findOverlaps(prom_unique, k4_gr)
+k27_hits <- findOverlaps(prom_unique, k27_gr)
+
+# Genes with each mark
+k4_genes  <- unique(prom_unique$gene_name[queryHits(k4_hits)])
+k27_genes <- unique(prom_unique$gene_name[queryHits(k27_hits)])
+
+# Chromatin states
+bivalent_genes  <- intersect(k4_genes, k27_genes)
+k4_only_genes   <- setdiff(k4_genes, k27_genes)
+k27_only_genes  <- setdiff(k27_genes, k4_genes)
+all_genes       <- unique(prom_unique$gene_name)
+unmarked_genes  <- setdiff(all_genes, union(k4_genes, k27_genes))
+
+message(sprintf("Chromatin states:"))
+## Chromatin states:
+message(sprintf("  Bivalent (K4+K27):  %d genes (%.1f%%)", length(bivalent_genes),
+                length(bivalent_genes) / length(all_genes) * 100))
+##   Bivalent (K4+K27):  432 genes (0.8%)
+message(sprintf("  H3K4me3-only:       %d genes (%.1f%%)", length(k4_only_genes),
+                length(k4_only_genes) / length(all_genes) * 100))
+##   H3K4me3-only:       9951 genes (17.7%)
+message(sprintf("  H3K27me3-only:      %d genes (%.1f%%)", length(k27_only_genes),
+                length(k27_only_genes) / length(all_genes) * 100))
+##   H3K27me3-only:      2826 genes (5.0%)
+message(sprintf("  Unmarked:           %d genes (%.1f%%)", length(unmarked_genes),
+                length(unmarked_genes) / length(all_genes) * 100))
+##   Unmarked:           43025 genes (76.5%)
+euler_fit <- euler(c(
+  "H3K4me3" = length(k4_only_genes),
+  "H3K27me3" = length(k27_only_genes),
+  "H3K4me3&H3K27me3" = length(bivalent_genes)
+))
+
+plot(euler_fit,
+     fills = list(fill = c("#E41A1C", "#377EB8"), alpha = 0.5),
+     labels = list(fontsize = 14),
+     quantities = list(fontsize = 12),
+     main = "HT1080 Promoter Histone Marks (NEED-seq)")
+# Sweep H3K27me3 threshold (fixing H3K4me3 at its chosen value)
+# H3K27me3 is the limiting factor — show how bivalent count changes
+k27_thresholds <- c(1, 1.3, 1.5, 2, 2.5, 3, 4, 5)
+sens_results <- lapply(k27_thresholds, function(q_thresh) {
+  k4_filt  <- k4_gr_all[k4_gr_all$qValue >= min_log10_qval_k4]
+  k27_filt <- k27_gr_all[k27_gr_all$qValue >= q_thresh]
+  k4_filt  <- k4_filt[unique(subjectHits(findOverlaps(prom_unique, k4_filt)))]
+  k27_filt <- k27_filt[unique(subjectHits(findOverlaps(prom_unique, k27_filt)))]
+
+  k4_h  <- findOverlaps(prom_unique, k4_filt)
+  k27_h <- findOverlaps(prom_unique, k27_filt)
+  k4_g  <- unique(prom_unique$gene_name[queryHits(k4_h)])
+  k27_g <- unique(prom_unique$gene_name[queryHits(k27_h)])
+
+  data.frame(
+    threshold = q_thresh,
+    k4_peaks = length(k4_filt), k27_peaks = length(k27_filt),
+    k4_genes = length(k4_g), k27_genes = length(k27_g),
+    bivalent = length(intersect(k4_g, k27_g)),
+    k4_only = length(setdiff(k4_g, k27_g)),
+    k27_only = length(setdiff(k27_g, k4_g))
+  )
+})
+sens_df <- bind_rows(sens_results)
+print(sens_df)
+##   threshold k4_peaks k27_peaks k4_genes k27_genes bivalent k4_only k27_only
+## 1       1.0     8634      9513    10383      9946     1195    9188     8751
+## 2       1.3     8634      7842    10383      8372      993    9390     7379
+## 3       1.5     8634      5976    10383      6532      806    9577     5726
+## 4       2.0     8634      2891    10383      3258      432    9951     2826
+## 5       2.5     8634      1438    10383      1677      240   10143     1437
+## 6       3.0     8634       741    10383       866      134   10249      732
+## 7       4.0     8634       243    10383       290       56   10327      234
+## 8       5.0     8634       117    10383       148       41   10342      107
+# Highlight chosen threshold
+sens_long <- sens_df %>%
+  tidyr::pivot_longer(cols = c(bivalent, k4_only, k27_only),
+                      names_to = "state", values_to = "n_genes") %>%
+  mutate(state = factor(state, levels = c("bivalent", "k4_only", "k27_only"),
+                        labels = c("Bivalent", "H3K4me3-only", "H3K27me3-only")))
+
+ggplot(sens_long, aes(x = threshold, y = n_genes, color = state)) +
+  geom_line(linewidth = 1) + geom_point(size = 2) +
+  geom_vline(xintercept = min_log10_qval_k27, linetype = "dashed", alpha = 0.5) +
+  annotate("text", x = min_log10_qval_k27 + 0.2, y = max(sens_long$n_genes) * 0.9,
+           label = sprintf("chosen: %g", min_log10_qval_k27), hjust = 0, size = 3.5) +
+  scale_color_manual(values = c("Bivalent" = "#9E6FC2", "H3K4me3-only" = "#E41A1C",
+                                "H3K27me3-only" = "#377EB8")) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Bivalent Gene Count vs H3K27me3 Threshold",
+       subtitle = sprintf("H3K4me3 fixed at -log10(q) >= %g", min_log10_qval_k4),
+       x = expression(H3K27me3 ~ -log[10](q-value) ~ threshold),
+       y = "Number of genes", color = "State")
+state_df <- data.frame(
+  state = c("Bivalent", "H3K4me3-only", "H3K27me3-only", "Unmarked"),
+  n = c(length(bivalent_genes), length(k4_only_genes),
+        length(k27_only_genes), length(unmarked_genes)),
+  stringsAsFactors = FALSE
+) %>%
+  mutate(state = factor(state, levels = c("Bivalent", "H3K4me3-only", "H3K27me3-only", "Unmarked")),
+         pct = n / sum(n) * 100)
+
+ggplot(state_df, aes(x = state, y = n, fill = state)) +
+  geom_col() +
+  geom_text(aes(label = sprintf("%d\n(%.1f%%)", n, pct)), vjust = -0.3, size = 3.5) +
+  scale_fill_manual(values = chromatin_colors) +
+  theme_minimal(base_size = 12) +
+  labs(title = "HT1080 Promoter Chromatin States",
+       subtitle = sprintf("TSS +/- %d bp, %d total genes", promoter_upstream, sum(state_df$n)),
+       x = NULL, y = "Number of genes") +
+  theme(legend.position = "none") +
+  ylim(0, max(state_df$n) * 1.15)
+Load Bulk RNA-seq DE
+de <- fread(ht1080_de_file, data.table = FALSE) %>% as_tibble()
+message(sprintf("Bulk DE: %d genes (HT1080 LOY vs WT, Y genes pre-excluded)", nrow(de)))
+## Bulk DE: 13679 genes (HT1080 LOY vs WT, Y genes pre-excluded)
+# Annotate with chromatin state
+de$chromatin_state <- case_when(
+  de$gene_name %in% bivalent_genes  ~ "Bivalent",
+  de$gene_name %in% k4_only_genes   ~ "H3K4me3-only",
+  de$gene_name %in% k27_only_genes  ~ "H3K27me3-only",
+  de$gene_name %in% unmarked_genes  ~ "Unmarked",
+  TRUE ~ "Not annotated"
+)
+de$chromatin_state <- factor(de$chromatin_state,
+                             levels = c("Bivalent", "H3K4me3-only", "H3K27me3-only",
+                                        "Unmarked", "Not annotated"))
+de$is_sig <- de$FDR < 0.05
+
+state_counts <- de %>%
+  group_by(chromatin_state) %>%
+  summarise(n_total = n(), n_sig = sum(is_sig), pct_sig = mean(is_sig) * 100, .groups = "drop")
+print(as.data.frame(state_counts))
+##   chromatin_state n_total n_sig    pct_sig
+## 1        Bivalent     209     1 0.47846890
+## 2    H3K4me3-only    7279     7 0.09616706
+## 3   H3K27me3-only     227     7 3.08370044
+## 4        Unmarked    5961    44 0.73813119
+## 5   Not annotated       3     0 0.00000000
+Fisher’s Exact Enrichment
+# Universe: genes present in both DE and promoter annotation
+universe <- intersect(de$gene_name, all_genes)
+de_universe <- de %>% dplyr::filter(gene_name %in% universe)
+sig_genes <- de_universe$gene_name[de_universe$FDR < 0.05]
+
+message(sprintf("Universe: %d genes (in both DE and promoter annotations)", length(universe)))
+## Universe: 13673 genes (in both DE and promoter annotations)
+message(sprintf("Significant (FDR < 0.05): %d genes", length(sig_genes)))
+## Significant (FDR < 0.05): 59 genes
+# Run Fisher's exact test for each chromatin state
+states <- list(
+  Bivalent = bivalent_genes,
+  `H3K4me3-only` = k4_only_genes,
+  `H3K27me3-only` = k27_only_genes
+)
+
+fisher_results <- lapply(names(states), function(state_name) {
+  state_genes <- intersect(states[[state_name]], universe)
+  non_state <- setdiff(universe, state_genes)
+
+  a <- sum(state_genes %in% sig_genes)     # state + DE
+  b <- length(state_genes) - a              # state + not DE
+  c <- sum(non_state %in% sig_genes)        # not state + DE
+  d <- length(non_state) - c                # not state + not DE
+
+  mat <- matrix(c(a, b, c, d), nrow = 2,
+                dimnames = list(c("DE", "Not DE"), c("State", "Other")))
+  ft <- fisher.test(mat)
+
+  data.frame(
+    chromatin_state = state_name,
+    n_state = length(state_genes),
+    n_de_in_state = a,
+    pct_de_in_state = round(a / length(state_genes) * 100, 1),
+    n_de_outside = c,
+    pct_de_outside = round(c / length(non_state) * 100, 1),
+    odds_ratio = ft$estimate,
+    or_lower = ft$conf.int[1],
+    or_upper = ft$conf.int[2],
+    p_value = ft$p.value,
+    stringsAsFactors = FALSE
+  )
+})
+
+fisher_df <- bind_rows(fisher_results)
+fisher_df$padj <- p.adjust(fisher_df$p_value, method = "BH")
+fisher_df$sig_label <- ifelse(fisher_df$padj < 0.001, "***",
+                       ifelse(fisher_df$padj < 0.01, "**",
+                       ifelse(fisher_df$padj < 0.05, "*", "ns")))
+print(fisher_df)
+##                chromatin_state n_state n_de_in_state pct_de_in_state
+## odds ratio...1        Bivalent     209             1             0.5
+## odds ratio...2    H3K4me3-only    7277             7             0.1
+## odds ratio...3   H3K27me3-only     227             7             3.1
+##                n_de_outside pct_de_outside odds_ratio   or_lower   or_upper
+## odds ratio...1           58            0.4  1.1112302 0.02753253  6.5086988
+## odds ratio...2           52            0.8  0.1174855 0.04499497  0.2599082
+## odds ratio...3           52            0.4  8.1919794 3.10392627 18.3807353
+##                     p_value         padj sig_label
+## odds ratio...1 5.977825e-01 5.977825e-01        ns
+## odds ratio...2 4.850075e-11 1.455023e-10       ***
+## odds ratio...3 5.190739e-05 7.786109e-05       ***
+fisher_df$chromatin_state <- factor(fisher_df$chromatin_state,
+                                     levels = c("Bivalent", "H3K4me3-only", "H3K27me3-only"))
+
+ggplot(fisher_df, aes(x = chromatin_state, y = odds_ratio, fill = chromatin_state)) +
+  geom_col(width = 0.6) +
+  geom_errorbar(aes(ymin = or_lower, ymax = or_upper), width = 0.2) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "grey40") +
+  geom_text(aes(label = sprintf("OR=%.2f\n%s\n(p=%.2e)", odds_ratio, sig_label, padj)),
+            vjust = -0.3, size = 3) +
+  scale_fill_manual(values = chromatin_colors) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Enrichment of LOY DE Genes by Chromatin State",
+       subtitle = sprintf("Fisher's exact test (FDR < 0.05, universe = %d genes)", length(universe)),
+       x = NULL, y = "Odds Ratio (95% CI)") +
+  theme(legend.position = "none") +
+  ylim(0, max(fisher_df$or_upper, na.rm = TRUE) * 1.3)
+pct_df <- de_universe %>%
+  dplyr::filter(chromatin_state != "Not annotated") %>%
+  group_by(chromatin_state) %>%
+  summarise(n = n(), n_sig = sum(is_sig), pct_sig = n_sig / n * 100, .groups = "drop")
+
+ggplot(pct_df, aes(x = chromatin_state, y = pct_sig, fill = chromatin_state)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = sprintf("%.1f%%\n(%d/%d)", pct_sig, n_sig, n)),
+            vjust = -0.3, size = 3) +
+  scale_fill_manual(values = chromatin_colors) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Percentage of DE Genes (FDR < 0.05) by Chromatin State",
+       x = NULL, y = "% DE genes") +
+  theme(legend.position = "none") +
+  ylim(0, max(pct_df$pct_sig) * 1.3)
+Directional Analysis
+dir_df <- de_universe %>%
+  dplyr::filter(is_sig, chromatin_state != "Not annotated") %>%
+  mutate(direction = ifelse(logFC > 0, "Up in LOY", "Down in LOY"))
+
+dir_counts <- dir_df %>%
+  group_by(chromatin_state, direction) %>%
+  summarise(n = n(), .groups = "drop")
+
+ggplot(dir_counts, aes(x = chromatin_state, y = n, fill = direction)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = c("Up in LOY" = "#E41A1C", "Down in LOY" = "#377EB8")) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Direction of LOY DE Genes by Chromatin State",
+       x = NULL, y = "Number of DE genes (FDR < 0.05)", fill = "") +
+  theme(legend.position = "bottom")
+de_plot <- de_universe %>%
+  dplyr::filter(chromatin_state != "Not annotated")
+
+# Wilcoxon tests vs unmarked
+wilcox_results <- lapply(c("Bivalent", "H3K4me3-only", "H3K27me3-only"), function(s) {
+  data.frame(
+    state = s,
+    p = wilcox.test(de_plot$logFC[de_plot$chromatin_state == s],
+                    de_plot$logFC[de_plot$chromatin_state == "Unmarked"])$p.value
+  )
+}) %>% bind_rows()
+message("Wilcoxon test (logFC vs Unmarked):")
+## Wilcoxon test (logFC vs Unmarked):
+print(wilcox_results)
+##           state            p
+## 1      Bivalent 5.997809e-02
+## 2  H3K4me3-only 5.162503e-07
+## 3 H3K27me3-only 9.156233e-02
+ggplot(de_plot, aes(x = chromatin_state, y = logFC, fill = chromatin_state)) +
+  geom_boxplot(outlier.size = 0.5, alpha = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_fill_manual(values = chromatin_colors) +
+  theme_minimal(base_size = 12) +
+  labs(title = "logFC Distribution by Chromatin State",
+       subtitle = "Bulk RNA-seq: HT1080 LOY vs WT",
+       x = NULL, y = "logFC (LOY / WT)") +
+  theme(legend.position = "none")
+logFC Distribution
+de_density <- de_universe %>%
+  dplyr::filter(chromatin_state %in% c("Bivalent", "H3K4me3-only", "H3K27me3-only", "Unmarked"))
+
+ggplot(de_density, aes(x = logFC, color = chromatin_state)) +
+  geom_density(linewidth = 0.8) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_color_manual(values = chromatin_colors) +
+  theme_minimal(base_size = 12) +
+  labs(title = "logFC Density by Chromatin State",
+       x = "logFC (LOY / WT)", y = "Density", color = "Chromatin State") +
+  theme(legend.position = "bottom")
+ks_results <- lapply(c("Bivalent", "H3K4me3-only", "H3K27me3-only"), function(s) {
+  ks <- ks.test(de_density$logFC[de_density$chromatin_state == s],
+                de_density$logFC[de_density$chromatin_state == "Unmarked"])
+  data.frame(state = s, D = ks$statistic, p = ks$p.value)
+}) %>% bind_rows()
+message("KS test (logFC distribution vs Unmarked):")
+## KS test (logFC distribution vs Unmarked):
+print(ks_results)
+##               state          D            p
+## D...1      Bivalent 0.06701615 3.246938e-01
+## D...2  H3K4me3-only 0.10455249 1.530647e-31
+## D...3 H3K27me3-only 0.15256066 7.590998e-05
+Volcano Overlay
+de_volcano <- de_universe %>%
+  dplyr::filter(chromatin_state != "Not annotated") %>%
+  mutate(
+    neg_log10_fdr = -log10(pmax(FDR, 1e-300)),
+    is_bivalent = chromatin_state == "Bivalent",
+    label_gene = is_sig & is_bivalent
+  )
+
+# Top bivalent DE genes to label
+bivalent_sig <- de_volcano %>%
+  dplyr::filter(is_bivalent, is_sig) %>%
+  arrange(FDR) %>%
+  head(30)
+
+ggplot(de_volcano, aes(x = logFC, y = neg_log10_fdr)) +
+  geom_point(data = de_volcano %>% dplyr::filter(!is_bivalent),
+             color = "grey70", size = 0.5, alpha = 0.3) +
+  geom_point(data = de_volcano %>% dplyr::filter(is_bivalent, !is_sig),
+             color = "#9E6FC2", size = 1, alpha = 0.5) +
+  geom_point(data = de_volcano %>% dplyr::filter(is_bivalent, is_sig),
+             color = "#9E6FC2", size = 2, alpha = 0.9) +
+  geom_text_repel(data = bivalent_sig,
+                  aes(label = gene_name), size = 2.5, max.overlaps = 30,
+                  color = "black", min.segment.length = 0) +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey40") +
+  theme_minimal(base_size = 12) +
+  labs(title = "Bulk DE Volcano — Bivalent Genes Highlighted",
+       subtitle = sprintf("%d bivalent genes (%d significant at FDR < 0.05)",
+                          sum(de_volcano$is_bivalent), nrow(bivalent_sig)),
+       x = "logFC (LOY / WT)",
+       y = expression(-log[10](FDR))) +
+  theme(legend.position = "none")
+Top Bivalent DE Genes
+bivalent_de <- de_universe %>%
+  dplyr::filter(chromatin_state == "Bivalent", is_sig) %>%
+  arrange(FDR) %>%
+  dplyr::select(gene_name, logFC, logCPM, t, PValue, FDR)
+
+message(sprintf("Bivalent genes significant at FDR < 0.05: %d", nrow(bivalent_de)))
+## Bivalent genes significant at FDR < 0.05: 1
+message(sprintf("  Up in LOY: %d", sum(bivalent_de$logFC > 0)))
+##   Up in LOY: 0
+message(sprintf("  Down in LOY: %d", sum(bivalent_de$logFC < 0)))
+##   Down in LOY: 1
+bivalent_de
+Save Results
+# Bivalent gene list
+bivalent_list <- data.frame(
+  gene_name = bivalent_genes,
+  in_de_universe = bivalent_genes %in% universe,
+  stringsAsFactors = FALSE
+)
+bivalent_list <- bivalent_list %>%
+  left_join(de %>% dplyr::select(gene_name, logFC, FDR), by = "gene_name")
+write.csv(bivalent_list, file.path(tables_dir, "bivalent_genes_HT1080.csv"), row.names = FALSE)
+message(sprintf("Saved bivalent_genes_HT1080.csv (%d genes)", nrow(bivalent_list)))
+## Saved bivalent_genes_HT1080.csv (432 genes)
+# Enrichment results
+write.csv(fisher_df, file.path(tables_dir, "bivalent_enrichment_results.csv"), row.names = FALSE)
+message("Saved bivalent_enrichment_results.csv")
+## Saved bivalent_enrichment_results.csv
+# Full DE with chromatin annotations
+de_annotated <- de_universe %>%
+  dplyr::select(gene_name, logFC, logCPM, t, PValue, FDR, chromatin_state, is_sig)
+write.csv(de_annotated, file.path(tables_dir, "de_HT1080_LOY_chromatin_annotated.csv"),
+          row.names = FALSE)
+message(sprintf("Saved de_HT1080_LOY_chromatin_annotated.csv (%d genes)", nrow(de_annotated)))
+## Saved de_HT1080_LOY_chromatin_annotated.csv (13676 genes)
+Session Info
+sessionInfo()
+## R version 4.5.2 (2025-10-31 ucrt)
+## Platform: x86_64-w64-mingw32/x64
+## Running under: Windows 11 x64 (build 26200)
+## 
+## Matrix products: default
+##   LAPACK version 3.12.1
+## 
+## locale:
+## [1] LC_COLLATE=English_Canada.utf8  LC_CTYPE=English_Canada.utf8   
+## [3] LC_MONETARY=English_Canada.utf8 LC_NUMERIC=C                   
+## [5] LC_TIME=English_Canada.utf8    
+## 
+## time zone: America/Toronto
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats4    stats     graphics  grDevices utils     datasets  methods  
+## [8] base     
+## 
+## other attached packages:
+##  [1] eulerr_7.0.4              data.table_1.18.2.1      
+##  [3] tidyr_1.3.2               dplyr_1.2.0              
+##  [5] patchwork_1.3.2           ggrepel_0.9.7            
+##  [7] ggplot2_4.0.2             EnsDb.Hsapiens.v86_2.99.0
+##  [9] ensembldb_2.34.0          AnnotationFilter_1.34.0  
+## [11] GenomicFeatures_1.62.0    AnnotationDbi_1.72.0     
+## [13] Biobase_2.70.0            rtracklayer_1.70.1       
+## [15] GenomeInfoDb_1.46.2       GenomicRanges_1.62.1     
+## [17] Seqinfo_1.0.0             IRanges_2.44.0           
+## [19] S4Vectors_0.48.0          BiocGenerics_0.56.0      
+## [21] generics_0.1.4           
+## 
+## loaded via a namespace (and not attached):
+##  [1] tidyselect_1.2.1            farver_2.1.2               
+##  [3] blob_1.3.0                  Biostrings_2.78.0          
+##  [5] S7_0.2.1                    bitops_1.0-9               
+##  [7] fastmap_1.2.0               lazyeval_0.2.2             
+##  [9] RCurl_1.98-1.17             GenomicAlignments_1.46.0   
+## [11] XML_3.99-0.22               digest_0.6.39              
+## [13] lifecycle_1.0.5             ProtGenerics_1.42.0        
+## [15] KEGGREST_1.50.0             RSQLite_2.4.6              
+## [17] polylabelr_1.0.0            magrittr_2.0.4             
+## [19] compiler_4.5.2              rlang_1.1.7                
+## [21] sass_0.4.10                 tools_4.5.2                
+## [23] yaml_2.3.12                 knitr_1.51                 
+## [25] labeling_0.4.3              S4Arrays_1.10.1            
+## [27] bit_4.6.0                   curl_7.0.0                 
+## [29] DelayedArray_0.36.0         RColorBrewer_1.1-3         
+## [31] abind_1.4-8                 BiocParallel_1.44.0        
+## [33] purrr_1.2.1                 withr_3.0.2                
+## [35] polyclip_1.10-7             grid_4.5.2                 
+## [37] scales_1.4.0                dichromat_2.0-0.1          
+## [39] SummarizedExperiment_1.40.0 cli_3.6.5                  
+## [41] rmarkdown_2.30              crayon_1.5.3               
+## [43] otel_0.2.0                  httr_1.4.8                 
+## [45] rjson_0.2.23                DBI_1.3.0                  
+## [47] cachem_1.1.0                parallel_4.5.2             
+## [49] XVector_0.50.0              restfulr_0.0.16            
+## [51] matrixStats_1.5.0           vctrs_0.7.1                
+## [53] Matrix_1.7-4                jsonlite_2.0.0             
+## [55] bit64_4.6.0-1               jquerylib_0.1.4            
+## [57] glue_1.8.0                  codetools_0.2-20           
+## [59] gtable_0.3.6                BiocIO_1.20.0              
+## [61] UCSC.utils_1.6.1            tibble_3.3.1               
+## [63] pillar_1.11.1               htmltools_0.5.9            
+## [65] R6_2.6.1                    evaluate_1.0.5             
+## [67] lattice_0.22-9              png_0.1-8                  
+## [69] Rsamtools_2.26.0            cigarillo_1.0.0            
+## [71] memoise_2.0.1               bslib_0.10.0               
+## [73] Rcpp_1.1.1                  SparseArray_1.10.8         
+## [75] xfun_0.56                   MatrixGenerics_1.22.0      
+## [77] pkgconfig_2.0.3

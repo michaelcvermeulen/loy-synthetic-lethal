@@ -1,0 +1,70 @@
+{
+  "completed_utc": "2026-09-14T19:53:04.485081+00:00",
+  "status": "resource_audit_and_plan_complete",
+  "new_chromatin_analysis_run": false,
+  "source_files_modified": false,
+  "ATAC_clarification": "User 2026-09-14: successive passages; direct RNA partners not completely known. Use group-level effects, no invented matching or independent-generation claim.",
+  "checks": [
+    "Three Python sources parse",
+    "Eight measured-mark peaks and bigWigs exist",
+    "41 HT1080 source records",
+    "13 curated resources",
+    "Six ENCODE tracks confirmed imputed",
+    "H3K9ac accession correction verified",
+    "Local report links resolve"
+  ],
+  "artifacts": [
+    {
+      "path": "provenance\\chipseq_resources\\audit_source_checksums.csv",
+      "sha256": "33297b7be5f3cb14ef9802383991f61aad83763d4f3d8db8589c551715f74ed4"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\chromatin_resource_catalogue.csv",
+      "sha256": "b36cfc68be42b12b227cd5030b59b516cf31388b75b03c35a986f44fedd04fc6"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\ENCODE_provenance_audit.csv",
+      "sha256": "8495dbe5e9ce22c3b81fc8d9f56ddc1de6f2b8e8425428f7a887e3a6efaa9702"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\geo_local_sample_metadata.csv",
+      "sha256": "6ec3e2a3eb13a8a0e06b4121d416325971c4f90c98c069f1184c112e4af5dddc"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\GSE261834_HT1080_sample_manifest.csv",
+      "sha256": "70e491d23da112f497261c98a880dc0cb304b7956e0ed5092587f957b29b43a9"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\GSE261834_measured_mark_panel.csv",
+      "sha256": "3c6ea615752055a192dcf327376c13e20d83c72264ddaddb863561a21c1b23fc"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\legacy_referenced_paths.csv",
+      "sha256": "166907e201c57aa867e9e1f48d7276b4cba2af1ab5b06e0a92cc6d5fbc0cbe1c"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\legacy_report_accessions.csv",
+      "sha256": "4a71de5fb66eee46874bbdc345d7dbb490e329d4176af3d068808e9ef365c876"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\legacy_report_inventory.csv",
+      "sha256": "0ab36dc8eb4d3823a382aef19d1089340ed964ad5cd405f0dce61196ed356e79"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\local_file_inventory.csv",
+      "sha256": "59d6d19be6fa5d9ea43b3bddbbc6ab9b9e011fa4cda58f79622e5d00f79800f0"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\upstream_file_inventory.csv",
+      "sha256": "fc1fbe1feb87fc96f3ea02c77250e5b01e77509c01cab82bbb3a048c83b58177"
+    },
+    {
+      "path": "provenance\\chipseq_resources\\local_inventory_summary.json",
+      "sha256": "0c6b23201f1072155424b4eb4044cceccbb05971f17eba92d3615a968bd208ab"
+    },
+    {
+      "path": "HT1080_CHROMATIN_RESOURCE_REVIEW_AND_PLAN.md",
+      "sha256": "25295a65f4f2ebe058cfb8885d8d08f46a8ca0aa23ab9eadc7dbe1b952b42ef0"
+    }
+  ]
+}

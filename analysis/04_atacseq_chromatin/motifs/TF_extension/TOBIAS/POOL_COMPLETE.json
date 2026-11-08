@@ -1,0 +1,5 @@
+{
+  "target_fragments_per_replicate": 13595165,
+  "sampling": "samtools pair-consistent subsampling; actual depths recorded",
+  "reference_lengths_verified": true
+}

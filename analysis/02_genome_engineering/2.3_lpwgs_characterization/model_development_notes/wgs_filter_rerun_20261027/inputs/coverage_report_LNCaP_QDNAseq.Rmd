@@ -1,0 +1,905 @@
+---
+title: "LNCaP — QDNAseq Copy Number Analysis (T2T-CHM13v2.0)"
+subtitle: "GC + mappability-corrected, segmented log2 ratios"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 12, fig.height = 5)
+suppressPackageStartupMessages({
+  library(QDNAseq)
+  library(Biobase)
+  library(tidyverse)
+  library(cowplot)
+})
+
+bamdir <- "../t2t_bam"
+
+sample_meta <- tribble(
+  ~sample,                ~label,            ~display_order, ~color,
+  "LNCaP-sgCTRL",         "sgCTRL",           1, "#2166AC",
+  "LNCaP-LOY-2X",         "LOY-2X",           2, "#67000D",
+  "LNCaP-DMSO-LOY-1X",    "DMSO-LOY-1X",      3, "#EF3B2C",
+  "LNCaP-30",             "Pano-30",          4, "#FDAE6B",
+  "LNCaP-70",             "Pano-70",          5, "#E6550D",
+  "LNCaP-KU",             "KU",               6, "#6A51A3",
+  "LNCaP-KU-30",          "KU+Pano-30",       7, "#74C476",
+  "LNCaP-KU-70",          "KU+Pano-70",       8, "#238B45"
+) %>% arrange(display_order)
+
+samples       <- sample_meta$sample
+sample_labels <- setNames(sample_meta$label, sample_meta$sample)
+label_colors  <- setNames(sample_meta$color, sample_meta$label)
+```
+
+## Pipeline overview
+
+1. Read T2T-CHM13v2.0 100 kb bin annotation (built once via `build_t2t_bins.R`):
+   GC content + mappability + difficulty-region overlap per bin.
+2. Count reads per bin per sample with `binReadCounts()`.
+3. Filter & correct: drop bins flagged `use=FALSE`; fit GC + mappability loess
+   correction; median-normalize across genome.
+4. Smooth outlier bins, segment with circular-binary-segmentation (CBS),
+   then call gain/loss/amplification with `callBins()`.
+
+## 1. Read Counts
+
+```{r run_qdnaseq, cache=TRUE, cache.extra = file.info("../t2t_bins_100kb.rds")$mtime}
+# cache.extra above keys cache to bin-file mtime so retunes invalidate
+bins <- readRDS("../t2t_bins_100kb.rds")
+
+bam_paths <- file.path(bamdir, paste0(samples, ".bam"))
+stopifnot(all(file.exists(bam_paths)))
+
+t0 <- Sys.time()
+rc <- binReadCounts(bins, bamfiles = bam_paths, bamnames = samples,
+                    isPaired = TRUE, verbose = FALSE)
+cat("binReadCounts:",
+    round(as.numeric(difftime(Sys.time(), t0, units = "secs")), 1),
+    "sec across", length(samples), "BAMs\n")
+
+read_summary <- pData(rc) %>%
+  rownames_to_column("sample") %>%
+  as_tibble() %>%
+  mutate(sample = factor(sample, levels = samples),
+         label  = factor(sample_labels[as.character(sample)],
+                         levels = sample_meta$label))
+
+knitr::kable(read_summary %>%
+               select(label, total.reads, used.reads, expected.variance),
+             digits = c(0, 0, 0, 4),
+             col.names = c("Sample", "Total Reads", "Used Reads",
+                           "Expected Variance"),
+             caption = "QDNAseq read-count summary")
+```
+
+## 2. Raw read counts (vignette `plot(readCounts)` + `highlightFilters`)
+
+Per QDNAseq vignette §1.2: raw bin read counts per sample, with bins that **would
+be filtered by default QDNAseq settings** (residual outliers + blacklist) shown
+in red. We do *not* actually apply these filters — our T2T bin annotation's `use`
+column handles this — but the diagnostic shows where default-QDNAseq disagrees
+with our custom T2T filter on T2T-aligned data.
+
+```{r vignette_raw_plot, fig.height=4, fig.width=10, fig.show='hold'}
+for (s in sampleNames(rc)) {
+  plot(rc[, s], logTransform = FALSE, ylim = c(-50, 200), main = s)
+  highlightFilters(rc[, s], logTransform = FALSE,
+                   residual = TRUE, blacklist = TRUE)
+}
+```
+
+## 3. GC + mappability correction & segmentation
+
+```{r correct_segment, cache=TRUE, dependson="run_qdnaseq"}
+# Drop samples with insufficient depth (LNCaP-KU has ~16x lower coverage)
+low_depth <- pData(rc)$total.reads < 5e6
+if (any(low_depth)) {
+  excluded <- rownames(pData(rc))[low_depth]
+  message("Dropping low-depth samples: ", paste(excluded, collapse = ", "))
+  rc <- rc[, !low_depth]
+}
+
+# Disable all of QDNAseq's per-bin filters — our T2T bin annotation already
+# encodes a sensible 'use' flag (bases >= 50%, mappability >= 50%, blacklist <
+# 25%). The default applyFilters(blacklist=TRUE) drops any bin with ANY
+# difficulty-region overlap, which on T2T removes ~99% of bins.
+# chromosomes=NA → keep chrX/chrY (default would drop them; vignette §3).
+rc_f <- applyFilters(rc, residual = FALSE, blacklist = FALSE,
+                     mappability = FALSE, bases = FALSE,
+                     chromosomes = NA)
+
+# Estimate noise / GC + mappability correction (loess)
+rc_f <- estimateCorrection(rc_f)
+
+# Correct counts, median-normalize, outlier-smooth
+cn_corr   <- correctBins(rc_f)
+cn_norm   <- normalizeBins(cn_corr)
+cn_smooth <- smoothOutlierBins(cn_norm)
+
+# CBS segmentation (sqrt-transform per vignette: stabilizes Poisson variance)
+cn_seg <- segmentBins(cn_smooth, transformFun = "sqrt")
+cn_seg <- normalizeSegmentedBins(cn_seg)
+
+# CGHcall sometimes errors with small N; treat calls as optional
+calls_ok <- tryCatch({
+  cn_called <- callBins(cn_seg)
+  TRUE
+}, error = function(e) {
+  message("callBins() failed (CGHcall internal); continuing without CN calls.\n",
+          "  Error: ", conditionMessage(e))
+  FALSE
+})
+
+# `cn` = most-advanced object available for downstream tabsets/tables
+cn <- if (calls_ok) cn_called else cn_seg
+
+cat("Final QDNAseqCopyNumbers object:\n")
+print(cn)
+
+# Export for downstream RNAseq integration (analysis_LNCAP_extended.Rmd).
+saveRDS(cn, file.path("..", "LNCaP_QDNAseq_cn.rds"))
+cat("Saved CN object to ../LNCaP_QDNAseq_cn.rds\n")
+```
+
+## 4. QC diagnostics (vignette `isobarPlot` + `noisePlot`)
+
+**Isobar plot** (vignette Fig. 2): median read counts per bin as a function of
+GC content (y) and mappability (x). Used to verify the GC/mappability loess
+correction is well-behaved.
+
+```{r vignette_isobar, fig.height=5, fig.width=7, fig.show='hold'}
+for (s in sampleNames(rc_f)) {
+  isobarPlot(rc_f[, s])
+}
+```
+
+**Noise plot** (vignette Fig. 3): observed per-bin standard deviation vs read
+depth. Theoretical line is Poisson — samples above the line have noisier data
+than expected from depth alone (low-quality DNA, mapping issues, etc.).
+
+```{r vignette_noise, fig.height=5, fig.width=7, fig.show='hold'}
+for (s in sampleNames(rc_f)) {
+  noisePlot(rc_f[, s])
+}
+```
+
+## 5. Per-sample noise / variance
+
+```{r noise_plot, fig.height=4}
+read_summary %>%
+  ggplot(aes(x = label, y = expected.variance, fill = label)) +
+  geom_col(width = 0.6) +
+  scale_fill_manual(values = label_colors, guide = "none") +
+  labs(x = NULL, y = "Expected Variance", title = "Per-sample noise estimate") +
+  theme_cowplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 9))
+```
+
+## 6. QDNAseq vignette CN plots {.tabset}
+
+QDNAseq's built-in `plot()` method renders per-sample log2-ratio profiles using
+the same conventions as the vignette (Figs. 4–6): grey points = per-bin log2,
+orange line = segment means, blue/red bars (only in "called" panel) = gain/loss
+probabilities from `CGHcall`.
+
+### After smoothing (vignette Fig. 4)
+
+```{r vignette_plot_smooth, fig.height=4, fig.width=12, fig.show='hold'}
+for (s in sampleNames(cn_smooth)) {
+  plot(cn_smooth[, s])
+}
+```
+
+### After segmentation (vignette Fig. 5)
+
+```{r vignette_plot_segmented, fig.height=4, fig.width=12, fig.show='hold'}
+for (s in sampleNames(cn_seg)) {
+  plot(cn_seg[, s])
+}
+```
+
+### After calling gains/losses (vignette Fig. 6)
+
+```{r vignette_plot_called, fig.height=4, fig.width=12, fig.show='hold', eval=calls_ok}
+for (s in sampleNames(cn_called)) {
+  plot(cn_called[, s])
+}
+```
+
+```{r vignette_plot_called_skipped, eval=!calls_ok, results='asis'}
+cat("> `callBins()` did not succeed — skipping `plot(copyNumbersCalled)`.\n")
+```
+
+## 7. Genome-wide log2 segmented copy number {.tabset}
+
+```{r extract_segmented, include=FALSE}
+fdat <- fData(cn) %>% as_tibble(rownames = "bin_id") %>%
+  mutate(chromosome = paste0("chr", chromosome),
+         midpoint = (start + end) / 2 / 1e6)
+
+cn_long <- assayDataElement(cn, "copynumber") %>%
+  as.data.frame() %>%
+  rownames_to_column("bin_id") %>%
+  pivot_longer(-bin_id, names_to = "sample", values_to = "copynumber") %>%
+  filter(!is.na(copynumber)) %>%
+  mutate(log2 = log2(pmax(copynumber, 1e-3)))
+
+seg_long <- assayDataElement(cn, "segmented") %>%
+  as.data.frame() %>%
+  rownames_to_column("bin_id") %>%
+  pivot_longer(-bin_id, names_to = "sample", values_to = "segmented") %>%
+  filter(!is.na(segmented)) %>%
+  mutate(log2_seg = log2(pmax(segmented, 1e-3)))
+
+cn_df <- cn_long %>%
+  left_join(seg_long %>% select(bin_id, sample, log2_seg),
+            by = c("bin_id", "sample")) %>%
+  inner_join(fdat %>% select(bin_id, chromosome, start, end, midpoint, use),
+             by = "bin_id") %>%
+  mutate(label = factor(sample_labels[sample], levels = sample_meta$label),
+         chromosome = factor(chromosome, levels = paste0("chr", c(1:22, "X", "Y"))))
+
+# Genomic x-axis with offsets
+chrom_offsets <- cn_df %>%
+  group_by(chromosome) %>%
+  summarise(chrom_len = max(midpoint), .groups = "drop") %>%
+  mutate(offset = cumsum(lag(chrom_len, default = 0) + 2))
+
+cn_df <- cn_df %>%
+  left_join(chrom_offsets %>% select(chromosome, offset), by = "chromosome") %>%
+  mutate(genome_x = midpoint + offset)
+
+# Export tidy long form for downstream RNAseq integration.
+saveRDS(cn_df, file.path("..", "LNCaP_QDNAseq_cn_df.rds"))
+cat("Saved tidy CN long-form to ../LNCaP_QDNAseq_cn_df.rds\n")
+
+chrom_labels_df <- cn_df %>%
+  group_by(chromosome) %>%
+  summarise(mid = median(genome_x), xmax = max(genome_x) + 1, .groups = "drop")
+
+chrom_bg <- chrom_labels_df %>%
+  mutate(idx = row_number(),
+         xmin = lag(xmax, default = 0),
+         fill = ifelse(idx %% 2 == 0, "grey95", "white"))
+```
+
+### Per-sample tracks (faceted)
+
+```{r genome_per_sample, fig.height=12, fig.width=14}
+ggplot(cn_df) +
+  geom_rect(data = chrom_bg,
+            aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
+            inherit.aes = FALSE, alpha = 0.5) +
+  scale_fill_identity() +
+  geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+  geom_point(aes(x = genome_x, y = log2), color = "grey50",
+             size = 0.15, alpha = 0.4) +
+  geom_line(aes(x = genome_x, y = log2_seg, group = chromosome, color = label),
+            linewidth = 0.5) +
+  facet_wrap(~ label, ncol = 1, strip.position = "right") +
+  scale_color_manual(values = label_colors, guide = "none") +
+  scale_x_continuous(breaks = chrom_labels_df$mid,
+                     labels = gsub("chr", "", chrom_labels_df$chromosome),
+                     expand = c(0.01, 0)) +
+  coord_cartesian(ylim = c(-2, 2)) +
+  labs(x = "Chromosome", y = "log2 Copy Number Ratio (segmented)",
+       title = "Genome-wide log2 copy number — all 8 samples") +
+  theme_cowplot() +
+  theme(strip.background = element_rect(fill = "grey90"),
+        strip.text.y.right = element_text(angle = 0, size = 9),
+        axis.text.x = element_text(size = 8),
+        panel.spacing = unit(0.1, "lines"))
+```
+
+### All 8 segmented tracks overlaid
+
+```{r genome_overlay, fig.height=6, fig.width=14}
+ggplot(cn_df) +
+  geom_rect(data = chrom_bg,
+            aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
+            inherit.aes = FALSE, alpha = 0.5) +
+  scale_fill_identity() +
+  geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+  geom_line(aes(x = genome_x, y = log2_seg, color = label,
+                group = interaction(label, chromosome)),
+            linewidth = 0.5, alpha = 0.85) +
+  scale_color_manual(values = label_colors, name = "Sample") +
+  scale_x_continuous(breaks = chrom_labels_df$mid,
+                     labels = gsub("chr", "", chrom_labels_df$chromosome),
+                     expand = c(0.01, 0)) +
+  coord_cartesian(ylim = c(-2, 2)) +
+  labs(x = "Chromosome", y = "log2 Copy Number Ratio (segmented)",
+       title = "Genome-wide log2 copy number — overlay") +
+  theme_cowplot() +
+  theme(legend.position = "right",
+        axis.text.x = element_text(size = 8))
+```
+
+## 8. chrY zoom
+
+```{r chrY_zoom, fig.height=8, fig.width=12}
+chrY_df <- cn_df %>% filter(chromosome == "chrY")
+
+ggplot(chrY_df) +
+  geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+  geom_point(aes(x = midpoint, y = log2), color = "grey60",
+             size = 0.4, alpha = 0.5) +
+  geom_line(aes(x = midpoint, y = log2_seg, color = label),
+            linewidth = 0.7) +
+  facet_wrap(~ label, ncol = 2) +
+  scale_color_manual(values = label_colors, guide = "none") +
+  coord_cartesian(ylim = c(-4, 1)) +
+  labs(x = "chrY position (Mb)", y = "log2 copy number ratio",
+       title = "chrY — segmented log2 copy number per sample") +
+  theme_cowplot() +
+  theme(strip.background = element_rect(fill = "grey90"))
+```
+
+## 8b. chrY zoom with ideogram (sgCTRL / LOY-2X / cytobands + genes)
+
+Stacked layout: sgCTRL on top, LOY-2X in middle, chrY ideogram with cytogenetic
+bands, pseudoautosomal regions (PAR1 / PAR2 in cyan), centromere marker, and
+five Y-linked genes — **RPS4Y1, ZFY, UTY, KDM5D, EIF1AY** — clustered into two
+narrow regions, so labels are staggered vertically to avoid overlap.
+
+T2T-CHM13v2.0 chrY ≈ 62.5 Mb; band positions are approximate (T2T-CHM13 chrY
+q12 heterochromatin is substantially larger than hg38).
+
+```{r chrY_ideo_helpers, include=FALSE}
+# Shared cytoband stain colors (used by chrY and chr18 ideograms below)
+stain_colors <- c(gneg = "white", gpos25 = "grey80", gpos50 = "grey55",
+                  gpos75 = "grey30", gpos100 = "black",
+                  acen = "#B2182B", gvar = "#4393C3", stalk = "#FED976")
+
+# Authoritative T2T-CHM13v2.0 chrY cytobands (UCSC hs1 cytoBandIdeo track,
+# fetched via api.genome.ucsc.edu). chrY total = 62,460,029 bp.
+cytobands_chrY <- tribble(
+  ~start,    ~end,      ~band,     ~stain,
+   0.000000,  0.127375, "p11.32",  "gneg",
+   0.127375,  0.454123, "p11.31",  "gpos50",
+   0.454123, 10.565750, "p11.2",   "gneg",
+  10.565750, 10.724418, "p11.1",   "acen",
+  10.724418, 10.883085, "q11.1",   "acen",
+  10.883085, 13.307633, "q11.21",  "gneg",
+  13.307633, 18.006518, "q11.221", "gpos50",
+  18.006518, 20.506564, "q11.222", "gneg",
+  20.506564, 25.062557, "q11.223", "gpos50",
+  25.062557, 27.449937, "q11.23",  "gneg",
+  27.449937, 62.460029, "q12",     "gvar"        # large heterochromatic block
+)
+
+# T2T-CHM13v2.0 chrY gene coordinates (UCSC hs1 ncbiRefSeqCurated, Mb).
+gene_coords_chrY <- tribble(
+  ~gene,    ~start_Mb, ~end_Mb,
+  "RPS4Y1",   2.518,    2.544,
+  "ZFY",      2.613,    2.660,
+  "AMELY",    6.518,    6.526,
+  "UTY",     14.141,   14.387,
+  "KDM5D",   20.610,   20.651,
+  "EIF1AY",  21.451,   21.468
+)
+
+make_chrY_panel <- function(sample_label, panel_color) {
+  d <- cn_df %>% filter(chromosome == "chrY", label == sample_label)
+  ggplot(d) +
+    geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+    geom_vline(data = gene_coords_chrY,
+               aes(xintercept = (start_Mb + end_Mb)/2),
+               color = "darkblue", linewidth = 0.3, alpha = 0.35) +
+    geom_point(aes(x = midpoint, y = log2), color = "grey55",
+               size = 0.6, alpha = 0.6) +
+    geom_line(aes(x = midpoint, y = log2_seg),
+              color = panel_color, linewidth = 0.8) +
+    coord_cartesian(xlim = c(0, 62.5), ylim = c(-4, 1), expand = FALSE) +
+    labs(x = NULL, y = "log2 ratio", title = sample_label) +
+    theme_cowplot() +
+    theme(plot.title = element_text(size = 11, face = "bold"),
+          plot.margin = margin(t = 4, r = 8, b = 0, l = 8))
+}
+
+make_chrY_ideogram <- function() {
+  # Stagger gene labels into 2 rows so adjacent gene pairs don't overlap:
+  #   {RPS4Y1, ZFY}      cluster around 2.85-2.95 Mb
+  #   {KDM5D, EIF1AY}    cluster around 19.8-20.6 Mb
+  #   UTY                solo at 13.5 Mb
+  label_y_lookup <- c(RPS4Y1 = -0.55, ZFY    = -1.00,
+                      AMELY  = -0.55,
+                      UTY    = -0.55,
+                      KDM5D  = -0.55, EIF1AY = -1.00)
+  gene_pos <- gene_coords_chrY %>%
+    mutate(gene_x  = (start_Mb + end_Mb) / 2,
+           label_y = label_y_lookup[gene])
+
+  cen_mid <- cytobands_chrY %>% filter(stain == "acen") %>%
+    summarise(x = (min(start) + max(end))/2, .groups = "drop") %>% pull(x)
+
+  # T2T-CHM13v2.0 PAR boundaries (Rhie et al. 2023, Nature)
+  par1_xmin <- 0.000000;  par1_xmax <- 2.458320
+  par2_xmin <- 62.122809; par2_xmax <- 62.460029
+
+  ggplot() +
+    # PAR1 / PAR2 brackets above the ideogram
+    annotate("rect", xmin = par1_xmin, xmax = par1_xmax,
+             ymin = 1.08, ymax = 1.22,
+             fill = "#41B6C4", alpha = 0.7,
+             color = "grey20", linewidth = 0.2) +
+    annotate("text", x = (par1_xmin + par1_xmax)/2, y = 1.42,
+             label = "PAR1", size = 3.2, fontface = "bold",
+             color = "#0C2C84") +
+    annotate("rect", xmin = par2_xmin, xmax = par2_xmax,
+             ymin = 1.08, ymax = 1.22,
+             fill = "#41B6C4", alpha = 0.7,
+             color = "grey20", linewidth = 0.2) +
+    annotate("text", x = (par2_xmin + par2_xmax)/2, y = 1.42,
+             label = "PAR2", size = 3.2, fontface = "bold",
+             color = "#0C2C84") +
+    # Cytobands
+    geom_rect(data = cytobands_chrY,
+              aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill = stain),
+              color = "grey30", linewidth = 0.2) +
+    scale_fill_manual(values = stain_colors, guide = "none") +
+    # Centromere marker
+    annotate("point", x = cen_mid, y = -0.18, shape = 17,
+             size = 3, color = "black") +
+    annotate("text",  x = cen_mid, y = -0.40, label = "cen",
+             size = 3.2, fontface = "italic") +
+    # Gene ticks + staggered labels
+    geom_segment(data = gene_pos,
+                 aes(x = gene_x, xend = gene_x,
+                     y = -0.02, yend = label_y + 0.08),
+                 color = "darkblue", linewidth = 0.5) +
+    geom_text(data = gene_pos,
+              aes(x = gene_x, y = label_y, label = gene),
+              color = "darkblue", size = 3.4, vjust = 1, fontface = "bold") +
+    coord_cartesian(xlim = c(-0.5, 63), ylim = c(-1.6, 1.7), expand = FALSE) +
+    labs(x = "chrY position (Mb)", y = NULL) +
+    theme_classic() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          axis.title.y = element_blank(),
+          axis.text.x = element_text(size = 9),
+          plot.margin = margin(t = 0, r = 8, b = 4, l = 8))
+}
+```
+
+```{r chrY_zoom_ideo, fig.height=10, fig.width=10}
+plot_grid(
+  make_chrY_panel("sgCTRL",      label_colors["sgCTRL"]),
+  make_chrY_panel("DMSO-LOY-1X", label_colors["DMSO-LOY-1X"]),
+  make_chrY_panel("LOY-2X",      label_colors["LOY-2X"]),
+  make_chrY_ideogram(),
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights = c(2.2, 2.2, 2.2, 1.6)
+)
+```
+
+## 8c. chr18 zoom — all samples
+
+```{r chr18_zoom, fig.height=8, fig.width=12}
+chr18_df <- cn_df %>% filter(chromosome == "chr18")
+
+ggplot(chr18_df) +
+  geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+  geom_point(aes(x = midpoint, y = log2), color = "grey60",
+             size = 0.4, alpha = 0.5) +
+  geom_line(aes(x = midpoint, y = log2_seg, color = label),
+            linewidth = 0.7) +
+  facet_wrap(~ label, ncol = 2) +
+  scale_color_manual(values = label_colors, guide = "none") +
+  coord_cartesian(ylim = c(-2, 2)) +
+  labs(x = "chr18 position (Mb)", y = "log2 copy number ratio",
+       title = "chr18 — segmented log2 copy number per sample") +
+  theme_cowplot() +
+  theme(strip.background = element_rect(fill = "grey90"))
+```
+
+## 8d. chr18 with ideogram (sgCTRL / LOY-2X / cytobands + genes)
+
+Stacked 3-row layout: sgCTRL on top, LOY-2X in middle, chr18 ideogram with
+cytogenetic bands and gene markers (DCC, ST8SIA3, NEDD4L) on the bottom.
+
+NB. DDC (Dopa decarboxylase) is on chr7; the chr18 cancer gene with a similar
+name is **DCC** (Deleted in Colorectal Cancer). Plotting DCC here — swap if a
+different gene was intended.
+
+```{r chr18_ideo_helpers, include=FALSE}
+# Authoritative T2T-CHM13v2.0 chr18 cytobands (UCSC hs1 cytoBandIdeo).
+# chr18 total = 80,542,538 bp. T2T re-mapping merges hg38's q24 bands into q23.
+cytobands_chr18 <- tribble(
+  ~start,    ~end,      ~band,    ~stain,
+   0.000000,  3.055502, "p11.32", "gneg",
+   3.055502,  7.363114, "p11.31", "gpos50",
+   7.363114,  8.663156, "p11.23", "gneg",
+   8.663156, 11.062106, "p11.22", "gpos25",
+  11.062106, 15.965699, "p11.21", "gneg",
+  15.965699, 18.449624, "p11.1",  "acen",
+  18.449624, 20.933550, "q11.1",  "acen",
+  20.933550, 27.694024, "q11.2",  "gneg",
+  27.694024, 35.291319, "q12.1",  "gpos100",
+  35.291319, 39.695477, "q12.2",  "gneg",
+  39.695477, 46.090953, "q12.3",  "gpos75",
+  46.090953, 50.901745, "q21.1",  "gneg",
+  50.901745, 56.402692, "q21.2",  "gpos75",
+  56.402692, 58.801152, "q21.31", "gneg",
+  58.801152, 61.503246, "q21.32", "gpos50",
+  61.503246, 64.105093, "q21.33", "gneg",
+  64.105093, 69.316653, "q22.1",  "gpos100",
+  69.316653, 71.221701, "q22.2",  "gneg",
+  71.221701, 75.629292, "q22.3",  "gpos25",
+  75.629292, 80.542538, "q23",    "gneg"
+)
+
+# T2T-CHM13v2.0 chr18 gene coordinates (UCSC hs1 ncbiRefSeqCurated, Mb).
+# Note: DCC spans ~1.2 Mb so we draw it as a wide band rather than a point.
+gene_coords <- tribble(
+  ~gene,      ~start_Mb, ~end_Mb,
+  "DCC",       52.543,   53.739,
+  "ST8SIA3",   57.553,   57.570,
+  "NEDD4L",    58.244,   58.602
+)
+# stain_colors is defined in the chrY_ideo_helpers chunk above.
+
+make_chr18_panel <- function(sample_label, panel_color) {
+  d <- cn_df %>% filter(chromosome == "chr18", label == sample_label)
+  ggplot(d) +
+    geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+    geom_vline(data = gene_coords,
+               aes(xintercept = (start_Mb + end_Mb)/2),
+               color = "darkblue", linewidth = 0.3, alpha = 0.35) +
+    geom_point(aes(x = midpoint, y = log2), color = "grey55",
+               size = 0.6, alpha = 0.6) +
+    geom_line(aes(x = midpoint, y = log2_seg),
+              color = panel_color, linewidth = 0.8) +
+    coord_cartesian(xlim = c(0, 80.6), ylim = c(-2, 2), expand = FALSE) +
+    labs(x = NULL, y = "log2 ratio", title = sample_label) +
+    theme_cowplot() +
+    theme(plot.title = element_text(size = 11, face = "bold"),
+          plot.margin = margin(t = 4, r = 8, b = 0, l = 8))
+}
+
+make_chr18_ideogram <- function() {
+  # Stagger gene labels vertically so DCC / ST8SIA3 / NEDD4L (clustered within
+  # ~7 Mb on q21.33–q22.2) don't overlap.
+  label_y_lookup <- c(DCC = -0.55, ST8SIA3 = -1.00, NEDD4L = -0.55)
+  gene_pos <- gene_coords %>%
+    mutate(gene_x  = (start_Mb + end_Mb) / 2,
+           label_y = label_y_lookup[gene])
+
+  # Centromere midpoint = midpoint of the two acen bands
+  cen_mid <- cytobands_chr18 %>%
+    filter(stain == "acen") %>%
+    summarise(x = (min(start) + max(end)) / 2, .groups = "drop") %>%
+    pull(x)
+
+  ggplot() +
+    geom_rect(data = cytobands_chr18,
+              aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill = stain),
+              color = "grey30", linewidth = 0.2) +
+    scale_fill_manual(values = stain_colors, guide = "none") +
+    # Centromere marker: ▲ below the acen bands, with "cen" label
+    annotate("point", x = cen_mid, y = -0.18, shape = 17,
+             size = 3, color = "black") +
+    annotate("text",  x = cen_mid, y = -0.40, label = "cen",
+             size = 3.2, fontface = "italic") +
+    # Gene ticks + staggered labels
+    geom_segment(data = gene_pos,
+                 aes(x = gene_x, xend = gene_x,
+                     y = -0.02, yend = label_y + 0.08),
+                 color = "darkblue", linewidth = 0.5) +
+    geom_text(data = gene_pos,
+              aes(x = gene_x, y = label_y, label = gene),
+              color = "darkblue", size = 3.4, vjust = 1, fontface = "bold") +
+    coord_cartesian(xlim = c(0, 80.6), ylim = c(-1.6, 1.2), expand = FALSE) +
+    labs(x = "chr18 position (Mb)", y = NULL) +
+    theme_classic() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          axis.title.y = element_blank(),
+          axis.text.x = element_text(size = 9),
+          plot.margin = margin(t = 0, r = 8, b = 4, l = 8))
+}
+```
+
+```{r chr18_zoom_ideo, fig.height=8, fig.width=10}
+plot_grid(
+  make_chr18_panel("sgCTRL", label_colors["sgCTRL"]),
+  make_chr18_panel("LOY-2X", label_colors["LOY-2X"]),
+  make_chr18_ideogram(),
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights = c(2.4, 2.4, 1.4)
+)
+```
+
+## 8e. Cancer-gene zooms: chr13, chr16, chr17
+
+Stacked panels (sgCTRL on top, LOY-2X in middle, T2T ideogram with gene markers
+on the bottom) for three additional chromosomes carrying recurrently
+deleted/amplified cancer genes.
+
+- **chr13** — FLT3 (13q12.2), BRCA2 (13q13.1), RB1 (13q14.2)
+- **chr16** — TSC2 (16p13.3), PALB2 (16p12.2), CDH1 (16q22.1)
+- **chr17** — TP53 (17p13.1), NF1 (17q11.2), ERBB2/HER2 (17q12), BRCA1 (17q21.31)
+
+Cytobands and gene spans are from UCSC `hs1` (T2T-CHM13v2.0): `cytoBandIdeo`
+and `ncbiRefSeqCurated` tracks.
+
+```{r extra_chrom_helpers, include=FALSE}
+# T2T-CHM13v2.0 cytobands (UCSC hs1 cytoBandIdeo) for chr13/16/17.
+cytobands_chr13 <- tribble(
+  ~start,      ~end,        ~band,    ~stain,
+    0.000000,    5.751447, "p13",    "gvar",
+    5.751447,    9.368750, "p12",    "stalk",
+    9.368750,   15.547593, "p11.2",  "gvar",
+   15.547593,   16.522942, "p11.1",  "acen",
+   16.522942,   17.498291, "q11",    "acen",
+   17.498291,   21.797623, "q12.11", "gneg",
+   21.797623,   24.108235, "q12.12", "gpos25",
+   24.108235,   26.420720, "q12.13", "gneg",
+   26.420720,   27.522230, "q12.2",  "gpos25",
+   27.522230,   30.823418, "q12.3",  "gneg",
+   30.823418,   32.617334, "q13.1",  "gpos50",
+   32.617334,   34.118269, "q13.2",  "gneg",
+   34.118269,   38.718394, "q13.3",  "gpos75",
+   38.718394,   43.819777, "q14.11", "gneg",
+   43.819777,   44.420051, "q14.12", "gpos25",
+   44.420051,   45.921251, "q14.13", "gneg",
+   45.921251,   49.520618, "q14.2",  "gpos50",
+   49.520618,   53.916044, "q14.3",  "gneg",
+   53.916044,   58.219746, "q21.1",  "gpos100",
+   58.219746,   61.020124, "q21.2",  "gneg",
+   61.020124,   64.418827, "q21.31", "gpos75",
+   64.418827,   67.322320, "q21.32", "gneg",
+   67.322320,   72.021474, "q21.33", "gpos100",
+   72.021474,   74.123996, "q22.1",  "gneg",
+   74.123996,   75.923712, "q22.2",  "gpos50",
+   75.923712,   77.725243, "q22.3",  "gneg",
+   77.725243,   86.303655, "q31.1",  "gpos100",
+   86.303655,   88.604095, "q31.2",  "gneg",
+   88.604095,   93.603590, "q31.3",  "gpos100",
+   93.603590,   96.706317, "q32.1",  "gneg",
+   96.706317,   97.909939, "q32.2",  "gpos25",
+   97.909939,  100.315089, "q32.3",  "gneg",
+  100.315089,  103.418692, "q33.1",  "gpos100",
+  103.418692,  105.620405, "q33.2",  "gneg",
+  105.620405,  108.828306, "q33.3",  "gpos100",
+  108.828306,  113.566686, "q34",    "gneg"
+)
+
+cytobands_chr16 <- tribble(
+  ~start,     ~end,       ~band,    ~stain,
+   0.000000,   7.831635, "p13.3",  "gneg",
+   7.831635,  10.435669, "p13.2",  "gpos50",
+  10.435669,  12.537038, "p13.13", "gneg",
+  12.537038,  14.730876, "p13.12", "gpos50",
+  14.730876,  16.712187, "p13.11", "gneg",
+  16.712187,  21.130950, "p12.3",  "gpos50",
+  21.130950,  24.476520, "p12.2",  "gneg",
+  24.476520,  28.752507, "p12.1",  "gpos50",
+  28.752507,  35.848286, "p11.2",  "gneg",
+  35.848286,  36.838903, "p11.1",  "acen",
+  36.838903,  37.829521, "q11.1",  "acen",
+  37.829521,  52.219471, "q11.2",  "gvar",
+  52.219471,  58.397876, "q12.1",  "gneg",
+  58.397876,  61.794998, "q12.2",  "gpos50",
+  61.794998,  63.095972, "q13",    "gneg",
+  63.095972,  72.394295, "q21",    "gpos100",
+  72.394295,  76.611172, "q22.1",  "gneg",
+  76.611172,  78.617811, "q22.2",  "gpos50",
+  78.617811,  79.917729, "q22.3",  "gneg",
+  79.917729,  85.256228, "q23.1",  "gpos75",
+  85.256228,  87.661662, "q23.2",  "gneg",
+  87.661662,  90.166083, "q23.3",  "gpos50",
+  90.166083,  93.070234, "q24.1",  "gneg",
+  93.070234,  94.769136, "q24.2",  "gpos25",
+  94.769136,  96.330374, "q24.3",  "gneg"
+)
+
+cytobands_chr17 <- tribble(
+  ~start,     ~end,       ~band,    ~stain,
+   0.000000,   3.288940, "p13.3",  "gneg",
+   3.288940,   6.400012, "p13.2",  "gpos50",
+   6.400012,  10.707908, "p13.1",  "gneg",
+  10.707908,  16.002309, "p12",    "gpos75",
+  16.002309,  23.892419, "p11.2",  "gneg",
+  23.892419,  25.689679, "p11.1",  "acen",
+  25.689679,  27.486939, "q11.1",  "acen",
+  27.486939,  34.446012, "q11.2",  "gneg",
+  34.446012,  40.663561, "q12",    "gpos50",
+  40.663561,  41.063885, "q21.1",  "gneg",
+  41.063885,  43.657141, "q21.2",  "gpos25",
+  43.657141,  47.661458, "q21.31", "gneg",
+  47.661458,  50.163080, "q21.32", "gpos25",
+  50.163080,  52.967757, "q21.33", "gneg",
+  52.967757,  60.368167, "q22",    "gpos75",
+  60.368167,  61.068949, "q23.1",  "gneg",
+  61.068949,  63.970246, "q23.2",  "gpos75",
+  63.970246,  65.469760, "q23.3",  "gneg",
+  65.469760,  67.070785, "q24.1",  "gpos50",
+  67.070785,  69.976574, "q24.2",  "gneg",
+  69.976574,  73.787784, "q24.3",  "gpos75",
+  73.787784,  77.692007, "q25.1",  "gneg",
+  77.692007,  78.093613, "q25.2",  "gpos25",
+  78.093613,  84.276897, "q25.3",  "gneg"
+)
+
+# T2T gene coordinates (UCSC hs1 ncbiRefSeqCurated, longest transcript per gene).
+gene_coords_chr13 <- tribble(
+  ~gene,   ~start_Mb, ~end_Mb,
+  "FLT3",   27.226,   27.323,
+  "BRCA2",  31.533,   31.618,
+  "RB1",    47.524,   47.702
+)
+gene_coords_chr16 <- tribble(
+  ~gene,   ~start_Mb, ~end_Mb,
+  "TSC2",    2.068,    2.110,
+  "PALB2",  23.879,   23.917,
+  "CDH1",   74.533,   74.632
+)
+gene_coords_chr17 <- tribble(
+  ~gene,   ~start_Mb, ~end_Mb,
+  "TP53",    7.573,    7.592,
+  "NF1",    32.041,   32.323,
+  "ERBB2",  40.552,   40.592,
+  "BRCA1",  43.903,   44.029
+)
+
+chrom_size_Mb <- c(chr13 = 113.566686, chr16 = 96.330374, chr17 = 84.276897)
+
+make_chrom_panel <- function(chrom, sample_label, panel_color, gene_df) {
+  d <- cn_df %>% filter(chromosome == chrom, label == sample_label)
+  ggplot(d) +
+    geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+    geom_vline(data = gene_df,
+               aes(xintercept = (start_Mb + end_Mb)/2),
+               color = "darkblue", linewidth = 0.3, alpha = 0.35) +
+    geom_point(aes(x = midpoint, y = log2), color = "grey55",
+               size = 0.6, alpha = 0.6) +
+    geom_line(aes(x = midpoint, y = log2_seg),
+              color = panel_color, linewidth = 0.8) +
+    coord_cartesian(xlim = c(0, chrom_size_Mb[[chrom]] + 0.1),
+                    ylim = c(-2, 2), expand = FALSE) +
+    labs(x = NULL, y = "log2 ratio", title = sample_label) +
+    theme_cowplot() +
+    theme(plot.title = element_text(size = 11, face = "bold"),
+          plot.margin = margin(t = 4, r = 8, b = 0, l = 8))
+}
+
+make_chrom_ideogram <- function(chrom, cyto_df, gene_df, label_y_lookup) {
+  gene_pos <- gene_df %>%
+    mutate(gene_x  = (start_Mb + end_Mb) / 2,
+           label_y = label_y_lookup[gene])
+  cen_mid <- cyto_df %>%
+    filter(stain == "acen") %>%
+    summarise(x = (min(start) + max(end)) / 2, .groups = "drop") %>%
+    pull(x)
+  ggplot() +
+    geom_rect(data = cyto_df,
+              aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill = stain),
+              color = "grey30", linewidth = 0.2) +
+    scale_fill_manual(values = stain_colors, guide = "none") +
+    annotate("point", x = cen_mid, y = -0.18, shape = 17,
+             size = 3, color = "black") +
+    annotate("text",  x = cen_mid, y = -0.40, label = "cen",
+             size = 3.2, fontface = "italic") +
+    geom_segment(data = gene_pos,
+                 aes(x = gene_x, xend = gene_x,
+                     y = -0.02, yend = label_y + 0.08),
+                 color = "darkblue", linewidth = 0.5) +
+    geom_text(data = gene_pos,
+              aes(x = gene_x, y = label_y, label = gene),
+              color = "darkblue", size = 3.4, vjust = 1, fontface = "bold") +
+    coord_cartesian(xlim = c(0, chrom_size_Mb[[chrom]] + 0.1),
+                    ylim = c(-1.6, 1.2), expand = FALSE) +
+    labs(x = paste0(chrom, " position (Mb)"), y = NULL) +
+    theme_classic() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          axis.title.y = element_blank(),
+          axis.text.x = element_text(size = 9),
+          plot.margin = margin(t = 0, r = 8, b = 4, l = 8))
+}
+```
+
+```{r chr13_zoom_ideo, fig.height=8, fig.width=10}
+plot_grid(
+  make_chrom_panel("chr13", "sgCTRL", label_colors["sgCTRL"], gene_coords_chr13),
+  make_chrom_panel("chr13", "LOY-2X", label_colors["LOY-2X"], gene_coords_chr13),
+  make_chrom_ideogram("chr13", cytobands_chr13, gene_coords_chr13,
+                      c(FLT3 = -0.55, BRCA2 = -1.00, RB1 = -0.55)),
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights = c(2.4, 2.4, 1.4)
+)
+```
+
+```{r chr16_zoom_ideo, fig.height=8, fig.width=10}
+plot_grid(
+  make_chrom_panel("chr16", "sgCTRL", label_colors["sgCTRL"], gene_coords_chr16),
+  make_chrom_panel("chr16", "LOY-2X", label_colors["LOY-2X"], gene_coords_chr16),
+  make_chrom_ideogram("chr16", cytobands_chr16, gene_coords_chr16,
+                      c(TSC2 = -0.55, PALB2 = -0.55, CDH1 = -0.55)),
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights = c(2.4, 2.4, 1.4)
+)
+```
+
+```{r chr17_zoom_ideo, fig.height=8, fig.width=10}
+plot_grid(
+  make_chrom_panel("chr17", "sgCTRL", label_colors["sgCTRL"], gene_coords_chr17),
+  make_chrom_panel("chr17", "LOY-2X", label_colors["LOY-2X"], gene_coords_chr17),
+  make_chrom_ideogram("chr17", cytobands_chr17, gene_coords_chr17,
+                      c(TP53 = -0.55, NF1 = -0.55, ERBB2 = -0.55, BRCA1 = -1.00)),
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights = c(2.4, 2.4, 1.4)
+)
+```
+
+## 9. Copy number calls
+
+```{r calls_table, eval=calls_ok}
+calls <- assayDataElement(cn, "calls")  # -2 loss, -1 hetloss, 0 normal, 1 gain, 2 amp
+call_summary <- as.data.frame(calls) %>%
+  rownames_to_column("bin_id") %>%
+  pivot_longer(-bin_id, names_to = "sample", values_to = "call") %>%
+  inner_join(fdat %>% select(bin_id, chromosome), by = "bin_id") %>%
+  group_by(sample, call) %>%
+  summarise(n_bins = n(), .groups = "drop") %>%
+  mutate(call_label = recode(as.character(call),
+                             `-2` = "Loss",
+                             `-1` = "HetLoss",
+                              `0` = "Normal",
+                              `1` = "Gain",
+                              `2` = "Amp")) %>%
+  pivot_wider(id_cols = sample,
+              names_from = call_label, values_from = n_bins, values_fill = 0) %>%
+  mutate(label = factor(sample_labels[sample], levels = sample_meta$label)) %>%
+  arrange(label) %>%
+  select(Sample = label, any_of(c("Loss", "HetLoss", "Normal", "Gain", "Amp")))
+
+knitr::kable(call_summary,
+             caption = "Bins per copy-number call category, per sample")
+```
+
+```{r chrY_calls_table, eval=calls_ok}
+chrY_calls <- as.data.frame(calls) %>%
+  rownames_to_column("bin_id") %>%
+  inner_join(fdat %>% select(bin_id, chromosome), by = "bin_id") %>%
+  filter(chromosome == "chrY") %>%
+  pivot_longer(-c(bin_id, chromosome), names_to = "sample", values_to = "call") %>%
+  group_by(sample, call) %>%
+  summarise(n_bins = n(), .groups = "drop") %>%
+  mutate(call_label = recode(as.character(call),
+                             `-2` = "Loss",
+                             `-1` = "HetLoss",
+                              `0` = "Normal",
+                              `1` = "Gain",
+                              `2` = "Amp")) %>%
+  pivot_wider(id_cols = sample,
+              names_from = call_label, values_from = n_bins, values_fill = 0) %>%
+  mutate(label = factor(sample_labels[sample], levels = sample_meta$label)) %>%
+  arrange(label) %>%
+  select(Sample = label, any_of(c("Loss", "HetLoss", "Normal", "Gain", "Amp")))
+
+knitr::kable(chrY_calls,
+             caption = "chrY-only bins per call category — Loss/HetLoss bins quantify LOY extent")
+```
+
+```{r calls_skipped, eval=!calls_ok, results='asis'}
+cat("> `callBins()` failed during knit (CGHcall internal error). Segmented log2 tracks above are the primary output; CN call categories (Loss/HetLoss/Gain/Amp) are not available in this run.\n")
+```
+
+## Session info
+
+```{r}
+sessionInfo()
+```

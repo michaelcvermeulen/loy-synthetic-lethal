@@ -1,0 +1,11 @@
+"observation","value"
+"candidate_guides",14723
+"sumOther_zero",6901
+"sumOther_zero_and_sumY_gt9",6901
+"top_hits",215
+"top_hits_without_1_or_2_mismatch_sites",215
+"top_hits_with_exactly10_Y_hits",11
+"top_hits_with_at_most20_Y_hits",48
+"site_rows",92870
+"site_chrY_rows",0
+"top_hits_sorted_by_decreasing_exact_Y_hits",1

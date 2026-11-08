@@ -1,0 +1,150 @@
+During startup - Warning messages:
+1: Setting LC_COLLATE=C.UTF-8 failed 
+2: Setting LC_CTYPE=C.UTF-8 failed 
+3: Setting LC_MONETARY=C.UTF-8 failed 
+4: Setting LC_TIME=C.UTF-8 failed 
+Function: normalizeSegmentedBins (package QDNAseq)
+object="QDNAseqCopyNumbers"
+function (object, inter = c(-0.1, 0.1), force = FALSE) 
+{
+    if (!force && "calls" %in% assayDataElementNames(object)) 
+        stop("Data has already been called. Re-normalizing will ", 
+            "remove calling results. ", "Please specify force=TRUE, if you want this.")
+    if ("calls" %in% assayDataElementNames(object)) {
+        assayDataElement(object, "calls") <- NULL
+        assayDataElement(object, "probloss") <- NULL
+        assayDataElement(object, "probnorm") <- NULL
+        assayDataElement(object, "probgain") <- NULL
+        if ("probdloss" %in% assayDataElementNames(object)) 
+            assayDataElement(object, "probdloss") <- NULL
+        if ("probamp" %in% assayDataElementNames(object)) 
+            assayDataElement(object, "probamp") <- NULL
+    }
+    seg <- makeCgh(object, chromosomeReplacements = "auto")
+    postseg <- postsegnormalize(seg, inter = inter)
+    copynumber(object) <- log2adhoc(copynumber(postseg), inv = TRUE)
+    segmented(object) <- log2adhoc(segmented(postseg), inv = TRUE)
+    object
+}
+
+
+
+Function: smoothOutlierBins (package QDNAseq)
+object="QDNAseqCopyNumbers"
+function (object, logTransform = TRUE, force = FALSE, ...) 
+{
+    .local <- function (object, logTransform = TRUE, force = FALSE, 
+        ..., verbose = getOption("QDNAseq::verbose", TRUE)) 
+    {
+        oopts <- options(`QDNAseq::verbose` = verbose)
+        on.exit(options(oopts))
+        if (!force && ("segmented" %in% assayDataElementNames(object))) 
+            stop("Data has already been segmented. Smoothing the outliers will ", 
+                "remove segmentation (and possible calling) results. ", 
+                "Please specify force=TRUE, if you want this.")
+        if ("segmented" %in% assayDataElementNames(object)) 
+            assayDataElement(object, "segmented") <- NULL
+        if ("calls" %in% assayDataElementNames(object)) {
+            assayDataElement(object, "calls") <- NULL
+            assayDataElement(object, "probloss") <- NULL
+            assayDataElement(object, "probnorm") <- NULL
+            assayDataElement(object, "probgain") <- NULL
+            if ("probdloss" %in% assayDataElementNames(object)) 
+                assayDataElement(object, "probdloss") <- NULL
+            if ("probamp" %in% assayDataElementNames(object)) 
+                assayDataElement(object, "probamp") <- NULL
+        }
+        copynumber <- assayDataElement(object, "copynumber")
+        fData <- fData(object)
+        stopifnot(is.matrix(copynumber))
+        if (logTransform) 
+            copynumber <- log2adhoc(copynumber)
+        condition <- binsToUse(object)
+        vmsg("Smoothing outliers ...", appendLF = FALSE)
+        CNA.object <- CNA(copynumber[condition, , drop = FALSE], 
+            chrom = fData[condition, "chromosome"], maploc = fData[condition, 
+                "start"], data.type = "logratio", presorted = TRUE)
+        CNA.object <- smooth.CNA(CNA.object, ...)
+        CNA.object <- CNA.object[, -(1:2), drop = FALSE]
+        copynumber <- as.matrix(CNA.object)
+        CNA.object <- NULL
+        if (logTransform) 
+            copynumber <- log2adhoc(copynumber, inv = TRUE)
+        copynumber2 <- matrix(NA_real_, nrow = nrow(object), 
+            ncol = ncol(object), dimnames = list(featureNames(object), 
+                sampleNames(object)))
+        copynumber2[condition, ] <- copynumber
+        copynumber <- NULL
+        assayDataElement(object, "copynumber") <- copynumber2
+        copynumber2 <- NULL
+        vmsg()
+        object
+    }
+    .local(object, logTransform, force, ...)
+}
+
+
+
+
+ HT1080 
+HT1080-sgCTRL-D0 maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+HT1080-LOY-D0 maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+rc_f 31185 2 
+counts diff: 0 
+fit diff: 0 
+Applying median normalization ...
+Smoothing outliers ...
+cn_corr 31185 2 
+CN diff vs baseline final: 98.78385 
+cn_norm 31185 2 
+CN diff vs baseline final: 100.4592 
+cn_smooth 31185 2 
+CN diff vs baseline final: 2.643186 
+cn_seg 31185 2 
+CN diff vs baseline final: 0 
+cn 31185 2 
+CN diff vs baseline final: 0 
+
+ A549 
+A549-CTRL2 maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+A549-LOY maxDiff 0.07222514 cor 1 ratio quantiles 1.0039 1.0039 1.0039 1.0039 1.0039 
+rc_f 31185 2 
+counts diff: 0 
+fit diff: 0 
+Applying median normalization ...
+Smoothing outliers ...
+cn_corr 31185 2 
+CN diff vs baseline final: 63.27957 
+cn_norm 31185 2 
+CN diff vs baseline final: 64.23431 
+cn_smooth 31185 2 
+CN diff vs baseline final: 1.681913 
+cn_seg 31185 2 
+CN diff vs baseline final: 0.07222514 
+cn 31185 2 
+CN diff vs baseline final: 0.07222514 
+
+ DU145 
+LNCaP-sgCTRL maxDiff 0.005896781 cor 1 ratio quantiles 1.001016 1.001016 1.001016 1.001016 1.001016 
+LNCaP-LOY-2X maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+LNCaP-DMSO-LOY-1X maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+LNCaP-30 maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+LNCaP-70 maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+LNCaP-KU maxDiff 0 cor 1 ratio quantiles 1 1 1 1 1 
+LNCaP-KU-30 maxDiff 0.01670513 cor 1 ratio quantiles 1.001445 1.001445 1.001445 1.001445 1.001445 
+LNCaP-KU-70 maxDiff 0.01587568 cor 1 ratio quantiles 0.9996392 0.9996392 0.9996392 0.9996392 0.9996392 
+rc_f 31185 8 
+counts diff: 0 
+fit diff: 0 
+Applying median normalization ...
+Smoothing outliers ...
+cn_corr 31185 8 
+CN diff vs baseline final: 587.0976 
+cn_norm 31185 8 
+CN diff vs baseline final: 596.7473 
+cn_smooth 31185 8 
+CN diff vs baseline final: 12.86412 
+cn_seg 31185 8 
+CN diff vs baseline final: 0.01670513 
+cn 31185 8 
+CN diff vs baseline final: 0.01670513 

@@ -1,0 +1,3 @@
+comparison,genes,same_direction,pearson_r,median_ratio_to_August
+May untransduced LOY - sgCTRL,75,72,0.89997811447867,0.988185609908347
+May empty vector - sgCTRL,75,55,0.671507950837369,0.770397136604213

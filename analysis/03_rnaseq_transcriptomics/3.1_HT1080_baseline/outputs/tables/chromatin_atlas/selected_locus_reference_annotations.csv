@@ -1,0 +1,17 @@
+gene_id,gene_name,in_RNA_rank_universe,reference_status,H2AK119ub1__detected,H3K27me3__detected,H3K9me3__detected,H4K20me3__detected,H4K20me1__detected,H3K4me1__detected,H3K27ac__detected,H3K4me3__detected,LaminB1__detected,LaminB2__detected,H2AK119ub1__peak_covered_fraction,H3K27me3__peak_covered_fraction,H3K9me3__peak_covered_fraction,H4K20me3__peak_covered_fraction,H4K20me1__peak_covered_fraction,H3K4me1__peak_covered_fraction,H3K27ac__peak_covered_fraction,H3K4me3__peak_covered_fraction,LaminB1__peak_covered_fraction,LaminB2__peak_covered_fraction
+ENSG00000116478.14,HDAC1,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,True,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.102974256435891,0.0,0.0
+ENSG00000160716.6,CHRNB2,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000196591.13,HDAC2,True,evaluable_under_frozen_rules,True,False,False,True,False,False,True,True,True,False,0.0724818795301175,0.0,0.0,0.156210947263184,0.0,0.0,0.16670832291927,0.364408897775556,0.146713321669583,0.0
+ENSG00000106462.13,EZH2,True,evaluable_under_frozen_rules,False,False,False,True,False,False,True,True,True,False,0.0,0.0,0.0,0.0577355661084729,0.0,0.0,0.0552361909522619,0.142214446388403,0.181204698825294,0.0
+ENSG00000147434.9,CHRNA6,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000074266.24,EED,True,evaluable_under_frozen_rules,False,False,True,False,False,False,False,True,False,False,0.0,0.0,0.10722319420145,0.0,0.0,0.0,0.0,0.238690327418145,0.0,0.0
+ENSG00000196611.6,MMP1,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000149968.12,MMP3,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000089902.11,RCOR1,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,True,True,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0769807548112972,0.25568607848038,0.0
+ENSG00000175344.20,CHRNA7,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000117971.13,CHRNB4,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000108556.10,CHRNE,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000178691.13,SUZ12,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,True,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.215196200949763,0.0,0.0
+ENSG00000101040.21,ZMYND8,True,evaluable_under_frozen_rules,False,False,False,False,False,False,False,False,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+ENSG00000183878.17,UTY,False,evaluable_under_frozen_rules,False,False,False,False,False,False,False,True,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.127718070482379,0.0,0.0
+ENSG00000012817.17,KDM5D,False,evaluable_under_frozen_rules,False,False,False,False,False,False,False,True,False,False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0662334416395901,0.0,0.0

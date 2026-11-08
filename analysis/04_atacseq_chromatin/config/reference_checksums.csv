@@ -1,0 +1,5 @@
+"path","sha256"
+"config/bam.chrom.sizes","85e0011ebfa6683100433310fdf504278a4f74cd12ed60406a2e0703c2af4caa"
+"config/genes_knownGene.tsv","811d012820f6b916e1f4773125abec689a6114bb9c25a755ae43f2321a47e6fa"
+"config/tss_knownGene.bed","5b9f0de0c2ac75bb07f2683f793f4fd2a384944963e2f8f2f3aa96e3468b6451"
+"config/hg38-blacklist.v2.bed.gz","c92e763af17271446194991e71917ac220593a5a3d40a06667be24178ef08cf2"

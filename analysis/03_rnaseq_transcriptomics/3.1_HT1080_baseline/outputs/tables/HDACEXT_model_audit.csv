@@ -1,0 +1,3 @@
+stratum,libraries,groups,residual_df,genes,common_dispersion,model
+"S47",33,11,22,19734,0.0032673930305037,"no_intercept_source_group; robust_edgeR_QL; legacy_FALSE; no_replicate_number_pairing"
+"S52",30,10,20,18980,0.00394095210635423,"no_intercept_source_group; robust_edgeR_QL; legacy_FALSE; no_replicate_number_pairing"

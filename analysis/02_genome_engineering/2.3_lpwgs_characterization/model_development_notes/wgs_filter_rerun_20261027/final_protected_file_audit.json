@@ -1,0 +1,315 @@
+{
+  "checked_utc": "2026-10-27T19:30:33.193327+00:00",
+  "files": [
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter1/chapter1_material_from_chapter3.md",
+      "before_md5": "d09075f70c331b3b402f5622cb1ee299",
+      "final_md5": "d09075f70c331b3b402f5622cb1ee299",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-26T19:31:11.008556+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_abstract.md",
+      "before_md5": "a7cc64bdd033013125844b441ff36b63",
+      "final_md5": "a7cc64bdd033013125844b441ff36b63",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-26T19:19:45.764662+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_discussion.md",
+      "before_md5": "e9c19556b84a8f1c1cfa3f7c7e1677db",
+      "final_md5": "e9c19556b84a8f1c1cfa3f7c7e1677db",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:25:52.297998+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_figure_numbering.md",
+      "before_md5": "45b91048a947ddd6203ae3a781186e5b",
+      "final_md5": "45b91048a947ddd6203ae3a781186e5b",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T19:00:35.293367+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_introduction.docx",
+      "before_md5": "d796e2a6ea8edecd4830c1875ad65ce9",
+      "final_md5": "d796e2a6ea8edecd4830c1875ad65ce9",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T14:45:54.738504+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_introduction.md",
+      "before_md5": "29047d20b53f9ecc2b1d89a1d6a54f85",
+      "final_md5": "29047d20b53f9ecc2b1d89a1d6a54f85",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T15:29:06.593936+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_introduction_plan.md",
+      "before_md5": "e040e557e9bfb1fd0ec70d92a2236272",
+      "final_md5": "e040e557e9bfb1fd0ec70d92a2236272",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-26T19:52:06.022837+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_methods.docx",
+      "before_md5": "3f7f8f3a0442052848d8c5456a6cec28",
+      "final_md5": "3f7f8f3a0442052848d8c5456a6cec28",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T16:01:27.975914+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_methods.md",
+      "before_md5": "27fb114ded9b1d56be44c27c0fbcad56",
+      "final_md5": "27fb114ded9b1d56be44c27c0fbcad56",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T16:05:14.050796+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_results.md",
+      "before_md5": "92651f600b8f0148fb1fa5b3382aaf82",
+      "final_md5": "fc6cd504d0c89ae38bb3ed1d808376de",
+      "unchanged": false,
+      "last_modified_utc": "2026-10-27T19:27:45.826413+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_supplementary_methods.md",
+      "before_md5": "2887ab9c3a410cdeb2eae8e620b7184b",
+      "final_md5": "2887ab9c3a410cdeb2eae8e620b7184b",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T16:03:54.511889+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_discussion.md",
+      "before_md5": "84a4a23cfae854ba34e7f4fe9337af9d",
+      "final_md5": "84a4a23cfae854ba34e7f4fe9337af9d",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-23T05:07:52.757926+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_discussion_source_notes.md",
+      "before_md5": "a4fea1c4f0c98dc38f46930c252acc61",
+      "final_md5": "a4fea1c4f0c98dc38f46930c252acc61",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-22T17:44:42.999903+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_figure_numbering.md",
+      "before_md5": "5bd35c484b285df235ffa1bcd83a6bfc",
+      "final_md5": "5bd35c484b285df235ffa1bcd83a6bfc",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-22T19:55:39.056106+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_introduction.md",
+      "before_md5": "0976533adeafcb0d6cfc5dd58938a409",
+      "final_md5": "0976533adeafcb0d6cfc5dd58938a409",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-22T17:43:37.798496+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_introduction_source_notes.md",
+      "before_md5": "d2b90ba2287b6e5389361ecc7e34137b",
+      "final_md5": "d2b90ba2287b6e5389361ecc7e34137b",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-21T18:15:06.443329+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_material_from_chapter3.md",
+      "before_md5": "6875edee047a6833c6c92c7cc6b78c7d",
+      "final_md5": "6875edee047a6833c6c92c7cc6b78c7d",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:24:35.637845+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_methods.md",
+      "before_md5": "ef06345fdf4e77a98cfaeec04c465333",
+      "final_md5": "ef06345fdf4e77a98cfaeec04c465333",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-23T03:13:46.228408+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_methods_source_notes.md",
+      "before_md5": "302f55321fcdcceba9d5e28d4a736fb2",
+      "final_md5": "302f55321fcdcceba9d5e28d4a736fb2",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-23T03:13:51.053374+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_results.md",
+      "before_md5": "aa8fe63e2ec5b9f06e44a29f45254ebb",
+      "final_md5": "aa8fe63e2ec5b9f06e44a29f45254ebb",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-22T22:09:52.196374+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter4/chapter4_results_source_notes.md",
+      "before_md5": "f0b289dc49a75773987aa85977d9a290",
+      "final_md5": "f0b289dc49a75773987aa85977d9a290",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-22T22:09:58.171871+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/Chapter3_figure_captions.md",
+      "before_md5": "03ccc13f5a8534d08216a9d9917f1437",
+      "final_md5": "03ccc13f5a8534d08216a9d9917f1437",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T19:00:35.270791+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/selected_figure_index.tsv",
+      "before_md5": "f8062c54f5875705a04bae57cafd1d43",
+      "final_md5": "f8062c54f5875705a04bae57cafd1d43",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T19:00:35.287307+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_1_F04_ht1080_regional_y/CH3_S3_4_5_1_F04_ht1080_regional_y.pdf",
+      "before_md5": "e524e5becba2544426fd0a4946cca952",
+      "final_md5": "e524e5becba2544426fd0a4946cca952",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:44.926396+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_1_F04_ht1080_regional_y/CH3_S3_4_5_1_F04_ht1080_regional_y.png",
+      "before_md5": "83b2888bc85ba607ccf5312b8ca2916e",
+      "final_md5": "83b2888bc85ba607ccf5312b8ca2916e",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:45.699258+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_1_F04_ht1080_regional_y/CH3_S3_4_5_1_F04_ht1080_regional_y.svg",
+      "before_md5": "a7bcc4a2811b6cc75e4f58a38b5237d3",
+      "final_md5": "a7bcc4a2811b6cc75e4f58a38b5237d3",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:45.017751+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_1_F04_ht1080_regional_y/CH3_S3_4_5_1_F04_ht1080_regional_y_normalised_5fc0c1db4bfc.png",
+      "before_md5": "83b2888bc85ba607ccf5312b8ca2916e",
+      "final_md5": "83b2888bc85ba607ccf5312b8ca2916e",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:45.699258+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_2_F02_a549_regional_y/CH3_S3_4_5_2_F02_a549_regional_y.pdf",
+      "before_md5": "c3d255dccc12ef3fe55beff8b7ae96b3",
+      "final_md5": "c3d255dccc12ef3fe55beff8b7ae96b3",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:19.776434+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_2_F02_a549_regional_y/CH3_S3_4_5_2_F02_a549_regional_y.png",
+      "before_md5": "1694775aec4a561774d0d84876b6947a",
+      "final_md5": "1694775aec4a561774d0d84876b6947a",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:20.820288+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_2_F02_a549_regional_y/CH3_S3_4_5_2_F02_a549_regional_y.svg",
+      "before_md5": "91b28fa5328ca97dfc7a53e05efeebc0",
+      "final_md5": "91b28fa5328ca97dfc7a53e05efeebc0",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:19.902254+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_2_F02_a549_regional_y/CH3_S3_4_5_2_F02_a549_regional_y_normalised_140986864274.png",
+      "before_md5": "1694775aec4a561774d0d84876b6947a",
+      "final_md5": "1694775aec4a561774d0d84876b6947a",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:20.820288+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_3_F02_du145_regional_y/CH3_S3_4_5_3_F02_du145_regional_y.pdf",
+      "before_md5": "80c4cfd6f0141b98433fd007991ed770",
+      "final_md5": "80c4cfd6f0141b98433fd007991ed770",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:19.807438+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_3_F02_du145_regional_y/CH3_S3_4_5_3_F02_du145_regional_y.png",
+      "before_md5": "15fb3a43a26c1a5c67f2c03480769f0e",
+      "final_md5": "15fb3a43a26c1a5c67f2c03480769f0e",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:20.876575+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_3_F02_du145_regional_y/CH3_S3_4_5_3_F02_du145_regional_y.svg",
+      "before_md5": "2ee9892b8c57b1c7dfe445664d554e9f",
+      "final_md5": "2ee9892b8c57b1c7dfe445664d554e9f",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:19.926252+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_3_F02_du145_regional_y/CH3_S3_4_5_3_F02_du145_regional_y_normalised_f90fe8761c08.png",
+      "before_md5": "15fb3a43a26c1a5c67f2c03480769f0e",
+      "final_md5": "15fb3a43a26c1a5c67f2c03480769f0e",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:57:20.876575+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_S05_regional_y_individual_tracks/CH3_S3_4_5_S05_regional_y_individual_tracks.pdf",
+      "before_md5": "6e326fe78c8049d5e474419b06544484",
+      "final_md5": "6e326fe78c8049d5e474419b06544484",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:48.499131+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_S05_regional_y_individual_tracks/CH3_S3_4_5_S05_regional_y_individual_tracks.png",
+      "before_md5": "11237b8d638d7fa4d4ace0bf30ae427a",
+      "final_md5": "11237b8d638d7fa4d4ace0bf30ae427a",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:50.506338+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_S05_regional_y_individual_tracks/CH3_S3_4_5_S05_regional_y_individual_tracks.svg",
+      "before_md5": "2a4a8ce311848f1adb87e2aeb310b1f3",
+      "final_md5": "2a4a8ce311848f1adb87e2aeb310b1f3",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:48.611854+00:00"
+    },
+    {
+      "path": "SEPT_11_2026_THESIS/figures/chapter3/selected/CH3_S3_4_5_S05_regional_y_individual_tracks/CH3_S3_4_5_S05_regional_y_individual_tracks_normalised_021d7dc0574b.png",
+      "before_md5": "11237b8d638d7fa4d4ace0bf30ae427a",
+      "final_md5": "11237b8d638d7fa4d4ace0bf30ae427a",
+      "unchanged": true,
+      "last_modified_utc": "2026-10-27T18:58:50.506338+00:00"
+    },
+    {
+      "path": "WGS/HT1080_QDNAseq_cn.rds",
+      "before_md5": "381c49dc862ac51db58e2827e74222cc",
+      "final_md5": "381c49dc862ac51db58e2827e74222cc",
+      "unchanged": true,
+      "last_modified_utc": "2026-05-13T16:21:25.193799+00:00"
+    },
+    {
+      "path": "WGS/A549_QDNAseq_cn.rds",
+      "before_md5": "2953ef961bc76d2f22677881d4aa5c34",
+      "final_md5": "2953ef961bc76d2f22677881d4aa5c34",
+      "unchanged": true,
+      "last_modified_utc": "2026-05-21T13:16:41.836482+00:00"
+    },
+    {
+      "path": "WGS/LNCaP_QDNAseq_cn.rds",
+      "before_md5": "f189d80f37dd31adc779d9d7d86ed88d",
+      "final_md5": "f189d80f37dd31adc779d9d7d86ed88d",
+      "unchanged": true,
+      "last_modified_utc": "2026-05-21T13:19:22.975111+00:00"
+    },
+    {
+      "path": "WGS/t2t_bins_100kb.rds",
+      "before_md5": "0fd1a5af13d5b5d93c122975c4738a91",
+      "final_md5": "0fd1a5af13d5b5d93c122975c4738a91",
+      "unchanged": true,
+      "last_modified_utc": "2026-05-11T18:15:46.696737+00:00"
+    }
+  ],
+  "changes_after_rerun": [
+    {
+      "path": "SEPT_11_2026_THESIS/draftv2/chapter3/chapter3_results.md",
+      "before_md5": "92651f600b8f0148fb1fa5b3382aaf82",
+      "final_md5": "fc6cd504d0c89ae38bb3ed1d808376de",
+      "unchanged": false,
+      "last_modified_utc": "2026-10-27T19:27:45.826413+00:00"
+    }
+  ]
+}

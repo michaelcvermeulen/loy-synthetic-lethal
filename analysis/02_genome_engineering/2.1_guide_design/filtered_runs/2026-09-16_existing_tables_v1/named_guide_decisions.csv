@@ -1,0 +1,6 @@
+rank,guide_id,guide,region,exact_y_matches,exact_y_forward,exact_y_reverse,exact_non_y_matches,non_y_mm1,non_y_mm2,non_y_mm3,non_y_mm4,legacy_non_y_cfd_mean,legacy_non_y_cfd_max,legacy_non_y_cfd_sum,annotation_row_present,required_mismatch_counts_available,decision,reasons
+1,Q53,TCGCCAGGAATTGATGTGAA,Yq,532,529,3,0,0,0,50,127,0.123993655234616,0.751111111688889,21.946876976527,True,True,retained,passes_all_configured_filters
+11,CP,ACTATCTTCGCATGAGAACC,centromere,54,0,54,0,0,0,121,135,0.282942897292318,0.900255754746803,72.4333817068333,True,True,retained,passes_all_configured_filters
+12,CN,ATGATAGGTTGAACTCCCGG,centromere,53,53,0,0,0,0,13,42,0.131252123464173,0.571428571619048,7.21886679052953,True,True,retained,passes_all_configured_filters
+14,P51,ATTAAGGCCCACCTGAGTAA,Yp,51,4,47,0,0,0,64,76,0.141611306460549,0.551020408193878,19.8255829044769,True,True,retained,passes_all_configured_filters
+32,P47,TTCGCGCGCAGTCCCTTAGG,Yp,47,45,2,0,0,0,7,12,0.149032901470087,0.742857143019048,2.83162512793166,True,True,retained,passes_all_configured_filters

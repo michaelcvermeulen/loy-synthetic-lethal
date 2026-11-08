@@ -1,0 +1,76 @@
+{
+  "minimum_MAPQ": 37,
+  "excluded_flags": "0xF04",
+  "excluded_categories": [
+    "unmapped",
+    "secondary",
+    "supplementary",
+    "QC-failed",
+    "marked duplicates"
+  ],
+  "count_unit": "primary read end; R1 and R2 counted separately, not read pairs",
+  "CPM_denominator": "all mapped primary read ends passing identical MAPQ/flag filters across all reference contigs, including chrM",
+  "interval_rule": "samtools multi-region iterator counts each alignment once per region union; do not sum per-bin overlap counts",
+  "PAR_interpretation": "X-mapped combined X/Y signal after Y-PAR masking",
+  "main_Yq_definition": "euchromatic chrY:10883086-27449937, matching atlas anatomical definition",
+  "full_Yq_including_Yq12_also_reported": true,
+  "regions_0based_halfopen": {
+    "MSY_Yp": [
+      "chrY",
+      2458320,
+      10565750
+    ],
+    "PAR1_X": [
+      "chrX",
+      0,
+      2394410
+    ],
+    "euchromatic_Yq": [
+      "chrY",
+      10883085,
+      27449937
+    ],
+    "PAR2_X": [
+      "chrX",
+      153925834,
+      154259566
+    ],
+    "Yq_including_Yq12_excluding_PAR2": [
+      "chrY",
+      10883085,
+      62122809
+    ],
+    "Yq12": [
+      "chrY",
+      27449937,
+      62122809
+    ],
+    "distal_MSY_Yp": [
+      "chrY",
+      2458320,
+      4800000
+    ],
+    "proximal_MSY_Yp": [
+      "chrY",
+      4800000,
+      10565750
+    ]
+  },
+  "samtools_version": "samtools 1.23.1",
+  "source_sha256": {
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/a549_dense_bins_20261027/100kb/source_data/regional_y_atlases_normalised/a549/paired_Y_bins_and_exclusions.csv": "d6532ac7f81ce2b1896c33352f8a141d6f99d195e8c724e48edb7523950404ba",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/a549_dense_bins_20261027/100kb/source_data/regional_y_atlases_normalised/a549/X_PAR_bin_ratios.csv": "1d09de30b620698b8a26b5440df47313cb3cca52e052e72b57628f05cceb81ef",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/a549_dense_bins_20261027/100kb/source_data/regional_y_atlases_normalised/a549/regional_median_paired_ratios.csv": "f587f5be3d242f2f2352fabeaf81da36b0fa857da6007726f6fec46da64c33a4",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/a549_dense_bins_20261027/100kb/source_data/regional_y_atlases_normalised/a549/X_PAR_regional_medians.csv": "72066bb7b9e33df1866c1b78e3d49ceb9be69daa442d976c1b6b2a57416ac9ee",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/ht1080/source_data/regional_y_atlases_normalised/ht1080/paired_Y_bins_and_exclusions.csv": "6fdf657a0eb98199b1d1312ffde53a501111913b18d1231a4d9559fd95cb3fe2",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/ht1080/source_data/regional_y_atlases_normalised/ht1080/X_PAR_bin_ratios.csv": "ab52245c43eab64951696b095af2f9e863a20850e5d3dc117568eb579d9d8d4f",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/ht1080/source_data/regional_y_atlases_normalised/ht1080/regional_median_paired_ratios.csv": "70a0e421aab8fda542249e59093397584dcf6d047d718d49447b00222f94d7ef",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/ht1080/source_data/regional_y_atlases_normalised/ht1080/X_PAR_regional_medians.csv": "f7e807f8a95e3c637039bb4470bf4d7bd351458cfcacad707a7478e96e576e18",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/du145/source_data/regional_y_atlases_normalised/du145/paired_Y_bins_and_exclusions.csv": "8ef55314026b9500a140596f115639d5533c73cbac4963dd19575cc24168e603",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/du145/source_data/regional_y_atlases_normalised/du145/X_PAR_bin_ratios.csv": "285e1f3ebb54659b9a1d88fa74115d6505616ade6cea1dffbc07159da1a9c22a",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/du145/source_data/regional_y_atlases_normalised/du145/regional_median_paired_ratios.csv": "2090edad9d11ae135a32ea294c17e4ed3f996d460341a714f6063b5cd72dcc5a",
+    "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/figures/chapter3/drafts/ht1080_du145_ypar_20261027/du145/source_data/regional_y_atlases_normalised/du145/X_PAR_regional_medians.csv": "925d9a30b74aade42d932fc9de824b911df1dec1f9c37c6422826db9e5ad5d49"
+  },
+  "prior_PAR_counts_match": true,
+  "input_BAMs_unchanged_by_size_mtime": true
+}

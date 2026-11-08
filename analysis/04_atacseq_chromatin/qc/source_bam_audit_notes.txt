@@ -1,0 +1,4 @@
+Source BAM audit passed: dictionaries, index readability, BGZF EOF, expected processing history.
+Header and 100,000-record sample checks are not full-stream integrity or mate validation.
+Full-stream read-pair validation will occur during preparation.
+Original chrM contamination is not recoverable from these filtered BAMs.

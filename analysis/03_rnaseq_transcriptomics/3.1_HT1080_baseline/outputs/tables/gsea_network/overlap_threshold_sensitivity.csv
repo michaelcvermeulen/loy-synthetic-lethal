@@ -1,0 +1,17 @@
+direction,gene_basis,jaccard_threshold,minimum_shared_genes,nodes,edges,isolates,connected_components,largest_component
+DOWN,leading_edge,0.20000000000000001,3,776,1277,439,495,108
+DOWN,leading_edge,0.25,3,776,703,489,554,63
+DOWN,leading_edge,0.34999999999999998,3,776,284,576,637,30
+DOWN,leading_edge,0.5,3,776,123,652,697,12
+DOWN,full_set,0.20000000000000001,3,776,682,489,561,60
+DOWN,full_set,0.25,3,776,370,544,610,38
+DOWN,full_set,0.34999999999999998,3,776,173,603,665,17
+DOWN,full_set,0.5,3,776,89,668,711,10
+UP,leading_edge,0.20000000000000001,3,32,8,19,25,3
+UP,leading_edge,0.25,3,32,8,19,25,3
+UP,leading_edge,0.34999999999999998,3,32,7,21,26,3
+UP,leading_edge,0.5,3,32,7,21,26,3
+UP,full_set,0.20000000000000001,3,32,8,19,25,3
+UP,full_set,0.25,3,32,7,21,26,3
+UP,full_set,0.34999999999999998,3,32,7,21,26,3
+UP,full_set,0.5,3,32,6,23,27,3

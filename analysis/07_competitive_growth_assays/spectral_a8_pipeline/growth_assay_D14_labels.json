@@ -1,0 +1,12 @@
+{
+  "schema_version": 3,
+  "source": "20261029_160937_Export/comp_growth_assay_D14_OCT20 1",
+  "timepoint": "D14",
+  "day_label": "user decision 2026-10-29: \"lets just go D14\"; the D0 experiment is named OCT_15",
+  "technical_replicates": 2,
+  "c1_arms": "The C1-labelled arms (WT C1, DDX3X C1) are second, untreated replicate sets; no inhibitor was added (user, 2026-10-29: \"the C1 are actually just different reps, I never added the drug\"). WT C1 was a separate D0 mix; DDX3X C1 was dispensed from the DDX3X mix.",
+  "layout": "Plate_005 (experiment copied from D4 and named D14_OCT20 1). Rows A WT, B WT C1, C same-genotype, D DDX3X, E DDX3X C1, F SREBF1, G TADA2B. Columns 1-6 LOY-GFP (row C: LOY/LOY), columns 7-12 LOY-mCherry (row C: CTRL/CTRL). Each biological replicate occupies two adjacent wells; technical replicate numbers follow column order. The trailing _00N counters in filenames are instrument name counters, not replicate numbers.",
+  "identity_basis": "Recorded acquisition names, not yet confirmed by the experimenter. The WT size fingerprint and the same-genotype genotype check agree with them (see Identity checks).",
+  "approval": null,
+  "assignments": []
+}

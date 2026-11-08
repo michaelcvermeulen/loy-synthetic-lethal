@@ -1,0 +1,8 @@
+batch:              PRJNA930361
+merged:             6 samples x 78899 genes
+featureCounts:      v2.1.1
+GTF:                /global/home/hpc5173/data/gencode.v49.primary_assembly.annotation.gtf
+strandedness (-s):  0 (unstranded, default)
+COUNT MODE:         READS (paired-end input, -p without --countReadPairs)
+WARNING: counts are READS, not fragments (~2x). Re-run featureCounts with --countReadPairs for fragment counts.
+samples:            ARPE19_Ynull_1, ARPE19_Ynull_2, ARPE19_Ynull_3, ARPE19_WT_1, ARPE19_WT_2, ARPE19_WT_3

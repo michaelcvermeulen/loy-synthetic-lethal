@@ -1,0 +1,5 @@
+kind,arm,tested,FDR005,FDR010
+motifs,independent,879,7,56
+motifs,passage_sensitivity,879,191,337
+archetypes,independent,422,4,30
+archetypes,passage_sensitivity,422,83,142

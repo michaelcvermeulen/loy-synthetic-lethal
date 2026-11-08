@@ -1,0 +1,5 @@
+gene_name,t2t_start,t2t_end,region,count_chromosome,gene_id,chromosome,coordinate_type,source
+RPS4Y1,2518432,2609182,MSY,chrY,ENSG00000129824.16,chrY,protein-coding gene span; not exact oligonucleotide binding site,A:\Dropbox\LOY_paralogs\projects\thesis\Ben_Thesis\Aim1_Y_gene_RNAseq\ideogram_with_PAR\source_data\gene_mapping.csv
+AMELY,6518241,6564102,MSY,chrY,ENSG00000099721.16,chrY,protein-coding gene span; not exact oligonucleotide binding site,A:\Dropbox\LOY_paralogs\projects\thesis\Ben_Thesis\Aim1_Y_gene_RNAseq\ideogram_with_PAR\source_data\gene_mapping.csv
+DDX3Y,13812378,13828749,MSY,chrY,ENSG00000067048.18,chrY,protein-coding gene span; not exact oligonucleotide binding site,A:\Dropbox\LOY_paralogs\projects\thesis\Ben_Thesis\Aim1_Y_gene_RNAseq\ideogram_with_PAR\source_data\gene_mapping.csv
+KDM5D,20610414,20651489,MSY,chrY,ENSG00000012817.17,chrY,protein-coding gene span; not exact oligonucleotide binding site,A:\Dropbox\LOY_paralogs\projects\thesis\Ben_Thesis\Aim1_Y_gene_RNAseq\ideogram_with_PAR\source_data\gene_mapping.csv

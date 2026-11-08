@@ -1,0 +1,12 @@
+{
+  "new_figures": 2,
+  "new_source_panels": 8,
+  "atlas_source_sets": 41,
+  "atlas_size_excluded": 11,
+  "standalone_tables": 5,
+  "readout_cells": 60,
+  "unchanged_prior_figure_exports": 45,
+  "frozen_inputs_verified": true,
+  "original_global_BH_reused": true,
+  "broken_local_links": 0
+}

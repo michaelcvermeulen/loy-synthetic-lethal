@@ -1,0 +1,646 @@
+---
+title: "WGS Coverage Report — T2T-CHM13v2.0"
+subtitle: "HT1080 LOY Analysis: sgCTRL-D0 (Y+) vs LOY-D0 (Y-)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 12, fig.height = 5)
+library(tidyverse)
+library(cowplot)
+library(ggrepel)
+
+covdir <- "../coverage"
+samples <- c("HT1080-sgCTRL-D0", "HT1080-LOY-D0")
+sample_colors <- c("HT1080-sgCTRL-D0" = "#2166AC", "HT1080-LOY-D0" = "#B2182B")
+
+# Load genome-wide 100kb coverage (used in multiple sections)
+genome_100kb <- map_dfr(samples, function(s) {
+  f <- file.path(covdir, paste0(s, ".genome.100kb.regions.bed.gz"))
+  read_tsv(f, col_names = c("chrom", "start", "end", "coverage"),
+           show_col_types = FALSE) %>%
+    mutate(sample = s,
+           midpoint = (start + end) / 2 / 1e6)
+})
+
+# Load difficulty regions and compute fraction per 100kb bin
+# Strategy: for small regions (within one bin), vectorize directly;
+# for spanning regions, expand. Most regions are small so this is fast.
+bin_size <- 1e5L
+
+diff_raw <- read_tsv("../difficulty_regions_T2T.gz",
+                     col_names = c("chrom", "start", "end"),
+                     comment = "#", show_col_types = FALSE) %>%
+  mutate(bin_first = as.integer(floor(start / bin_size)),
+         bin_last  = as.integer(floor(pmax(end - 1, 0) / bin_size)))
+
+# Single-bin regions (vast majority): fully vectorized
+diff_single <- diff_raw %>%
+  filter(bin_first == bin_last) %>%
+  mutate(bin = bin_first, overlap = end - start) %>%
+  group_by(chrom, bin) %>%
+  summarise(diff_bp = sum(overlap), .groups = "drop")
+
+# Multi-bin regions: expand (relatively few)
+diff_multi <- diff_raw %>%
+  filter(bin_first != bin_last) %>%
+  mutate(id = row_number()) %>%
+  group_by(id) %>%
+  reframe(chrom = chrom, start = start, end = end,
+          bin = seq(bin_first, bin_last)) %>%
+  mutate(bin_s = bin * bin_size, bin_e = bin_s + bin_size,
+         overlap = pmin(end, bin_e) - pmax(start, bin_s)) %>%
+  group_by(chrom, bin) %>%
+  summarise(diff_bp = sum(overlap), .groups = "drop")
+
+diff_binned <- bind_rows(diff_single, diff_multi) %>%
+  group_by(chrom, bin) %>%
+  summarise(diff_frac = sum(diff_bp) / bin_size, .groups = "drop")
+
+# Build QC table — filter bins with >50% difficulty regions
+bin_qc_all <- genome_100kb %>%
+  filter(sample == samples[1]) %>%
+  distinct(chrom, start, end) %>%
+  mutate(bin = as.integer(start / bin_size)) %>%
+  left_join(diff_binned, by = c("chrom", "bin")) %>%
+  replace_na(list(diff_frac = 0)) %>%
+  mutate(pass = diff_frac < 0.5)
+
+# Filtered 100kb data (for autosomes + chrX, not chrY)
+genome_100kb_filt <- genome_100kb %>%
+  inner_join(bin_qc_all %>% filter(pass) %>% select(chrom, start, end),
+             by = c("chrom", "start", "end"))
+
+rm(diff_raw, diff_single, diff_multi, diff_binned)
+```
+
+## Summary Statistics
+
+```{r summary_table}
+genome_summary <- map_dfr(samples, function(s) {
+  read_tsv(file.path(covdir, paste0(s, ".genome.mosdepth.summary.txt")),
+           show_col_types = FALSE) %>%
+    mutate(sample = s)
+})
+
+# Per-sample summary: genome-wide mean, chrY mean, chrY/autosome ratio
+autosomes <- paste0("chr", 1:22)
+stats <- genome_summary %>%
+  filter(chrom %in% c(autosomes, "chrY", "total")) %>%
+  group_by(sample) %>%
+  summarise(
+    genome_mean = mean[chrom == "total"],
+    autosome_mean = sum(bases[chrom %in% autosomes]) / sum(length[chrom %in% autosomes]),
+    chrY_mean = mean[chrom == "chrY"],
+    chrY_autosome_ratio = chrY_mean / autosome_mean,
+    .groups = "drop"
+  )
+
+knitr::kable(stats, digits = 3,
+             col.names = c("Sample", "Genome Mean Cov", "Autosome Mean Cov",
+                           "chrY Mean Cov", "chrY / Autosome Ratio"),
+             caption = "Coverage summary per sample")
+```
+
+## Genome-wide Coverage by Chromosome
+
+```{r genome_barplot, fig.height=6}
+chrom_order <- c(paste0("chr", 1:22), "chrX", "chrY")
+
+genome_chrom <- genome_summary %>%
+  filter(chrom %in% chrom_order) %>%
+  mutate(chrom = factor(chrom, levels = chrom_order))
+
+ggplot(genome_chrom, aes(x = chrom, y = mean, fill = sample)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
+  scale_fill_manual(values = sample_colors) +
+  labs(x = NULL, y = "Mean Coverage",
+       title = "Mean Coverage per Chromosome",
+       fill = "Sample") +
+  theme_cowplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+        legend.position = "top")
+```
+
+## Genome-wide Coverage log2FC
+
+```{r genome_logfc_combined, fig.height=8, fig.width=14}
+# Use filtered data for autosomes+chrX, unfiltered for chrY; remove outlier bins
+cov_cap <- quantile(genome_100kb$coverage, 0.99)
+genome_100kb_clean <- bind_rows(
+  genome_100kb_filt %>% filter(chrom != "chrY"),
+  genome_100kb %>% filter(chrom == "chrY")
+) %>%
+  filter(chrom %in% chrom_order, coverage <= cov_cap)
+
+# --- Heatmap: 5 bins per chromosome ---
+genome_binned <- genome_100kb_clean %>%
+  group_by(chrom, sample) %>%
+  mutate(quintile = ntile(midpoint, 5)) %>%
+  group_by(chrom, sample, quintile) %>%
+  summarise(mean_cov = mean(coverage), .groups = "drop") %>%
+  pivot_wider(names_from = sample, values_from = mean_cov) %>%
+  mutate(log2FC = log2((`HT1080-LOY-D0` + 0.01) / (`HT1080-sgCTRL-D0` + 0.01)),
+         log2FC = pmax(pmin(log2FC, 3), -3),
+         chrom = factor(chrom, levels = chrom_order),
+         bin_label = paste0(chrom, ".", quintile))
+
+bin_order <- genome_binned %>% arrange(chrom, quintile) %>% pull(bin_label)
+genome_binned <- genome_binned %>% mutate(bin_label = factor(bin_label, levels = bin_order))
+
+chrom_breaks <- genome_binned %>%
+  arrange(chrom, quintile) %>%
+  mutate(x = as.numeric(factor(bin_label, levels = bin_order))) %>%
+  group_by(chrom) %>%
+  summarise(xmid = mean(x), xmax = max(x) + 0.5, .groups = "drop")
+
+p_genome_heat <- ggplot(genome_binned, aes(x = bin_label, y = 1, fill = log2FC)) +
+  geom_tile(color = "white", linewidth = 0.2) +
+  geom_vline(xintercept = chrom_breaks$xmax[-nrow(chrom_breaks)],
+             color = "grey30", linewidth = 0.3) +
+  scale_fill_viridis_c(option = "viridis", name = "log2FC\n(LOY/CTRL)") +
+  scale_x_discrete(breaks = bin_order[seq(3, length(bin_order), by = 5)],
+                   labels = gsub("chr", "", chrom_order)) +
+  labs(x = NULL, y = NULL, title = "Genome-wide Coverage log2FC — LOY-D0 vs sgCTRL-D0") +
+  theme_cowplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "right",
+        panel.grid = element_blank(),
+        plot.margin = margin(5, 5, 0, 5))
+
+# --- Line plot: 100kb bins at genomic scale ---
+genome_logfc <- genome_100kb_clean %>%
+  select(chrom, start, end, midpoint, sample, coverage) %>%
+  pivot_wider(names_from = sample, values_from = coverage) %>%
+  mutate(log2FC = log2((`HT1080-LOY-D0` + 0.01) / (`HT1080-sgCTRL-D0` + 0.01)),
+         log2FC = pmax(pmin(log2FC, 5), -5),
+         chrom = factor(chrom, levels = chrom_order))
+
+chrom_offsets <- genome_logfc %>%
+  group_by(chrom) %>%
+  summarise(chrom_len = max(midpoint), .groups = "drop") %>%
+  mutate(offset = cumsum(lag(chrom_len, default = 0) + 2))
+
+genome_logfc <- genome_logfc %>%
+  left_join(chrom_offsets %>% select(chrom, offset), by = "chrom") %>%
+  mutate(genome_x = midpoint + offset) %>%
+  arrange(chrom, genome_x) %>%
+  group_by(chrom) %>%
+  mutate(rolling_mean = zoo::rollapply(log2FC, width = 25, FUN = mean,
+                                       partial = TRUE, align = "center")) %>%
+  ungroup()
+
+chrom_labels <- genome_logfc %>%
+  group_by(chrom) %>%
+  summarise(mid = median(genome_x), xmax = max(genome_x) + 1, .groups = "drop")
+
+chrom_bg <- chrom_labels %>%
+  mutate(idx = row_number(),
+         xmin = lag(xmax, default = 0),
+         fill = ifelse(idx %% 2 == 0, "grey95", "white"))
+
+p_genome_line <- ggplot(genome_logfc) +
+  geom_rect(data = chrom_bg, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
+            inherit.aes = FALSE, alpha = 0.5) +
+  scale_fill_identity() +
+  geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
+  geom_point(aes(x = genome_x, y = log2FC), color = "grey70", size = 0.1, alpha = 0.3) +
+  geom_line(aes(x = genome_x, y = rolling_mean, group = chrom),
+            color = "#B2182B", linewidth = 0.5) +
+  scale_x_continuous(breaks = chrom_labels$mid,
+                     labels = gsub("chr", "", chrom_labels$chrom),
+                     expand = c(0.01, 0)) +
+  labs(x = "Chromosome", y = "log2FC\n(LOY-D0 / sgCTRL-D0)") +
+  theme_cowplot() +
+  theme(axis.text.x = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        plot.margin = margin(0, 5, 5, 5))
+
+plot_grid(p_genome_heat, p_genome_line, ncol = 1,
+          rel_heights = c(1, 3), align = "v", axis = "lr")
+```
+
+## chrY Coverage Track (10kb windows)
+
+```{r chrY_track, fig.height=5}
+chrY_cov <- map_dfr(samples, function(s) {
+  read_tsv(file.path(covdir, paste0(s, ".chrY.regions.bed.gz")),
+           col_names = c("chrom", "start", "end", "coverage"),
+           show_col_types = FALSE) %>%
+    mutate(sample = s,
+           midpoint = (start + end) / 2 / 1e6)  # Mb
+})
+
+ggplot(chrY_cov, aes(x = midpoint, y = coverage, color = sample)) +
+  geom_line(alpha = 0.7, linewidth = 0.4) +
+  scale_color_manual(values = sample_colors) +
+  labs(x = "chrY Position (Mb)", y = "Coverage (10kb windows)",
+       title = "chrY Coverage Along the Chromosome",
+       color = "Sample") +
+  theme_cowplot() +
+  theme(legend.position = "top")
+```
+
+## chrY Coverage (100kb bins) with Gene Map
+
+```{r chrY_100kb_genemap, fig.height=7}
+chrY_binned <- chrY_cov %>%
+  mutate(bin = floor(start / 1e5)) %>%
+  group_by(sample, bin) %>%
+  summarise(coverage = mean(coverage),
+            midpoint = mean(midpoint),
+            .groups = "drop")
+
+# Gene annotations (T2T-CHM13v2.0 coordinates)
+genes <- tibble(
+  gene  = c("SHOX", "CD99",
+            "SRY", "ZFY", "RPS4Y1", "AMELY", "TBL1Y",
+            "USP9Y", "DDX3Y", "UTY", "TMSB4Y", "NLGN4Y",
+            "KDM5D", "EIF1AY",
+            "VAMP7", "IL9R"),
+  start = c(478001, 2368143,
+            2463694, 2612462, 2518432, 6518241, 6563013,
+            13445460, 13812378, 14155083, 14610528, 15429200,
+            20610414, 21450980,
+            62306324, 62422571),
+  end   = c(512484, 2418268,
+            2464522, 2659668, 2609182, 6564102, 6754300,
+            13769113, 13828749, 14387362, 14612654, 15752213,
+            20651489, 21468360,
+            62368760, 62435805)
+) %>%
+  mutate(mid = (start + end) / 2 / 1e6)
+
+# PAR regions from T2T bed file
+par_bed <- read_tsv("../chm13v2.0_PAR.bed",
+                    col_names = c("chrom", "start", "end"),
+                    show_col_types = FALSE) %>%
+  filter(chrom == "chrY") %>%
+  mutate(start = start / 1e6, end = end / 1e6)
+par1_end   <- par_bed$end[1]    # 2.458 Mb
+par2_start <- par_bed$start[2]  # 62.123 Mb
+
+# Centromere from cytobands (acen entries)
+cyto <- read_tsv("../chm13v2.0_cytobands_allchrs.bed",
+                 col_names = c("chrom", "start", "end", "band", "stain"),
+                 show_col_types = FALSE) %>%
+  filter(chrom == "chrY", stain == "acen")
+cen_start <- min(cyto$start) / 1e6  # 10.566 Mb
+cen_end   <- max(cyto$end) / 1e6    # 10.883 Mb
+chrY_len  <- 62.46
+
+# Coverage plot with rolling mean overlay (reset at PAR boundaries)
+chrY_smooth <- chrY_binned %>%
+  arrange(sample, midpoint) %>%
+  mutate(region = case_when(
+    midpoint <= par1_end ~ "PAR1",
+    midpoint >= par2_start ~ "PAR2",
+    TRUE ~ "MSY"
+  )) %>%
+  group_by(sample, region) %>%
+  mutate(rolling_mean = zoo::rollapply(coverage, width = 25, FUN = mean, partial = TRUE, align = "center")) %>%
+  ungroup()
+
+p_cov <- ggplot(chrY_smooth, aes(x = midpoint, color = sample)) +
+  geom_hline(yintercept = 0, linetype = "solid", color = "grey70", linewidth = 0.3) +
+  geom_line(aes(y = coverage), alpha = 0.2, linewidth = 0.3) +
+  geom_line(aes(y = rolling_mean), linewidth = 0.8) +
+  annotate("rect", xmin = 0, xmax = par1_end,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3) +
+  annotate("rect", xmin = par2_start, xmax = chrY_len,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3) +
+  annotate("rect", xmin = cen_start, xmax = cen_end,
+           ymin = -Inf, ymax = Inf, fill = "grey80", alpha = 0.4) +
+  scale_color_manual(values = sample_colors) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.05))) +
+  labs(x = NULL, y = "Mean Coverage\n(100kb bins)",
+       title = "chrY Coverage with Gene Map (T2T-CHM13v2.0)",
+       color = "Sample") +
+  theme_cowplot() +
+  theme(legend.position = "top",
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.margin = margin(5, 5, 0, 5))
+
+# Gene diagram
+p_genes <- ggplot() +
+  # PAR regions
+  annotate("rect", xmin = 0, xmax = par1_end, ymin = -0.15, ymax = 0.15,
+           fill = "#C6DBEF", color = NA) +
+  annotate("rect", xmin = par2_start, xmax = chrY_len, ymin = -0.15, ymax = 0.15,
+           fill = "#C6DBEF", color = NA) +
+  annotate("text", x = par1_end / 2, y = -0.45, label = "PAR1",
+           size = 2.5, color = "#2171B5", fontface = "bold") +
+  annotate("text", x = (par2_start + chrY_len) / 2, y = -0.45, label = "PAR2",
+           size = 2.5, color = "#2171B5", fontface = "bold") +
+  # Chromosome backbone
+  annotate("rect", xmin = 0, xmax = chrY_len, ymin = -0.15, ymax = 0.15,
+           fill = NA, color = "grey50", linewidth = 0.3) +
+  # Centromere
+  annotate("rect", xmin = cen_start, xmax = cen_end, ymin = -0.2, ymax = 0.2,
+           fill = "grey60", color = "grey40", linewidth = 0.3) +
+  # Arm labels
+  annotate("text", x = (par1_end + cen_start) / 2, y = -0.45, label = "Yp",
+           fontface = "bold", size = 3.5, color = "grey30") +
+  annotate("text", x = (cen_end + par2_start) / 2, y = -0.45, label = "Yq",
+           fontface = "bold", size = 3.5, color = "grey30") +
+  # Gene markers
+  geom_point(data = genes, aes(x = mid, y = 0.2),
+             shape = 21, fill = "#4393C3", color = "black", size = 2) +
+  geom_text_repel(data = genes, aes(x = mid, y = 0.2, label = gene),
+                  nudge_y = 0.6, direction = "x", angle = 45,
+                  size = 2.8, fontface = "italic",
+                  segment.size = 0.3, segment.color = "grey40",
+                  min.segment.length = 0, box.padding = 0.3,
+                  max.overlaps = Inf) +
+  scale_x_continuous(limits = c(0, chrY_len),
+                     breaks = seq(0, 60, 10),
+                     labels = paste0(seq(0, 60, 10), " Mb")) +
+  coord_cartesian(ylim = c(-0.6, 1.4), clip = "off") +
+  labs(x = "chrY Position (Mb)") +
+  theme_void() +
+  theme(axis.text.x = element_text(size = 8),
+        axis.title.x = element_text(size = 10, margin = margin(t = 5)),
+        plot.margin = margin(0, 5, 5, 5))
+
+# RNA-seq expression panel
+lcpm <- read_csv("../../../data/RNAseq/AUG_13_2025_LOY_A549_HT1080/DE/lcpm_matrix.csv",
+                 show_col_types = FALSE) %>%
+  filter(gene_name %in% genes$gene) %>%
+  pivot_longer(cols = starts_with("ht1080_"),
+               names_to = "sample_id", values_to = "lcpm") %>%
+  filter(!grepl("parental", sample_id)) %>%
+  mutate(condition = ifelse(grepl("ctrl", sample_id), "HT1080-sgCTRL-D0", "HT1080-LOY-D0")) %>%
+  group_by(gene_name, condition) %>%
+  summarise(mean_lcpm = mean(lcpm), sd_lcpm = sd(lcpm), .groups = "drop") %>%
+  left_join(genes %>% select(gene, mid), by = c("gene_name" = "gene"))
+
+# Order genes by chromosomal position, keep only detected genes
+gene_order <- genes %>% arrange(mid) %>% pull(gene)
+detected <- unique(lcpm$gene_name)
+gene_order_detected <- gene_order[gene_order %in% detected]
+lcpm <- lcpm %>%
+  mutate(gene_name = factor(gene_name, levels = gene_order_detected))
+
+# Identify PAR gene positions on the detected-gene categorical axis
+par1_genes <- c("SHOX", "CD99")
+par2_genes <- c("VAMP7", "IL9R")
+par1_idx <- which(gene_order_detected %in% par1_genes)
+par2_idx <- which(gene_order_detected %in% par2_genes)
+
+p_expr <- ggplot(lcpm, aes(x = gene_name, y = mean_lcpm, fill = condition)) +
+  annotate("rect",
+           xmin = min(par1_idx) - 0.5, xmax = max(par1_idx) + 0.5,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3) +
+  annotate("rect",
+           xmin = min(par2_idx) - 0.5, xmax = max(par2_idx) + 0.5,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(aes(ymin = mean_lcpm - sd_lcpm, ymax = mean_lcpm + sd_lcpm),
+                position = position_dodge(width = 0.7), width = 0.2, linewidth = 0.3) +
+  scale_fill_manual(values = sample_colors) +
+  labs(x = NULL, y = "Expression\n(log2-CPM)", fill = "Condition") +
+  theme_cowplot() +
+  theme(legend.position = "top",
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8, face = "italic"),
+        plot.margin = margin(0, 5, 5, 5))
+
+plot_grid(p_cov, p_genes, p_expr, ncol = 1,
+          rel_heights = c(3, 1, 1.5), align = "v", axis = "lr")
+```
+
+## chrY Coverage with Gene Map & Expression Heatmap
+
+```{r chrY_combined_heatmap, fig.height=9}
+# Per-sample expression: normalize per gene (z-score) then subset
+ht1080_lcpm_wide <- read_csv("../../../data/RNAseq/AUG_13_2025_LOY_A549_HT1080/DE/lcpm_matrix.csv",
+                             show_col_types = FALSE) %>%
+  select(gene_name, starts_with("ht1080_")) %>%
+  select(-matches("parental"))
+
+lcpm_heat <- ht1080_lcpm_wide %>%
+  filter(gene_name %in% genes$gene, gene_name != "IL9R") %>%
+  pivot_longer(-gene_name, names_to = "sample_id", values_to = "lcpm") %>%
+  group_by(gene_name) %>%
+  mutate(z_score = (lcpm - mean(lcpm)) / sd(lcpm)) %>%
+  ungroup() %>%
+  mutate(condition = ifelse(grepl("ctrl", sample_id), "CTRL", "LOY"),
+         replicate = str_extract(sample_id, "\\d+$"),
+         sample_label = paste0(condition, "_", replicate)) %>%
+  left_join(genes %>% select(gene, mid), by = c("gene_name" = "gene"))
+
+# Sample order: CTRL then LOY
+sample_order <- lcpm_heat %>%
+  distinct(sample_label, condition) %>%
+  arrange(desc(condition), sample_label) %>%
+  pull(sample_label)
+heat_gene_order <- setdiff(gene_order_detected, "IL9R")
+lcpm_heat <- lcpm_heat %>%
+  mutate(sample_label = factor(sample_label, levels = sample_order),
+         gene_name = factor(gene_name, levels = heat_gene_order))
+
+heat_par1_idx <- which(heat_gene_order %in% par1_genes)
+heat_par2_idx <- which(heat_gene_order %in% par2_genes)
+
+p_heatmap <- ggplot(lcpm_heat, aes(x = gene_name, y = sample_label, fill = z_score)) +
+  {if (length(heat_par1_idx) > 0) annotate("rect",
+           xmin = min(heat_par1_idx) - 0.5, xmax = max(heat_par1_idx) + 0.5,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3)} +
+  {if (length(heat_par2_idx) > 0) annotate("rect",
+           xmin = min(heat_par2_idx) - 0.5, xmax = max(heat_par2_idx) + 0.5,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3)} +
+  geom_tile(color = "white", linewidth = 0.3) +
+  scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B",
+                       midpoint = 0, name = "Z-score") +
+  labs(x = NULL, y = NULL) +
+  theme_cowplot() +
+  theme(axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8, face = "italic"),
+        legend.position = "right",
+        legend.key.height = unit(0.4, "cm"),
+        plot.margin = margin(0, 5, 5, 5))
+
+plot_grid(p_cov, p_genes, p_heatmap, ncol = 1,
+          rel_heights = c(3, 1, 1.5), align = "v", axis = "lr")
+```
+
+## chrY Coverage — Filtered by Mappability & Difficulty Regions
+
+```{r chrY_filtered, fig.height=7}
+# Load mappability (uniquely-mappable regions) and difficulty (problematic regions)
+mappability <- read_tsv("../mappability_T2T.gz",
+                        col_names = c("chrom", "start", "end", "name", "score", "strand"),
+                        comment = "#", show_col_types = FALSE) %>%
+  filter(chrom == "chrY")
+
+difficulty <- read_tsv("../difficulty_regions_T2T.gz",
+                       col_names = c("chrom", "start", "end"),
+                       comment = "#", show_col_types = FALSE) %>%
+  filter(chrom == "chrY")
+
+# For each 100kb bin, compute fraction of uniquely-mappable bases
+# and fraction of difficulty-region bases
+bin_size <- 1e5
+n_bins <- ceiling(62460029 / bin_size)
+bin_starts <- seq(0, (n_bins - 1) * bin_size, by = bin_size)
+bin_ends   <- pmin(bin_starts + bin_size, 62460029)
+
+# Helper: compute overlap of intervals with a bin
+overlap_fraction <- function(regions, bstart, bend) {
+  hits <- regions %>% filter(end > bstart, start < bend)
+  if (nrow(hits) == 0) return(0)
+  clipped_start <- pmax(hits$start, bstart)
+  clipped_end   <- pmin(hits$end, bend)
+  sum(clipped_end - clipped_start) / (bend - bstart)
+}
+
+bin_qc <- tibble(bin = seq_along(bin_starts) - 1,
+                 bin_start = bin_starts,
+                 bin_end = bin_ends) %>%
+  rowwise() %>%
+  mutate(
+    map_frac  = overlap_fraction(mappability, bin_start, bin_end),
+    diff_frac = overlap_fraction(difficulty, bin_start, bin_end)
+  ) %>%
+  ungroup() %>%
+  mutate(pass = map_frac >= 0.1 & diff_frac < 0.9)
+
+# Filter binned coverage to passing bins
+chrY_filtered <- chrY_binned %>%
+  inner_join(bin_qc %>% filter(pass) %>% select(bin), by = "bin")
+
+n_pass <- sum(bin_qc$pass)
+n_total <- nrow(bin_qc)
+
+# Smoothed filtered coverage (reset at PAR boundaries)
+chrY_filt_smooth <- chrY_filtered %>%
+  arrange(sample, midpoint) %>%
+  mutate(region = case_when(
+    midpoint <= par1_end ~ "PAR1",
+    midpoint >= par2_start ~ "PAR2",
+    TRUE ~ "MSY"
+  )) %>%
+  group_by(sample, region) %>%
+  mutate(rolling_mean = zoo::rollapply(coverage, width = 25, FUN = mean, partial = TRUE, align = "center")) %>%
+  ungroup()
+
+p_filt <- ggplot(chrY_filt_smooth, aes(x = midpoint, color = sample)) +
+  geom_hline(yintercept = 0, linetype = "solid", color = "grey70", linewidth = 0.3) +
+  geom_line(aes(y = coverage), alpha = 0.2, linewidth = 0.3) +
+  geom_line(aes(y = rolling_mean), linewidth = 0.8) +
+  annotate("rect", xmin = 0, xmax = par1_end,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3) +
+  annotate("rect", xmin = par2_start, xmax = chrY_len,
+           ymin = -Inf, ymax = Inf, fill = "#C6DBEF", alpha = 0.3) +
+  annotate("rect", xmin = cen_start, xmax = cen_end,
+           ymin = -Inf, ymax = Inf, fill = "grey80", alpha = 0.4) +
+  scale_color_manual(values = sample_colors) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.05))) +
+  labs(x = NULL, y = "Mean Coverage\n(100kb bins)",
+       title = paste0("chrY Coverage — Filtered (", n_pass, "/", n_total,
+                      " bins passing mappability & difficulty filters)"),
+       color = "Sample") +
+  theme_cowplot() +
+  theme(legend.position = "top",
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.margin = margin(5, 5, 0, 5))
+
+plot_grid(p_filt, p_genes, p_expr, ncol = 1,
+          rel_heights = c(3, 1, 1.5), align = "v", axis = "lr")
+```
+
+## Per-Chromosome Coverage (100kb bins) {.tabset}
+
+```{r load_genome_100kb, include=FALSE}
+chrom_tabs <- c(paste0("chr", 1:22), "chrX", "chrY")
+
+# Load centromere positions for all chromosomes
+all_cyto <- read_tsv("../chm13v2.0_cytobands_allchrs.bed",
+                     col_names = c("chrom", "start", "end", "band", "stain"),
+                     show_col_types = FALSE) %>%
+  filter(stain == "acen") %>%
+  group_by(chrom) %>%
+  summarise(cen_start = min(start) / 1e6,
+            cen_end = max(end) / 1e6,
+            .groups = "drop")
+```
+
+```{r chrom_tabs, results='asis', fig.width=12, fig.height=4}
+for (chr in chrom_tabs) {
+  cat(paste0("\n### ", chr, "\n\n"))
+
+  # Use filtered data for autosomes+chrX, unfiltered for chrY
+  if (chr == "chrY") {
+    d <- genome_100kb %>% filter(chrom == chr)
+  } else {
+    d <- genome_100kb_filt %>% filter(chrom == chr)
+  }
+
+  # Rolling mean per sample
+  d <- d %>%
+    arrange(sample, midpoint) %>%
+    group_by(sample) %>%
+    mutate(rolling_mean = zoo::rollapply(coverage, width = 25, FUN = mean,
+                                         partial = TRUE, align = "center")) %>%
+    ungroup()
+
+  # Centromere for this chromosome
+  cen <- all_cyto %>% filter(chrom == chr)
+
+  p <- ggplot(d, aes(x = midpoint, color = sample)) +
+    geom_hline(yintercept = 0, linetype = "solid", color = "grey70", linewidth = 0.3) +
+    geom_line(aes(y = coverage), alpha = 0.2, linewidth = 0.3) +
+    geom_line(aes(y = rolling_mean), linewidth = 0.8) +
+    {if (nrow(cen) > 0) annotate("rect", xmin = cen$cen_start, xmax = cen$cen_end,
+                                  ymin = -Inf, ymax = Inf, fill = "grey80", alpha = 0.4)} +
+    scale_color_manual(values = sample_colors) +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.05))) +
+    coord_cartesian(ylim = c(0, quantile(d$coverage, 0.99))) +
+    labs(x = paste0(chr, " Position (Mb)"),
+         y = "Mean Coverage (100kb bins)",
+         title = paste0(chr, " — sgCTRL-D0 vs LOY-D0"),
+         color = "Sample") +
+    theme_cowplot() +
+    theme(legend.position = "top")
+
+  print(p)
+  cat("\n\n")
+}
+```
+
+## Log2 Coverage Ratio (LOY-D0 / sgCTRL-D0)
+
+```{r log2_ratio, fig.height=4}
+ratio_data <- chrY_cov %>%
+  select(start, end, midpoint, sample, coverage) %>%
+  pivot_wider(names_from = sample, values_from = coverage) %>%
+  mutate(
+    # Add small pseudocount to avoid log2(0)
+    log2_ratio = log2((`HT1080-LOY-D0` + 0.01) / (`HT1080-sgCTRL-D0` + 0.01))
+  ) %>%
+  # Cap extreme values for readability
+  mutate(log2_ratio = pmax(pmin(log2_ratio, 5), -5))
+
+ggplot(ratio_data, aes(x = midpoint, y = log2_ratio)) +
+  geom_line(color = "#B2182B", alpha = 0.6, linewidth = 0.4) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  labs(x = "chrY Position (Mb)", y = "Log2(LOY-D0 / sgCTRL-D0)",
+       title = "Log2 Coverage Ratio Along chrY (LOY-D0 vs sgCTRL-D0)") +
+  theme_cowplot()
+```
+
+## Session Info
+
+```{r}
+sessionInfo()
+```

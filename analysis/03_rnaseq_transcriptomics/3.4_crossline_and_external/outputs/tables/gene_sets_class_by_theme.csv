@@ -1,0 +1,25 @@
+class,theme,Freq
+"agree_where_significant_third_opposite","GRHL2_epithelial",3
+"divergent","GRHL2_epithelial",1
+"line_specific","GRHL2_epithelial",24
+"shared","GRHL2_epithelial",1
+"divergent","histone cluster (6p22)",1
+"line_specific","histone cluster (6p22)",46
+"agree_where_significant_third_opposite","interferon_inflammatory",1
+"divergent","interferon_inflammatory",1
+"line_specific","interferon_inflammatory",166
+"shared","interferon_inflammatory",28
+"divergent","mitotic",10
+"line_specific","mitotic",511
+"shared","mitotic",1
+"not_significant","none",20741
+"agree_where_significant_third_opposite","other",14
+"divergent","other",5
+"line_specific","other",1244
+"shared","other",15
+"divergent","polycomb_targets",2
+"line_specific","polycomb_targets",81
+"divergent","positional",3
+"line_specific","positional",25
+"line_specific","ribosomal/translation",36
+"shared","ribosomal/translation",1

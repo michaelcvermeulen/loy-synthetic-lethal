@@ -1,0 +1,11 @@
+mark,signal_units,median_standard_chromosome_interval_bp,has_negative_signal,use
+H2AK119ub1,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H3K27ac,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H3K27me3,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H3K4me1,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H3K4me3,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H3K9me3,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H4K20me1,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+H4K20me3,RPKM according to GEO processing metadata,50.0,False,Reference signal; do not compare absolute levels between antibodies
+LaminB1,Signed deposited signal; normalization unresolved,20000.0,True,Coarse domain context only; do not interpret as promoter-resolution RPKM
+LaminB2,Signed deposited signal; normalization unresolved,20000.0,True,Coarse domain context only; do not interpret as promoter-resolution RPKM

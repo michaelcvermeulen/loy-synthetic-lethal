@@ -1,0 +1,19 @@
+{
+  "release": "DepMap Public 26Q1",
+  "inputs": {
+    "expression": {
+      "path": "H:\\PRISM\\data\\CCLE\\26Q1\\raw\\depmap_public_26q1\\expression\\OmicsExpressionTPMLogp1HumanProteinCodingGenes.csv",
+      "sha256": "0377be80c525fde98cbd2c6e8b06bdf2a4014a9683eb70182c1f8649d711021a"
+    },
+    "metadata": {
+      "path": "H:\\PRISM\\data\\CCLE\\26Q1\\raw\\depmap_public_26q1\\metadata\\Model.csv",
+      "sha256": "ea4e0b2a3bc806f81df62689a5ae75f1a100135727a3d7b8a4c7ccc8815183f8"
+    }
+  },
+  "profile": "CDS-Tyl9at",
+  "reference": "21 other default-expression models whose OncotreePrimaryDisease contains Mesothelioma; no Y-status filtering",
+  "transform": "TPM = 2**released_log2_TPMp1 - 1; ratios use unlogged TPM and reference median",
+  "selection": "15 canonical PAR1 protein-coding genes; XG excluded because it crosses the PAR boundary; no PAR2 genes",
+  "statistics": "Descriptive comparisons only; no differential-expression test or causal inference",
+  "gene_origin": "Released gene expression does not resolve X versus Y contribution to PAR transcripts"
+}

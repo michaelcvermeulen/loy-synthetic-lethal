@@ -1,0 +1,14 @@
+{
+  "samples": [
+    "A549-CTRL2",
+    "A549-LOY"
+  ],
+  "fixed_bin_rule": "Original strict reference mask; exclude PAR and region-boundary overlaps; no sample-dependent selection for this check",
+  "read_rule": "MAPQ >=37; unmapped, secondary, supplementary, QC-failed and marked duplicate records excluded",
+  "normalizer": "Same 21446 strict autosomal bins used in PAR plots",
+  "raw_depth_is_not_GC_corrected": true,
+  "corrected_CN_source": "/mnt/a/Dropbox/LOY_paralogs/projects/SEPT_11_2026_THESIS/research/model_development/a549_par_track_relaxed_20261027/map30_no_difficulty/bins.csv",
+  "model_assumptions": "Representative nonPAR X/Y dosage reflects the respective PAR contributions; X dosage remains unchanged; Y contribution is removed. Exact karyotype and rearrangements are not identified by this check.",
+  "annotation_sha256": "584801d275c7e7be5a13db28226a0e8dc18bf34802ec177e5bd87368300d4f60",
+  "fit_sha256": "43ca396d746db058fe0020b3942c5f63a16808b3da9d8c290629d1874003ff39"
+}

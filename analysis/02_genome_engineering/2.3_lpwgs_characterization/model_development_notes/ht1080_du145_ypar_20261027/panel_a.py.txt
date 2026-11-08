@@ -1,0 +1,67 @@
+# a: Current cell-specific Y regions, with X-mapped PAR coverage in labelled spans.
+for name,a,b in regions:
+    a,b=a/1e6,b/1e6
+    if name.startswith('PAR'):
+        ax_a.axvspan(gx(a),gx(b),color=SHADE,zorder=0)
+    if name in ['centromere','Yq12 heterochromatin']:
+        ax_a.axvspan(gx(a),gx(b),facecolor='#F0F0F0',edgecolor='#D5D5D5',hatch='///',lw=.4,zorder=1)
+for a,b in [(0,q0),(p2,length)]:
+    ax_a.plot([gx(a),gx(b)],[100,100],color=COL['sgCTRL'],lw=.8,ls=(0,(4,3)),zorder=2)
+ax_a.scatter(plot_data.display_x,plot_data.percent_of_sgCTRL,s=8,color=GREY,alpha=.65,linewidth=0,zorder=3)
+for name,a,b in regions:
+    if name in summary.index:
+        value=float(summary.loc[name,'median_percent_of_sgCTRL'])
+        ax_a.plot([gx(a/1e6),gx(b/1e6)],[value]*2,color=COL['LOY'],lw=2,solid_capstyle='butt',zorder=4)
+ax_a.set(ylim=(-6,DNA_TOP),yticks=list(range(0,int(DNA_TOP),50)),ylabel='Y-depleted DNA\n(% of sgCTRL)')
+ax_a.spines[['right','top','bottom']].set_visible(False)
+ax_a.tick_params(axis='x',bottom=False,labelbottom=False)
+def label_at(x,y,label,color,ha='center'):
+    ax_a.text(x,y,label,color=color,fontsize=7.6,ha=ha,va='center',fontweight='semibold',
+        bbox=dict(facecolor='white',edgecolor='none',alpha=.9,pad=1.1),zorder=7)
+def format_median(region):
+    value=float(summary.loc[region,'median_percent_of_sgCTRL']);n=int(summary.loc[region,'n_bins'])
+    return ('<1%' if value<1 else f'{value:.1f}%'),n,value
+if CELL=='HT1080':
+    for region,x in [('MSY Yp',6.5),('euchromatic Yq',19.0)]:
+        value,bin_count,v=format_median(region)
+        label_at(x,max(v+16,DNA_TOP*.14),f'{value} ({bin_count} bins)',COL['LOY'])
+else:
+    for region,x in [('distal MSY Yp',3.63),('proximal MSY Yp',7.6),('euchromatic Yq',19.0)]:
+        value,bin_count,v=format_median(region)
+        sep='\n' if region=='distal MSY Yp' else ' '
+        local_max=plot_data.loc[plot_data.region.eq(region),'percent_of_sgCTRL'].max()
+        label_at(x,min(DNA_TOP-25,max(v+20,local_max+17)),f'{value}{sep}({bin_count} bins)',COL['LOY'])
+    ax_a.axvline(4.8,color='#BBBBBB',lw=.6,ls=':',zorder=1)
+    ax_a.text(3.63,DNA_TOP*.85,'Distal Yp',ha='center',fontsize=6.8)
+    ax_a.text(7.6,DNA_TOP*.85,'Proximal Yp',ha='center',fontsize=6.8)
+for region,x0,x1,y0,y1 in [('PAR1_X',0,2394410,0,p1_bp),('PAR2_X',153925834,154259566,p2_bp,length_bp)]:
+    keep=px.track.eq(region)&px.included
+    xx=px.loc[keep]
+    assert len(xx)>0
+    px.loc[keep,'projected_Y_span_midpoint']=(y0+((xx.start0+xx.end)/2-x0)/(x1-x0)*(y1-y0))/1e6
+    xx=px.loc[keep];v=float(xx.percent_of_sgCTRL.median())
+    ax_a.scatter(gx(xx.projected_Y_span_midpoint),xx.percent_of_sgCTRL,s=8,color=TEAL,alpha=.65,linewidth=0,zorder=3)
+    ax_a.plot([gx(y0/1e6),gx(y1/1e6)],[v]*2,color=TEAL,lw=2,zorder=4)
+    label_y=min(DNA_TOP-15,max(v+28,DNA_TOP*.718))
+    if region=='PAR1_X':label_at(p1/2,label_y,f'{v:.0f}%',TEAL)
+    else:
+        ax_a.annotate(f'{v:.0f}%',xy=(gx((y0+y1)/2e6),v),xytext=(gx(length)+.08,label_y),
+            ha='right',va='center',fontsize=7.6,fontweight='semibold',color=TEAL,
+            bbox=dict(facecolor='white',edgecolor='none',alpha=.9,pad=1),
+            arrowprops=dict(arrowstyle='-',lw=.6,color=TEAL),zorder=7)
+px.to_csv(SNAP/'X_PAR_bin_ratios.csv',index=False)
+ax_a.text(gx((q0+p2)/2),DNA_TOP*.48718,'Yq12 heterochromatin\n(unmappable, excluded)',rotation=90,
+    ha='center',va='center',fontsize=7.4,color='#666666',zorder=6)
+ax_a.annotate('Centromere\nexcluded',xy=(gx((c0+c1)/2),DNA_TOP*.75641),xytext=(12.4,DNA_TOP*.83333),
+    fontsize=6.7,ha='left',va='center',color='#666666',arrowprops=dict(arrowstyle='-',color='#999999',lw=.5),zorder=6)
+for x,label,color,align in [(p1/2,'PAR1 (X)',TEAL,'center'),(6.5,'Male-specific Yp','#222222','center'),
+                           (19.0,'Euchromatic Yq','#222222','center'),(gx(length)+.13,'PAR2 (X)',TEAL,'right')]:
+    ax_a.text(x,DNA_TOP+4,label,fontsize=7.4,ha=align,va='bottom',color=color,clip_on=False)
+ax_a.text(gx((q0+p2)/2),DNA_TOP-6,'compressed',fontsize=6.5,ha='center',va='center',color='#666666')
+handles=[Line2D([],[],marker='o',ls='none',color=GREY,markersize=3,label='100-kb Y bin'),
+         Line2D([],[],color=COL['LOY'],lw=2,label='Regional median'),
+         Line2D([],[],color=COL['sgCTRL'],lw=.8,ls='--',label='100% of sgCTRL'),
+         Line2D([],[],marker='o',ls='none',color=TEAL,markersize=3,label='X-PAR bin')]
+ax_a.legend(handles=handles,loc='upper left',bbox_to_anchor=(0,-.025),ncol=4,frameon=False,
+    fontsize=6.8,borderaxespad=0,handlelength=1.6,columnspacing=1.1)
+

@@ -1,0 +1,21 @@
+{
+  "pipeline_version": "1.0.0",
+  "inputs": {
+    "candidates": "candidate_guides.csv",
+    "non_y_mismatch_annotations": "filter_audit/saved_site_level_summary.csv",
+    "guide_labels": "guide_labels.csv",
+    "historical_shortlist_for_comparison_only": "top_hits.csv"
+  },
+  "filters": {
+    "minimum_exact_y_matches": 10,
+    "maximum_exact_non_y_matches": 0,
+    "maximum_non_y_1_mismatch_sites": 0,
+    "maximum_non_y_2_mismatch_sites": 0
+  },
+  "ranking": "exact_y_matches_descending_then_spacer_alphabetical",
+  "annotation_scope": "non_Y",
+  "annotation_provenance": "Summaries of the saved guides_of_interest_off_targets_list.RDS: chr1-22, chrX and chrM; both orientations; annotations available only for the historical 215-guide shortlist.",
+  "score_interpretation": "CFD values are legacy annotations, not recalculated predictions. They are not filters or ranking criteria. Non-Y CFD already excludes chrY; do not subtract Y CFD.",
+  "reference_description": "Saved exact-match tables from the T2T-labelled workflow; HG002 T2T-Y (CP086569.2) and CHM13 non-Y reference sequences.",
+  "output_root": "filtered_runs"
+}

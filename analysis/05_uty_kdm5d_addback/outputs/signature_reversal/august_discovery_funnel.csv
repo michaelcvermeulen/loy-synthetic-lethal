@@ -1,0 +1,8 @@
+step,n
+Representative expressed genes in the August background,23903
+Same direction in all three passage-matched pairs,10113
+Same direction and |mean LOY - sgCTRL| >= 0.5 log2,3738
+"Eligible, higher in LOY",1880
+"Eligible, lower in LOY",1858
+Selected: 50 largest higher in LOY,50
+Selected: 50 largest lower in LOY,50

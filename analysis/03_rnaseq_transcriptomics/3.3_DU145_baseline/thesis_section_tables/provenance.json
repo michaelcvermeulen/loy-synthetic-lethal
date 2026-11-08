@@ -1,0 +1,22 @@
+[
+  {
+    "file": "camera_all_collections.csv",
+    "sha256": "d84dd56715345415d828795536845968dc10506529a629baf92061fcc4bcc95c"
+  },
+  {
+    "file": "DE_paired_voom_primary.csv",
+    "sha256": "46d7a30cdd05fb229a29897de80b4f1566b87183715da2b95f7a01303a235061"
+  },
+  {
+    "file": "fgsea_all_collections.csv",
+    "sha256": "951a86b8475e566461638046c7c0e1e8c5a9a9fbe5cc37374ae24142f18bc95b"
+  },
+  {
+    "file": "highlighted_CAMERA_results.csv",
+    "sha256": "14796c5e93c0e681cc75b74ab944760e4aed60bb387a5ef5fbe54545d74cd086"
+  },
+  {
+    "file": "Y_PAR_gene_table.csv",
+    "sha256": "2eb5e368903ac9838d4941bcde950e7e359a5e28ff64ebeabfca23aec1b2cef1"
+  }
+]

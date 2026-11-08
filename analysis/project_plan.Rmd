@@ -1,145 +1,64 @@
 ---
-title: "Project and thesis plan — LOY synthetic lethality"
-author: "Mike Vermeulen"
+title: "Project & Thesis Overview — Molecular Consequences and Synthetic Lethal Dependencies of LOY in Cancer"
+author: "Michael Cory Vermeulen"
 date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 output: rmdformats::readthedown
 ---
 
-# Purpose of this document
+# Purpose of This Document
 
-This is the roadmap. It captures the **thesis plan from the start of the
-project** through the planned manuscript submission, and is the canonical
-reference for "what was meant to happen, what has happened, and what is still
-on the docket." It is meant to be read alongside the [background
-document](background.html) — that one says *why*, this one says *what and when*.
+This document provides the structural roadmap of the PhD thesis **_Molecular Consequences and Synthetic Lethal Dependencies of Loss of the Y Chromosome in Cancer_** (Department of Biology, Queen's University, Kingston, Ontario, Canada; December 2026) and maps each thesis chapter and subsection to the corresponding computational and experimental modules in this repository.
 
-Updates: anyone reading should treat the **Current state** section as the
-authoritative snapshot; the rest is intentionally historical.
+---
 
-# Thesis plan from the start
+# Thesis Architecture (Chapters 1–5)
 
-`TODO: fill in the original CM1 framing — the questions you proposed, the
-hypotheses, the planned experiments, and the committee feedback. The bullets
-below are the structural template; replace placeholders with the actual
-narrative from your proposal documents in
-a:/Dropbox/LOY_paralogs/projects/proposals_summaries/.`
+The thesis is written in manuscript format in accordance with the Queen's University School of Graduate Studies and Postdoctoral Affairs guidelines:
 
-## Original thesis questions
+| Chapter | Title & Publication Status | Core Scope | Repository Mapping |
+|---|---|---|---|
+| **Chapter 1** | *General Introduction* | Synthetic lethality in oncology, sex-chromosome evolution (`T2T-CHM13v2.0`), X–Y gametolog functions, epidemiology and immunology of somatic LOY, and thesis objectives (`Fig 1.1–1.3`). | [`background.Rmd`](background.Rmd) |
+| **Chapter 2** | *Challenges and opportunities for oncology drug repurposing informed by synthetic lethality* — **Published:** *npj Systems Biology and Applications* **11**, 143 (2025) | Pan-cancer integration of DepMap CRISPR screens, TCGA mutual exclusivity, and PRISM pharmacogenomic screens across cancer driver mutations; discovery of *BRD2* sensitivity in *ARID1A*-mutant bladder cancer and *NAMPT* sensitivity in *SIN3A*-mutant models; systematic evaluation of drug–CRISPR discordance (`Fig 2.1–2.6`, `Supp Fig 2.1–2.2`). | Contextual foundation; extended to LOY in [`01_depmap_prism_public/`](01_depmap_prism_public/) |
+| **Chapter 3** | *Generation and Molecular Characterization of Isogenic Loss of the Y Chromosome Cancer Models* — **Manuscript prepared for submission** | *In silico* T2T-Y repeat guide design (`CP`, `CN`, `Q53`, `P47`, `P51`), pooled Cas9 RNP Y-depletion engineering across HT1080, A549, DU145, and HepG2, multiplex ddPCR and Y-PAR-masked T2T-Y lpWGS (partial distal Yp retention vs. whole-Y loss), baseline RNA-seq across HT1080/A549/DU145, 18 external Y-loss/mosaic datasets, 16 chromosome/arm-loss contrasts, HT1080 ATAC-seq & RNA/ATAC integration, and lentiviral *UTY*/*KDM5D* rescue (`Fig 3.1–3.15`, `Supp Fig 3.1–3.44`). | [`02_genome_engineering/`](02_genome_engineering/) · [`03_rnaseq_transcriptomics/`](03_rnaseq_transcriptomics/) · [`04_atacseq_chromatin/`](04_atacseq_chromatin/) · [`05_uty_kdm5d_addback/`](05_uty_kdm5d_addback/) |
+| **Chapter 4** | *Functional Genomics and Synthetic Lethal Vulnerabilities in Loss of the Y Chromosome Cancer Models* — **Manuscript prepared for submission** | Public DepMap/NextGen 3D/PRISM LOY reanalyses and 25-benchmark empirical power simulations, genome-wide Brunello CRISPR–Cas9 screens in matched Y-depleted and control HT1080 and A549 populations (*DDX3X*, *EIF1AX*, SAGA complex, *MED12*, *SREBF1/2*, *TIMM8A*, *L3MBTL2*, *UBR5*), multi-omic & network integration, benchmarking across 27 external isogenic CRISPR screens, cross-screen guide QC audits, and reciprocal two-colour `eGFP`/`mCherry` spectral flow-cytometry competitive growth validation (`Fig 4.1–4.8`, `Supp Fig 4.1–4.16`). | [`01_depmap_prism_public/`](01_depmap_prism_public/) · [`06_crispr_screens/`](06_crispr_screens/) · [`07_competitive_growth_assays/`](07_competitive_growth_assays/) |
+| **Chapter 5** | *General Discussion and Translational Outlook* | Synthesis across Chapters 2–4: rules of X–Y gametolog buffering, lineage-specific vs. conserved innate immune consequences of LOY, *UTY*-responsive chromatin compaction, SAGA/Mediator coactivator dependencies, and therapeutic strategies (`DDX3X`/`DDX3Y`-selective targeting, paralog-selective degraders, SAGA KAT2A/B and TADA2B/TAF6L inhibition, and patient stratification by regional Y status). | [`mechanism/`](mechanism/) · [`summary.Rmd`](summary.Rmd) |
 
-1. `TODO: question 1 (e.g., is LOY a driver or passenger of the cancer
-   phenotypes with which it associates?)`
-2. `TODO: question 2 (e.g., what is the molecular basis of any LOY-driven
-   phenotype?)`
-3. `TODO: question 3 (e.g., is the LOY state therapeutically exploitable?)`
+---
 
-## Original chapter outline
+# Detailed Chapter 3 & Chapter 4 Crosswalk to Repository Modules
 
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| 1 | Introduction and literature review                              | `TODO: status` |
-| 2 | `TODO: chapter title (likely engineering + RNA-seq)`            | `TODO: status` |
-| 3 | `TODO: chapter title (likely chromatin / ChIP / ATAC)`          | `TODO: status` |
-| 4 | `TODO: chapter title (likely DepMap / TCGA / functional screens)` | `TODO: status` |
-| 5 | `TODO: chapter title (likely scRNA atlas / patient relevance)`  | `TODO: status` |
-| 6 | Discussion and future directions                                | `TODO: status` |
+## Chapter 3: Isogenic LOY Models & Multi-Omic Characterization
 
-## Committee meetings — timeline
+| Thesis Section | Topic | Repository Directory | Active Figures |
+|---|---|---|---|
+| **§3.2 / S3.1–S3.4** | Materials & Methods and Supplementary Methods (44 RNA-seq library QC, ATAC-seq QC, ddPCR mixing, Y-PAR-masked lpWGS) | [`methods/`](methods/) | `Supp Fig 3.1–3.3` |
+| **§3.3.1** | Repeat-targeting CRISPR strategy for Y depletion on `T2T-CHM13v2.0` (`CP`, `CN`, `Q53`, `P47`, `P51`) | [`02_genome_engineering/2.1_guide_design/`](02_genome_engineering/2.1_guide_design/) | `Fig 3.1`, `Supp Fig 3.4` |
+| **§3.3.2.1** | Development & genomic characterization of the HT1080 model (RT-qPCR, ddPCR 1x/2x rounds, genome-wide & regional Y lpWGS) | [`02_genome_engineering/2.2_ddpcr_validation/`](02_genome_engineering/2.2_ddpcr_validation/) · [`2.3_lpwgs_characterization/`](02_genome_engineering/2.3_lpwgs_characterization/) | `Fig 3.2–3.4`, `Supp Fig 3.5`, `Supp Fig 3.7–3.9` |
+| **§3.3.2.2** | Y depletion and whole-Y loss in A549 (ddPCR, regional Y lpWGS, DNA–RNA arm correspondence) | [`02_genome_engineering/2.3_lpwgs_characterization/`](02_genome_engineering/2.3_lpwgs_characterization/) | `Fig 3.2d,e`, `Fig 3.5`, `Supp Fig 3.6`, `Supp Fig 3.10` |
+| **§3.3.2.3** | Regional Y retention in edited DU145 populations (*AMELY* loss vs. distal Yp *RPS4Y1*/*ZFY* retention) | [`02_genome_engineering/2.3_lpwgs_characterization/`](02_genome_engineering/2.3_lpwgs_characterization/) | `Fig 3.6`, `Supp Fig 3.11–3.12` |
+| **§3.3.2.4** | Pharmacological modulation of Y depletion (panobinostat & KU-55933 in DU145; HepG2 ddPCR) | [`02_genome_engineering/2.2_ddpcr_validation/`](02_genome_engineering/2.2_ddpcr_validation/) | `Supp Fig 3.13–3.14` |
+| **§3.3.3.1** | Transcriptional and chromatin characterization of HT1080 (two-window RNA-seq, `fgsea`/`CAMERA`, STRING modules, ATAC-seq DARs, `chromVAR`/HOMER/TOBIAS motifs, RNA/ATAC integration & PRC2 enrichment) | [`03_rnaseq_transcriptomics/3.1_HT1080_baseline/`](03_rnaseq_transcriptomics/3.1_HT1080_baseline/) · [`04_atacseq_chromatin/`](04_atacseq_chromatin/) | `Fig 3.7–3.10`, `Supp Fig 3.15–3.28` |
+| **§3.3.3.2** | Transcriptional characterization of A549 (`RINe`-adjusted nuclear model, QC sensitivities, parental comparisons) | [`03_rnaseq_transcriptomics/3.2_A549_baseline/`](03_rnaseq_transcriptomics/3.2_A549_baseline/) | `Supp Fig 3.29–3.31` |
+| **§3.3.3.3** | Transcriptional characterization of DU145 (passage-paired DE, *GRHL2* suppression, ECM induction, copy-number sensitivity) | [`03_rnaseq_transcriptomics/3.3_DU145_baseline/`](03_rnaseq_transcriptomics/3.3_DU145_baseline/) | `Fig 3.11–3.12`, `Supp Fig 3.32–3.39` |
+| **§3.3.3.4** | Shared and background-specific molecular responses across HT1080, A549, DU145 & 18 external Y-loss/mosaic datasets | [`03_rnaseq_transcriptomics/3.4_crossline_and_external/`](03_rnaseq_transcriptomics/3.4_crossline_and_external/) | `Fig 3.13`, `Supp Fig 3.40` |
+| **§3.3.3.5** | Comparison with 16 chromosome- and arm-loss models (RPTEC Yq/3p time course, ReDACT, RPE1 monosomies) | [`03_rnaseq_transcriptomics/3.5_chromosome_arm_loss/`](03_rnaseq_transcriptomics/3.5_chromosome_arm_loss/) | `Supp Fig 3.41` |
+| **§3.3.4** | Transcriptional responses to lentiviral *UTY* and *KDM5D* rescue in Y-depleted HT1080 cells | [`05_uty_kdm5d_addback/`](05_uty_kdm5d_addback/) | `Fig 3.14–3.15`, `Supp Fig 3.42–3.44` |
 
-| Meeting | Date            | Focus                                               | Outcome |
-|---------|-----------------|-----------------------------------------------------|---------|
-| CM1     | `TODO: date`    | Proposal: questions, hypotheses, aims               | `TODO: feedback summary` |
-| CM2     | `TODO: date`    | `TODO: focus`                                       | `TODO`  |
-| CM3     | `TODO: date`    | `TODO: focus`                                       | `TODO`  |
-| CM4     | `TODO: date`    | `TODO: focus`                                       | `TODO`  |
-| **CM5** | **mid-June 2026** | Pre-defense / manuscript-ready status check        | upcoming |
+## Chapter 4: Functional Genomics & Synthetic Lethal Vulnerabilities
 
-# Current state
+| Thesis Section | Topic | Repository Directory | Active Figures |
+|---|---|---|---|
+| **§4.2 / S4.1–S4.5** | Materials & Methods and Supplementary Methods (DepMap/PRISM models, Brunello screen protocols, guide-artefact & D0 jackpot audits, `IsogenicZ`, spectral unmixing) | [`methods/`](methods/) | `Supp Fig 4.1`, `Supp Fig 4.5–4.7` |
+| **§4.3.0.1–4.3.0.3** | Public DepMap & PRISM analyses of LOY-associated vulnerabilities, 3D NextGen organoid replication, and 25-benchmark empirical power simulations | [`01_depmap_prism_public/`](01_depmap_prism_public/) | `Fig 4.1`, `Supp Fig 4.1–4.4` |
+| **§4.3.1.1–4.3.1.3** | HT1080 genome-wide Brunello CRISPR screen (*DDX3X*, SAGA complex, *MED12*, *SREBF1/2*, *TIMM8A*), DepMap/STRING networks, and multi-omic RNA/ATAC/add-back integration | [`06_crispr_screens/6.1_HT1080_brunello/`](06_crispr_screens/6.1_HT1080_brunello/) | `Fig 4.2–4.4`, `Supp Fig 4.5–4.11` |
+| **§4.3.2–4.3.4** | Reciprocal two-colour `eGFP`/`mCherry` spectral flow-cytometry competitive growth assay development, mixing calibration, and *DDX3X* / *TADA2B* / *SREBF1* validation | [`07_competitive_growth_assays/`](07_competitive_growth_assays/) | `Fig 4.5–4.6`, `Supp Fig 4.12` |
+| **§4.3.5** | A549 genome-wide Brunello CRISPR screen (*EIF1AX*, *L3MBTL2*, *UBR5*) and rules governing X–Y gametolog recovery | [`06_crispr_screens/6.2_A549_brunello/`](06_crispr_screens/6.2_A549_brunello/) | `Fig 4.7–4.8`, `Supp Fig 4.13–4.14` |
+| **§4.3.6** | Benchmarking against 27 external isogenic CRISPR screens and `T0`/`D0` baseline-divergence (`IsogenicZ` vs. `drugZ`) audit | [`06_crispr_screens/6.3_external_isogenic_benchmarks/`](06_crispr_screens/6.3_external_isogenic_benchmarks/) | `Supp Fig 4.15–4.16` |
 
-`r format(Sys.Date(), '%B %Y')` snapshot:
+---
 
-- **Generated data ready for analysis migration**:
-  - Bulk RNA-seq: A549, HT1080, LNCaP (each with standardized
-    STAR/featureCounts/DESeq2/VIPER pipeline).
-  - ATAC-seq: HT1080 LOY vs CTRL replicates (BAMs, MACS2 peaks, QC).
-  - lpWGS: A549, HT1080, LNCaP coverage reports for LOY clone validation
-    (T2T alignment, mosdepth).
-  - CRISPR functional screens: A549 (`a549_loy_screen1`) and HT1080
-    (`ht1080_loy_screen_2`, Brunello).
-  - Drug screen: HT1080 only (Ben Snider, Craig Lab).
-  - DepMap / TCGA pan-cancer LOY analyses (Boruta, ssGSEA, SAGA-focused).
-  - Single-cell LOY atlas drafts (prostate first; more cancers planned).
+# Provenance & Reproducibility Standards
 
-- **Not yet generated**:
-  - Postovit-lab ChIP-seq (in-house) — pending; section 3 currently uses
-    public sources only.
-  - sgRNA design notebook (`a:/.../sgRNA_guide_development/` is empty).
-  - ddPCR-specific validation reports (CTG viability data exists; ddPCR TBD).
-
-- **Repository state**:
-  - Skeleton scaffolded; no analyses migrated yet (intentional —
-    migration happens in a dedicated pass).
-  - renv-pinned R 4.5.2 environment.
-  - Private GitHub repo; flip to public at manuscript submission.
-
-# CM5 deliverables (mid-June 2026)
-
-`TODO: confirm the exact CM5 ask with committee chair and update this
-section. Below is a reasonable default based on standard pre-defense check-ins
-— refine.`
-
-By CM5, the committee will expect:
-
-1. **A coherent written argument** for the mechanistic model — likely the
-   draft of chapter 1 (intro) plus at least one results chapter showing the
-   LOY → chromatin → transcription chain.
-2. **Reproducible analyses** for the bulk of the data — analyses in this repo
-   should knit cleanly and be self-contained, even if not all interpretation
-   is finalized.
-3. **A clear figure plan for the manuscript** — every planned manuscript
-   figure should map to a specific analysis `.Rmd` in this repo.
-4. **A realistic timeline to defense** — milestones from CM5 → submission →
-   revision → defense.
-
-# Manuscript timeline
-
-`TODO: insert target submission journal, target submission date, anticipated
-revision window, and defense target. Recommended to align this section with
-CM5 deliverables.`
-
-| Milestone                       | Target date     | Status |
-|---------------------------------|-----------------|--------|
-| Complete in-house ChIP-seq      | `TODO`          | pending |
-| Lock down all analyses in repo  | `TODO`          | scaffolding stage |
-| First full manuscript draft     | `TODO`          | not started |
-| Co-author / Babak Lab review    | `TODO`          | — |
-| Submission                      | `TODO`          | — |
-
-# Future directions / extensions
-
-Items that are scoped *beyond* the immediate manuscript but track here so
-they aren't lost:
-
-- **scRNA atlas expansion** — additional cancer types beyond prostate
-  (candidates: `TODO`).
-- **Drug-screen follow-up** — dose-response in additional LOY cell lines if
-  HT1080 hits validate.
-- **CRISPR screen extension** — `TODO: any planned secondary screens (focused
-  libraries, combinatorial)?`
-- **Patient-derived contexts** — `TODO: any PDX / organoid plans?`
-
-# Risk register
-
-| Risk                                                                   | Mitigation |
-|------------------------------------------------------------------------|------------|
-| Postovit ChIP slips before CM5                                         | Section 3 falls back to public ChIP-seq only; flagged in repo. |
-| LNCaP / A549 / HT1080 screens disagree on hit set                      | Section 8.4 integration notebook is explicitly designed to surface and reason about discordance. |
-| `TODO: add additional project-specific risks`                          | `TODO`     |
-
-# Document status
-
-- **Audience**: thesis committee, M.V. self, Babak/Craig labs.
-- **Owner**: Mike Vermeulen.
-- **Status**: skeleton — most fields need data filled in from project
-  proposals (`a:/Dropbox/LOY_paralogs/projects/proposals_summaries/`) and
-  committee meeting notes.
-- **Last knit**: see header date.
+1. **Cell-line identity resolution (DU145 vs. historical "LNCaP" label):** Early experimental records and raw sequencing files for the prostate carcinoma line carried the label `LNCaP`. Short tandem repeat (STR) profiling and transcriptomic lineage verification (complete absence of *AR*, *KLK3*, *KLK2*, *FOLH1*, and *HOXB13*, and top genome-wide expression correlation with DepMap `DU145`) confirmed that the line is **DU145**. All thesis prose, figures, and module documentation use **DU145**, while raw filenames (`LNCaP-*`) are preserved in provenance tables for exact checksum traceability.
+2. **Y-PAR masking across DNA and RNA:** Both `T2T-CHM13v2.0` lpWGS and `GRCh38`/`GENCODE v49` `STAR v2` RNA-seq pipelines mask the Y-chromosome copies of `PAR1` and `PAR2` during alignment so that pseudoautosomal reads map uniquely to the X-coordinate PAR intervals without `MAPQ = 0` multimapper loss.
+3. **Explicit multiple-testing families:** All differential expression (`limma-voom`), differential accessibility (`edgeR`/`limma` and `csaw`), gene-set (`fgsea` and fixed-correlation `CAMERA` at $\rho = 0.01$), public cohort (`limma` and rank-normalised OLS), and CRISPR screen (`drugZ`, `MAGeCK`, `IsogenicZ`) analyses preserve their frozen multiple-testing families as documented in [`methods/`](methods/).

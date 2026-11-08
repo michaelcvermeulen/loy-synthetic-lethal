@@ -1,0 +1,86 @@
+{
+  "curves": 12,
+  "curve_rows": 25462,
+  "exact_ES_and_leading_edges": true,
+  "original_global_BH_preserved": true,
+  "individual_exports": 36,
+  "composite_figures": 2,
+  "composite_source_panels": 12,
+  "prior_figure_exports_unchanged": 51,
+  "report_figures": 2,
+  "broken_local_links": 0,
+  "fonts": [
+    {
+      "pathway": "PRC2_EED_DN.V1_UP",
+      "embedded_Arial_fonts": [
+        "/EENMMA+ArialMT"
+      ]
+    },
+    {
+      "pathway": "PRC2_EED_DN.V1_DN",
+      "embedded_Arial_fonts": [
+        "/OEOCEL+ArialMT"
+      ]
+    },
+    {
+      "pathway": "PRC2_EZH2_UP.V1_UP",
+      "embedded_Arial_fonts": [
+        "/MYNWGJ+ArialMT"
+      ]
+    },
+    {
+      "pathway": "PRC2_SUZ12_UP.V1_UP",
+      "embedded_Arial_fonts": [
+        "/AEUWEL+ArialMT"
+      ]
+    },
+    {
+      "pathway": "MIKKELSEN_MEF_HCP_WITH_H3K27ME3",
+      "embedded_Arial_fonts": [
+        "/PNGDVS+ArialMT"
+      ]
+    },
+    {
+      "pathway": "MIKKELSEN_MCV6_HCP_WITH_H3K27ME3",
+      "embedded_Arial_fonts": [
+        "/COFHNS+ArialMT"
+      ]
+    },
+    {
+      "pathway": "SENESE_HDAC2_TARGETS_DN",
+      "embedded_Arial_fonts": [
+        "/BVFAFC+ArialMT"
+      ]
+    },
+    {
+      "pathway": "SENESE_HDAC1_AND_HDAC2_TARGETS_DN",
+      "embedded_Arial_fonts": [
+        "/AQLUMU+ArialMT"
+      ]
+    },
+    {
+      "pathway": "BMI1_DN_MEL18_DN.V1_UP",
+      "embedded_Arial_fonts": [
+        "/XYOZVJ+ArialMT"
+      ]
+    },
+    {
+      "pathway": "WANG_SMARCE1_TARGETS_UP",
+      "embedded_Arial_fonts": [
+        "/JIOWTY+ArialMT"
+      ]
+    },
+    {
+      "pathway": "ACEVEDO_LIVER_CANCER_WITH_H3K27ME3_UP",
+      "embedded_Arial_fonts": [
+        "/JMVPJG+ArialMT"
+      ]
+    },
+    {
+      "pathway": "PASINI_SUZ12_TARGETS_DN",
+      "embedded_Arial_fonts": [
+        "/DHJDQT+ArialMT"
+      ]
+    }
+  ]
+}

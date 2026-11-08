@@ -1,0 +1,3 @@
+direction,candidate_unique_symbols,STRING_mapped_candidates,connected_genes,association_edges,modules,module_genes,strict_physical_connected_genes,strict_physical_edges,strict_physical_modules
+DOWN,2379,1306,647,1238,24,150,303,285,12
+UP,2500,982,403,550,18,86,145,127,11

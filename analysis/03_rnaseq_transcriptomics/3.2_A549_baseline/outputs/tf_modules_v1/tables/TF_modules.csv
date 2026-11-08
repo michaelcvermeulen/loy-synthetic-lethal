@@ -1,0 +1,2 @@
+line,module,members,n,direction,bootstrap_jaccard,edge_drop_jaccard,retained,stable,drivers,top_drivers,confounder_dependent
+"A549",1,"HNF1A;HNF1B;FOXA2",3,"higher",0.996833333333333,1,TRUE,TRUE,14,"CDH1;HNF1A;HNF4A;MMP7;ABCC2;SHH;FGL1;SOX9",""

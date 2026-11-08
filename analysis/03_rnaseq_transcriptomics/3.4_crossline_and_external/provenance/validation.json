@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "checked_at": "2026-09-23 17:06:35 -0400",
+  "common_genes": 16165,
+  "common_gene_sets": 22961,
+  "shared_sets": 46,
+  "divergent_sets": 23,
+  "polarity_checked_datasets": 12,
+  "shared_rule": "BH < 0.05 in at least two lines and the same sign in all three"
+}

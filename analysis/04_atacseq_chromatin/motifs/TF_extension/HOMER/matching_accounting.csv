@@ -1,0 +1,5 @@
+arm,direction,eligible_target,matched_target,unmatched_target,background,controls_per_target
+primary_TMM,gained,47,47,0,470,10
+primary_TMM,lost,609,609,0,6090,10
+passage_TMM,gained,362,362,0,1810,5
+passage_TMM,lost,3068,3068,0,3068,1

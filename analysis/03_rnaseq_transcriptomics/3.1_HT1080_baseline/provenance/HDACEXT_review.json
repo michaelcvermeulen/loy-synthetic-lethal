@@ -1,0 +1,39 @@
+{
+  "completed_at": "2026-09-13T15:17:10.111953+00:00",
+  "stage": "HDAC_step_3_direct_public_RNAseq_benchmark",
+  "source_study": "GSE193885",
+  "source_libraries": 69,
+  "modeled_source_libraries": 63,
+  "source_contrasts": 27,
+  "common_gene_loci": 14881,
+  "new_secondary_sets": 54,
+  "scientific_assertions": 142,
+  "scientific_test_groups": 23,
+  "total_figures": 15,
+  "total_source_panels": 54,
+  "new_figures": [
+    "Fig09_HDAC_external_comparison",
+    "SuppFig06_HDAC_external_QC_sensitivity"
+  ],
+  "export_checks": "passed: embedded Arial, editable PDF/SVG text, 600 dpi PNG, physical dimensions, captions under 250 words, self-contained HTML and local links",
+  "visual_review": "Inspected composed color figures and protanopia/deuteranopia/grayscale simulations. Corrected clipped legend, title crowding and PCA labels; added signed numerical correlations to sensitivity heatmap.",
+  "color_limit": "Scatter target categories use color; primary HDAC2 comparisons are directly labeled. UP/DN and periods also use shapes. Heatmaps have signed numbers for grayscale.",
+  "new_caption_words": [
+    232,
+    224
+  ],
+  "unchanged_prior_figure_exports": 39,
+  "frozen_inputs_verified": 9,
+  "original_resource_files_verified": 12,
+  "external_resource_files_verified": 24,
+  "warnings": "11 recorded fgsea warnings; all 648 NES/P results finite; 9 P values at eps=1e-10; precision estimates and ties retained in tables. R startup locale warnings did not prevent execution.",
+  "MS_label_audit": "GEO and ENA do not resolve MS/MS1/MS3 dose/time. Numerical compatibility does not verify treatment identity; no frozen primary contrast was reassigned.",
+  "execution": "External models reconstructed from raw processed counts; comparison repeated with identical seed/input rules to capture warnings. Figures revised after visual inspection. All report renders completed; no original HT1080 expression/global enrichment refit.",
+  "test_correction": "The initial report-text assertion was made insensitive to HTML whitespace; biological source-value assertions already passed.",
+  "optional_not_run": [
+    "LINCS",
+    "HDAC_complex_analysis",
+    "addback_integration"
+  ],
+  "interpretation": "Weak HDAC2 knockout agreement, stronger active-transgene control agreement and inverse inactive-versus-active comparison weaken a specific HDAC2 catalytic-loss interpretation."
+}

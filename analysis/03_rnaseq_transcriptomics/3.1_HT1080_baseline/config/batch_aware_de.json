@@ -1,0 +1,13 @@
+{
+  "seed": 42,
+  "primary_model": "six within-period passage block intercepts + separate August and May LOY effects",
+  "combined_contrast": "0.5 August LOY + 0.5 May LOY",
+  "sensitivity_model": "intercept + sampling period + population (CTRL/LOY)",
+  "method": "limma voom + robust empirical Bayes; trend=false",
+  "universe": "existing 25526 primary genes; original core TMM exposure offsets",
+  "FDR": "BH across all tested genes separately for each model/contrast",
+  "alpha": 0.05,
+  "interpretation": "exploratory conditional on fixed population model and independent residuals; no independent generation replication",
+  "parental": "excluded",
+  "PCA_adjusted_expression": "not used"
+}

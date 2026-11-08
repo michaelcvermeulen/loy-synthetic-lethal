@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-20",
+  "definition": "Exactly zero raw counts in every retained library, including D0 and endpoint.",
+  "sources": {
+    "HT1080": {
+      "path": "A:\\Dropbox\\LOY_paralogs\\projects\\crispr_screen\\ht1080_loy_screen_2\\count\\ht1080_screen2_R1.count.txt",
+      "sha256": "a919d02f5af9ed3f6c47d78c9fd4bf27daf0b612be6841e3bca6098d94bb8aa9"
+    },
+    "A549": {
+      "path": "A:\\Dropbox\\LOY_paralogs\\projects\\crispr_screen\\a549_loy_screen1\\CRISPR_screen\\Screen1\\Mageck\\A549_full.count.txt",
+      "sha256": "1ba85ceb55147014bddfe944ad031ca833688449815fdeba393f48efa88240b5"
+    }
+  },
+  "samples": {
+    "HT1080": [
+      "D0_CTRL",
+      "D0_LOY",
+      "POST_CTRL_REP1",
+      "POST_CTRL_REP2",
+      "POST_LOY_REP1",
+      "POST_LOY_REP2"
+    ],
+    "A549": [
+      "CTRL_D0_1",
+      "CTRL_D0_2",
+      "LOY_D0_1",
+      "LOY_D0_2",
+      "CTRL_P4_R2",
+      "LOY_P4_R1",
+      "LOY_P4_R2"
+    ]
+  },
+  "per_screen": [
+    {
+      "screen": "HT1080",
+      "n_retained_libraries": 6,
+      "n_guides": 77441,
+      "zero_all_libraries": 236,
+      "zero_all_percent": 0.30474813083508734,
+      "zero_all_D0_libraries": 280,
+      "zero_all_endpoint_libraries": 311,
+      "detected_at_D0_but_zero_all_endpoints": 75,
+      "zero_at_D0_but_detected_at_endpoint": 44
+    },
+    {
+      "screen": "A549",
+      "n_retained_libraries": 7,
+      "n_guides": 77441,
+      "zero_all_libraries": 307,
+      "zero_all_percent": 0.39643083121343986,
+      "zero_all_D0_libraries": 316,
+      "zero_all_endpoint_libraries": 430,
+      "detected_at_D0_but_zero_all_endpoints": 123,
+      "zero_at_D0_but_detected_at_endpoint": 9
+    }
+  ],
+  "shared_zero_guides": 223,
+  "shared_zero_percent": 0.2879611575263749,
+  "other_shared_zero_guides_besides_DDX3X_4640": 222,
+  "HT1080_only_zero_guides": 13,
+  "A549_only_zero_guides": 84,
+  "either_screen_zero_guides": 320,
+  "shared_zero_gene_targeting_guides": 222,
+  "shared_zero_target_genes": 221,
+  "shared_zero_non_targeting_guides": 1,
+  "max_shared_zero_guides_per_target_gene": 2,
+  "shared_zero_with_duplicate_sequence": 0,
+  "exploratory_prefix_counts": [
+    {
+      "prefix": "TCTC",
+      "n_in_full_library": 392,
+      "n_shared_zero": 163,
+      "n_other_guides": 229
+    },
+    {
+      "prefix": "AGACG",
+      "n_in_full_library": 88,
+      "n_shared_zero": 33,
+      "n_other_guides": 55
+    },
+    {
+      "prefix": "either_prefix",
+      "n_in_full_library": 480,
+      "n_shared_zero": 196,
+      "n_other_guides": 284
+    }
+  ],
+  "interpretation": "Non-detection in existing count matrices; physical absence, mapping/reference failure and other technical causes are not distinguished. Absence at D0 is not measured loss during outgrowth.",
+  "excluded_samples": "All A549 P3 samples remain excluded. No absent CTRL P4 replicate is imputed.",
+  "validation": {
+    "guide_ids_and_gene_annotations_match": true,
+    "integer_nonnegative_counts": true,
+    "all_zero_equals_zero_sum": true,
+    "source_hashes_unchanged": true
+  },
+  "software": {
+    "pandas": "2.3.3",
+    "numpy": "2.5.4"
+  }
+}

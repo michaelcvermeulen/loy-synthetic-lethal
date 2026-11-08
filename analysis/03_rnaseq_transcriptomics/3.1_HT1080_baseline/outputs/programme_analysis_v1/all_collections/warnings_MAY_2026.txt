@@ -1,0 +1,2 @@
+For some of the pathways the P-values were likely overestimated. For such pathways log2err is set to NA.
+For some pathways, in reality P-values are less than 1e-10. You can set the `eps` argument to zero for better estimation.

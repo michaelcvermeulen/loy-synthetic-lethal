@@ -1,0 +1,4 @@
+Median estimated inter-gene correlation (all sets, all contrasts): 0.034 -> fixed setting 0.03
+Rows per setting: 36444 / 36444 / 36444
+Primary setting reproduces camera_all.csv FDR_collection_contrast: max abs diff 2.55e-15
+Candidate UTY sets not shared with naive Y-depleted: 17

@@ -1,0 +1,4 @@
+comparison,status,reason
+MS275_MS1_S52_vs_WT,not_run,Distinct dose/time meaning unresolved in generic GEO metadata and supplement
+MS275_MS3_S52_vs_WT,not_run,Distinct dose/time meaning unresolved in generic GEO metadata and supplement
+direct_CI_KO_vs_CI_WT_for_HDAC1_HDAC2_HDAC8,not_run,Different sample-ID strata; background effect cannot be separated from unverified stratum differences

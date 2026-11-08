@@ -1,0 +1,5 @@
+pathway,NGenes,Direction,PValue,contrast,correlation_mode,Correlation,residual_df,collection,subcollection,gs_id,gs_url,db_version,BH_within_subcollection,BH_within_collection,BH_across_collections,statistical_scope
+KOHN_EMT_EPITHELIAL,20,Down,6.010834776297921e-14,LOY_vs_sgCTRL,fixed_0.01,0.01,2,C2,CGP,M46416,,2026.1.Hs,7.892226061279169e-11,2.4764639278347397e-11,4.5085138780154594e-11,exploratory_paired_passage_model
+HALLMARK_INFLAMMATORY_RESPONSE,145,Down,3.25262417324133e-05,LOY_vs_sgCTRL,fixed_0.01,0.01,2,H,,M5932,,2026.1.Hs,0.0005421040288735,0.0005421040288735,0.0024214143544593,exploratory_paired_passage_model
+HALLMARK_INTERFERON_ALPHA_RESPONSE,89,Down,3.01721448195753e-10,LOY_vs_sgCTRL,fixed_0.01,0.01,2,H,,M5911,,2026.1.Hs,1.50860724097876e-08,1.50860724097876e-08,1.13155276023349e-07,exploratory_paired_passage_model
+HALLMARK_INTERFERON_GAMMA_RESPONSE,166,Down,2.64624989282736e-09,LOY_vs_sgCTRL,fixed_0.01,0.01,2,H,,M5913,,2026.1.Hs,6.6156247320684e-08,6.6156247320684e-08,7.59637068000269e-07,exploratory_paired_passage_model

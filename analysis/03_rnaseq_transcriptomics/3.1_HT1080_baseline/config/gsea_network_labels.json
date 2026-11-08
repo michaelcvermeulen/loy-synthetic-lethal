@@ -1,0 +1,21 @@
+{
+  "DC01": "Interferon / antiviral source signatures",
+  "DC02": "Inflammatory / interferon source signatures",
+  "DC03": "Collagen / extracellular matrix",
+  "DC04": "Stromal / EMT source signatures",
+  "DC05": "Cancer expression modules (C4)",
+  "DC06": "FGF–RTK / PI3K–ERK gene sets",
+  "DC07": "Endothelial source signatures",
+  "DC08": "Lymphoid source signatures",
+  "DC09": "Myeloid / microglial source signatures",
+  "DC10": "Muscle / contractile processes",
+  "DC11": "Hemostasis / wound-response gene sets",
+  "DC12": "Lung secretory source signatures",
+  "DC63": "Senese HDAC2 / HDAC1+2 source-DOWN",
+  "UC01": "miR-3196 / 6816 / 3180 target sets",
+  "UC02": "CNS neuron axonogenesis",
+  "UC03": "Sperm-flagellum phenotype gene sets",
+  "UC04": "Thoracic phenotype gene sets",
+  "UC05": "Mikkelsen H3K27me3 source sets",
+  "UC06": "miR-342 / 4664 target sets"
+}

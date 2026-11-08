@@ -1,0 +1,2 @@
+dataset,feature,context_id,inside_p,inside,inside_se,n_neg_in,n_pos_in,n_neg_out,n_pos_out,class,label,type,compound_id,compound_name,inside_standardized,inside_fdr_class,associated
+prism_REP1M,BRD:BRD-K62814487-001-03-0,disease__Mature_B_Cell_Neoplasms,6.49756796901172e-07,0.667240151798828,0.104120956055157,8,16,191.0,229.0,disease,Mature B-Cell Neoplasms,binary,DPC-006084,SR-1664,1.26694437342631,0.0310863144341428,True
