@@ -1,3 +1,0 @@
-"sample","name","total.reads","used.reads","expected.variance","loess.span","loess.family"
-"A549-CTRL2","A549-CTRL2",11092218,8940926,0.00253687369742239,0.65,"symmetric"
-"A549-LOY","A549-LOY",11158822,9005647,0.00251864191434552,0.65,"symmetric"

@@ -1,3 +1,0 @@
-**Fig04_Y_positional_RNA_DNA**
-
-Orange: RNA for genes with sgCTRL mean CPM >= 1 (small points: each passage pair, LOY/sgCTRL CPM; open circles: group means). Black segments: lpWGS LNCaP-LOY-2X/sgCTRL ratio of saved QDNAseq segment values (0-10.9 Mb) and the euchromatic Yq regional median, both floored at 0.001 relative copy number. RNA values at or below 1% are drawn at 1%. PAR RNA counts are chrX-assigned and plotted at chrY PAR coordinates; PAR RNA cannot be attributed to X or Y. RNA and lpWGS specimens were not matched; the author identifies the RNA LOY population as the 2x population profiled by lpWGS.

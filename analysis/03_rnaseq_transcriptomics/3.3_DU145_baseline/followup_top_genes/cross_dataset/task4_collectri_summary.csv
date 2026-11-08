@@ -1,4 +1,0 @@
-TF,note,TF_logFC,TF_FDR,n_targets,n_activating,n_repressive,n_tested,n_FDR05,n_FDR05_agree,n_tested_agree,mean_mor_x_logFC,wilcoxon_P,FDR05_targets
-GRHL2,self-edge excluded from counts/score,-3.94551537732189,0.0007250278211221,10,9,1,8,1,1,7,-0.21794496298967725,0.0234375,"NKX2-1(-0.40,mor+1)"
-ZEB1,self-edge excluded from counts/score,0.326243035680093,0.483211924474619,63,20,43,45,2,2,28,0.18758458477368592,0.027553418628826876,"GRHL2(-3.95,mor-1);ST14(-0.72,mor-1)"
-NKX2-1,self-edge excluded from counts/score,-0.400177661952064,0.0457991156118842,64,57,7,44,3,3,25,-0.17458168820922337,0.023629227170545164,"HMGA2(-0.72,mor+1);SFTPA1(-2.31,mor+1);MDK(-0.67,mor+1)"

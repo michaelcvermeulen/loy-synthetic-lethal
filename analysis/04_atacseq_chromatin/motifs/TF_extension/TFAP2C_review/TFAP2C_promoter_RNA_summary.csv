@@ -1,5 +1,0 @@
-FDR_cutoff,ATAC_abs_logFC_cutoff,linked_RNA_genes,RNA_down_same_FDR,RNA_up_same_FDR
-0.05,0,43,19,0
-0.05,1,39,17,0
-0.1,0,72,32,2
-0.1,1,56,25,2

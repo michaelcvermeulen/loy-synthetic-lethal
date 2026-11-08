@@ -1,3 +1,0 @@
-region,bins,minimum_control_primary_reads,median_control_primary_reads,bins_also_passing_original_strict_mask,bins_with_difficulty_overlap_ge20,minimum_reference_mappability,maximum_percent_of_control
-MSY Yp,67,104,202.0,7,60,32.9,75.60595910211536
-euchromatic Yq,101,84,218.0,51,50,36.247,6.741806429770568

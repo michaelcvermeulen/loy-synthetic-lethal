@@ -1,4 +1,0 @@
-PASS: motif identity, exact peak order, native site totals, bound-state conservation and RNA joins checked.
-PASS: all three TFAP2C models show complete group separation and negative mean effects after omitting any one sample.
-PASS: Python independently verified unique peak counts, native bound-state conservation, all threshold gene counts, RNA source values and embedded current figure bytes.
-PASS: Python independently verified unique peak counts, native bound-state conservation, all threshold gene counts, RNA source values and embedded current figure bytes.

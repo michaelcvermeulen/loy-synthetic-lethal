@@ -1,8 +1,0 @@
-"field","max_absolute_difference","rows_different_beyond_1e_minus_9"
-"mismatch_1",0,0
-"mismatch_2",0,0
-"mismatch_3",0,0
-"mismatch_4",1,1
-"mismatch_mean_CFD",5.27355936696949e-16,0
-"mismatch_max_CFD",5.55111512312578e-16,0
-"mismatch_sum_CFD",4.54747350886464e-13,0

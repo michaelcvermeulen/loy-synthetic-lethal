@@ -1,1 +1,0 @@
-Reviewed all five figure designs: sample scores, enrichment and binding counts, peak volcano, aggregate cleavage profiles, and promoter/RNA genes. Sample labels were separated onto distinct x-axis positions. Aggregate profiles substantially overlap and show complex central cleavage; report interpretation reflects this limitation.

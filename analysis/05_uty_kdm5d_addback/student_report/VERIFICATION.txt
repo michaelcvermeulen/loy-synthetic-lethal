@@ -1,6 +1,0 @@
-PASS CAMERA gene universe: 17724 unique mapped Entrez genes
-PASS CAMERA collections: Hallmark=50 sets; Reactome=1340 sets; GO_BP=4684 sets
-PASS CAMERA contrasts: 6
-PASS CAMERA result rows: 36444
-PASS report HTML: 4439300 bytes
-PASS handoff data files: 33

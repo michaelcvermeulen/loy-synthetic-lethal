@@ -1,3 +1,0 @@
-ProfileID,DataType,ModelConditionID,IsDefaultEntryForMC,SourceModelCondition,CellFormat,ModelID,IsDefaultEntryForModel,StrippedCellLineName,DepMapCode,GrowthMedia,GrowthPattern,Lineage,SequencingDate,SharedToDbGaP,Stranded,SequencingID,SequencingPlatform
-PR-7o3bw3,rna,MC-000092-ewoj,Yes,BROAD,adherent,ACH-000092,Yes,NCIH2452,PLBMESO,MF-001-001,Adherent,Pleura,2013-01-01,False,False,CDS-Tyl9at,
-PR-1XZ3wo,wgs,MC-000092-ewoj,Yes,BROAD,adherent,ACH-000092,Yes,NCIH2452,PLBMESO,MF-001-001,Adherent,Pleura,2024-03-18,False,False,CDS-KGCcq9,PCR-Free Human WGS - 30x v3_DRAGEN

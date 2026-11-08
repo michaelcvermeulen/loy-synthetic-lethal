@@ -1,4 +1,0 @@
-"filter","nonN_min","mappability_min","difficulty_max_exclusive","usable_bins","mask_preserved"
-"map30_difficulty50",60,30,50,26931,TRUE
-"map30_difficulty80",60,30,80,27441,TRUE
-"map30_no_difficulty",60,30,100.01,28211,TRUE

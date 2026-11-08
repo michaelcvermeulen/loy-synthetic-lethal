@@ -1,9 +1,0 @@
-Reuses existing JASPAR2024 HOMER, chromVAR and TOBIAS results; no selected-motif FDR recalculation.
-Independent biological replicates remain primary; passage-adjusted results are sensitivity only, with technical batch unconfirmed.
-Leave-one-sample-out values are descriptive mean differences, not refitted significance tests.
-Motifmatchr peak membership is reconstructed using the exact saved peak-accounting row order. It need not match native HOMER or TOBIAS site counts.
-All peak and gene counts deduplicate their stated unit. Promoter links use existing TSS +/-2 kb annotations. Nonpromoter nearest-TSS links are exploratory.
-Joint RNA subsets use the original Ben thesis HT1080 batch + treatment result; no new RNA model or gene-set enrichment test.
-TOBIAS bound states and within-site log2fc are pooled descriptive outputs. They do not estimate biological replicate variability.
-AP-2 family models overlap; no sequence-based assignment to a specific protein is asserted. No copy-number correction or causality test.
-Native RNA logCPM field contains DESeq2 baseMean in this source.

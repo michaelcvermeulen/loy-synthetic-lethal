@@ -20,12 +20,12 @@
 *.loom
 *.mtx
 
-# --- data/ directory -----------------------------------------------------
+# --- data/ and local non-thesis archive ----------------------------------
 # Block everything under data/ except its README.
-# To allow a specific small metadata file, add a negation below, e.g.:
-#   !data/metadata/samples.csv
+# Keep non-thesis exploratory figures, scripts, and working audits local-only in _local_non_thesis/.
 data/*
 !data/README.md
+_local_non_thesis/
 
 # --- R session files -----------------------------------------------------
 .Rhistory
