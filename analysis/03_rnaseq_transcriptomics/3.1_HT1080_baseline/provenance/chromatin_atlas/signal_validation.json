@@ -1,5 +1,0 @@
-{
-  "status": "passed",
-  "regions_compared": 300,
-  "method": "Independent basewise bigWig.values over unmasked intervals"
-}

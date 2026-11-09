@@ -1,9 +1,0 @@
-{
-  "status": "statistics_complete",
-  "fgsea_rows": 360,
-  "camera_rows": 320,
-  "fgsea_failed": 2,
-  "camera_failed": 0,
-  "primary_fgsea_BH05": 5,
-  "completed_utc": "2026-09-14 21:53:27 UTC"
-}
