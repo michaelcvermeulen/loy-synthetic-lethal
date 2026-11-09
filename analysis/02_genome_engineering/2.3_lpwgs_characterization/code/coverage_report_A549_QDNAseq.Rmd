@@ -42,7 +42,7 @@ RDS files in `../`:
 - `A549_QDNAseq_cn.rds` — full `QDNAseqCopyNumbers` object
 - `A549_QDNAseq_cn_df.rds` — tidy long-form per bin × sample
 
-These are consumed by `RNAseq/analysis/A549/analysis_A549_extended.Rmd` §9.
+These are consumed by `RNAseq/analysis/A549/analysis_A549_extended.Rmd` Section 9.
 
 ## 1. Read counts
 

@@ -1,6 +1,6 @@
 # `04_atacseq_chromatin/` — HT1080 Chromatin Accessibility & Multi-Omic Integration
 
-**Thesis Reference:** Chapter 3, §3.2.3.3, §3.3.3.1, and Supplementary Methods S3.3.1 (`Fig 3.9–3.10`, `Supp Fig 3.3`, `Supp Fig 3.21–3.28`).
+**Thesis Reference:** Chapter 3, Section 3.2.3.3, Section 3.3.3.1, and Supplementary Methods S3.3.1 (`Fig 3.9–3.10`, `Supp Fig 3.3`, `Supp Fig 3.21–3.28`).
 
 This module contains the complete reproducible pipeline (`SEPT_08_2026_REPROCESS`) for bulk ATAC-seq in Y-depleted (`LOY`) versus control (`sgCTRL`) HT1080 fibrosarcoma cells, transcription-factor motif and footprinting analyses (`chromVAR`, `HOMER`, `TOBIAS`), and multi-omic integration with the matched HT1080 baseline RNA-seq (`SEPT_11_2026_REANALYZE`), `T2T-CHM13v2.0` / `GRCh38` lpWGS copy number, and ENCODE chromatin reference catalogues.
 

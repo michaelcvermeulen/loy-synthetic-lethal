@@ -1,6 +1,6 @@
 # `05_uty_kdm5d_addback/` — Lentiviral *UTY* and *KDM5D* Rescue in Y-Depleted HT1080 Cells
 
-**Thesis Reference:** Chapter 3, §3.2.4, §3.3.4, and Supplementary Methods S3.4 (`Fig 3.14–3.15`, `Supp Fig 3.42–3.44`).
+**Thesis Reference:** Chapter 3, Section 3.2.4, Section 3.3.4, and Supplementary Methods S3.4 (`Fig 3.14–3.15`, `Supp Fig 3.42–3.44`).
 
 This module contains the finalized thesis analysis (`THESIS_ADDBACK_2026`) evaluating whether lentiviral re-expression of the Y-linked chromatin regulators ***UTY*** (*KDM6C*, TPR/JmjC H3K27me3 demethylase/COMPASS scaffold) and/or ***KDM5D*** (*JARID1D*, H3K4me2/3 demethylase) reverses the transcriptional and closed-promoter state induced by Y depletion in HT1080 cells.
 

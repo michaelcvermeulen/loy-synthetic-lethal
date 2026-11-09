@@ -1,6 +1,6 @@
 # `02_genome_engineering/` — Repeat-Targeting Guide Design & Isogenic Model Characterization
 
-**Thesis Reference:** Chapter 3, §3.2.1–3.2.2, §3.3.1–3.3.2, and Supplementary Methods S3.1 (`Fig 3.1–3.6`, `Supp Fig 3.4–3.14`).
+**Thesis Reference:** Chapter 3, Section 3.2.1–3.2.2, Section 3.3.1–3.3.2, and Supplementary Methods S3.1 (`Fig 3.1–3.6`, `Supp Fig 3.4–3.14`).
 
 This module covers the *in silico* discovery of chromosome-Y repeat-targeting sgRNAs on the `T2T-CHM13v2.0` reference, transient Cas9 ribonucleoprotein (RNP) engineering of pooled non-clonal Y-depleted populations across human cancer lineages, multiplex droplet digital PCR (`ddPCR`) validation, pharmacological modulation of Y depletion, and `T2T-CHM13v2.0` (Y-PAR-masked) low-pass whole-genome sequencing (`lpWGS`).
 
@@ -11,9 +11,9 @@ This module covers the *in silico* discovery of chromosome-Y repeat-targeting sg
 ```text
 02_genome_engineering/
 ├── README.md
-├── 2.1_guide_design/                        # Ch 3 §3.3.1: T2T-Y sliding-window scan, off-target filtering & 5-guide annotation
-├── 2.2_ddpcr_validation/                    # Ch 3 §3.3.2: Mixing linearity, HT1080/A549/DU145/HepG2 ddPCR & panobinostat/KU-55933
-└── 2.3_lpwgs_characterization/              # Ch 3 §3.3.2: T2T-Y Y-PAR-masked lpWGS, 100-kb QDNAseq/mosdepth & regional Y atlases
+├── 2.1_guide_design/                        # Ch 3 Section 3.3.1: T2T-Y sliding-window scan, off-target filtering & 5-guide annotation
+├── 2.2_ddpcr_validation/                    # Ch 3 Section 3.3.2: Mixing linearity, HT1080/A549/DU145/HepG2 ddPCR & panobinostat/KU-55933
+└── 2.3_lpwgs_characterization/              # Ch 3 Section 3.3.2: T2T-Y Y-PAR-masked lpWGS, 100-kb QDNAseq/mosdepth & regional Y atlases
 ```
 
 ---
@@ -39,7 +39,7 @@ This module covers the *in silico* discovery of chromosome-Y repeat-targeting sg
 - **Guide screening & successive RNP nucleofections (`Fig 3.2`, `Supp Fig 3.11`):**
   - In `HT1080`, initial RT-qPCR screening (`Fig 3.2a`) and multiplex ddPCR (`Fig 3.2b,c`) show that `CP` and `Q53` strongly outperform `CN`, `P47`, and `P51`—demonstrating that reference repeat copy number alone does not predict cleavage efficacy (`CP` vs. `CN`, both 35 sites in `DYZ3`).
   - Delivering combined **`CP + Q53` Cas9 RNPs across two successive nucleofections (`2x`)** reduces Y target copies by **88–99%** in bulk pooled `HT1080` and `A549` populations without single-cell cloning (`Fig 3.2b–e`).
-  - `HepG2` hepatocellular carcinoma populations assessed by `AMELY`/`AMELX` and `DDX3Y`/`RNaseP` ddPCR also show substantial Y copy-number reduction after RNP targeting (§3.3.2.4).
+  - `HepG2` hepatocellular carcinoma populations assessed by `AMELY`/`AMELX` and `DDX3Y`/`RNaseP` ddPCR also show substantial Y copy-number reduction after RNP targeting (Section 3.3.2.4).
 - **Pharmacological modulation in DU145 (`Supp Fig 3.13`):** Pre-treating `DU145` cells for 24 h prior to a single `CP + Q53 + P47` nucleofection with the pan-HDAC inhibitor **panobinostat** (30 nM or 75 nM [raw provenance label `70`]) increases Y depletion across `AMELY`, `DDX3Y`, and `KDM5D` compared with vehicle (`DMSO`), whereas post-nucleofection ATM inhibition with **KU-55933** (16 h) does not improve depletion and partially blunts the panobinostat effect.
 
 ### 2.3 Low-Pass WGS & Regional Y-Chromosome Atlases ([`2.3_lpwgs_characterization/`](2.3_lpwgs_characterization/))

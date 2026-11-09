@@ -1,6 +1,6 @@
 # `06_crispr_screens/` — Isogenic Genome-Wide Brunello CRISPR–Cas9 Screens & Benchmarks
 
-**Thesis Reference:** Chapter 4, §4.2.2–4.2.4, §4.3.1, §4.3.5, §4.3.6, and Supplementary Methods S4.2–S4.4 (`Fig 4.2–4.4`, `Fig 4.7–4.8`, `Supp Fig 4.5–4.11`, `Supp Fig 4.13–4.16`).
+**Thesis Reference:** Chapter 4, Section 4.2.2–4.2.4, Section 4.3.1, Section 4.3.5, Section 4.3.6, and Supplementary Methods S4.2–S4.4 (`Fig 4.2–4.4`, `Fig 4.7–4.8`, `Supp Fig 4.5–4.11`, `Supp Fig 4.13–4.16`).
 
 This module contains the processing, quality-control audits, differential-dependency scoring (`drugZ`, `MAGeCK` RRA/MLE, and baseline-adjusted `IsogenicZ`), network/multi-omic integrations, and 27-screen external isogenic benchmarks for the genome-wide Human CRISPR Knockout Pooled Library (**Brunello**, 76,441 targeting guides across 19,114 genes + 1,000 non-targeting controls) in matched Y-depleted (`LOY`) and control (`sgCTRL`) **HT1080** and **A549** populations.
 
@@ -11,9 +11,9 @@ This module contains the processing, quality-control audits, differential-depend
 ```text
 06_crispr_screens/
 ├── README.md
-├── 6.1_HT1080_brunello/                     # Ch 4 §4.3.1: HT1080 screen (D0, D12, D21), SAGA/MED12/SREBF, multi-omic integration
-├── 6.2_A549_brunello/                       # Ch 4 §4.3.5: A549 screen (P3/P4 to P18), EIF1AX/L3MBTL2/UBR5, trimmed-P3 sensitivity
-└── 6.3_external_isogenic_benchmarks/        # Ch 4 §4.3.6 & §4.2.3: 27 external isogenic screens & cross-screen guide QC audits
+├── 6.1_HT1080_brunello/                     # Ch 4 Section 4.3.1: HT1080 screen (D0, D12, D21), SAGA/MED12/SREBF, multi-omic integration
+├── 6.2_A549_brunello/                       # Ch 4 Section 4.3.5: A549 screen (P3/P4 to P18), EIF1AX/L3MBTL2/UBR5, trimmed-P3 sensitivity
+└── 6.3_external_isogenic_benchmarks/        # Ch 4 Section 4.3.6 & Section 4.2.3: 27 external isogenic screens & cross-screen guide QC audits
 ```
 
 ---

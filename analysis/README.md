@@ -20,14 +20,14 @@ Narrative documents that bracket the numbered analysis modules:
 
 ```text
 analysis/
-├── 01_depmap_prism_public/           # Ch 4 §4.3.0: DepMap CRISPR, 3D NextGen, PRISM/GDSC/CTD2, power sims
-├── 02_genome_engineering/            # Ch 3 §3.3.1–3.3.2: T2T-Y guide design, multiplex ddPCR, Y-PAR-masked lpWGS
-├── 03_rnaseq_transcriptomics/        # Ch 3 §3.3.3: HT1080, A549, DU145 RNA-seq, 18 external LOY & 16 arm-loss sets
-├── 04_atacseq_chromatin/             # Ch 3 §3.3.3.1: HT1080 ATAC-seq, chromVAR/HOMER/TOBIAS, RNA/ATAC integration
-├── 05_uty_kdm5d_addback/             # Ch 3 §3.3.4: HT1080 lentiviral UTY & KDM5D rescue RNA-seq & promoter recovery
-├── 06_crispr_screens/                # Ch 4 §4.3.1, 4.3.5, 4.3.6: HT1080 & A549 Brunello screens, 27-screen benchmark
-├── 07_competitive_growth_assays/     # Ch 4 §4.3.2–4.3.4: BD FACSDiscover A8 spectral flow competition assays
-├── methods/                          # Per-assay wet-lab & computational protocols (Ch 3 §3.2/S3 & Ch 4 §4.2/S4)
+├── 01_depmap_prism_public/           # Ch 4 Section 4.3.0: DepMap CRISPR, 3D NextGen, PRISM/GDSC/CTD2, power sims
+├── 02_genome_engineering/            # Ch 3 Section 3.3.1–3.3.2: T2T-Y guide design, multiplex ddPCR, Y-PAR-masked lpWGS
+├── 03_rnaseq_transcriptomics/        # Ch 3 Section 3.3.3: HT1080, A549, DU145 RNA-seq, 18 external LOY & 16 arm-loss sets
+├── 04_atacseq_chromatin/             # Ch 3 Section 3.3.3.1: HT1080 ATAC-seq, chromVAR/HOMER/TOBIAS, RNA/ATAC integration
+├── 05_uty_kdm5d_addback/             # Ch 3 Section 3.3.4: HT1080 lentiviral UTY & KDM5D rescue RNA-seq & promoter recovery
+├── 06_crispr_screens/                # Ch 4 Section 4.3.1, 4.3.5, 4.3.6: HT1080 & A549 Brunello screens, 27-screen benchmark
+├── 07_competitive_growth_assays/     # Ch 4 Section 4.3.2–4.3.4: BD FACSDiscover A8 spectral flow competition assays
+├── methods/                          # Per-assay wet-lab & computational protocols (Ch 3 Section 3.2/S3 & Ch 4 Section 4.2/S4)
 └── mechanism/                        # Mechanistic synthesis & evidence boundaries across Chapters 3 & 4
 ```
 

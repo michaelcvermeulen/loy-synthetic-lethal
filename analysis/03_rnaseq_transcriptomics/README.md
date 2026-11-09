@@ -1,6 +1,6 @@
 # `03_rnaseq_transcriptomics/` — Bulk RNA-Seq & Comparative Transcriptomics
 
-**Thesis Reference:** Chapter 3, §3.2.3, §3.3.3, and Supplementary Methods S3.2–S3.3 (`Fig 3.7–3.8`, `Fig 3.11–3.13`, `Supp Fig 3.1–3.2`, `Supp Fig 3.15–3.20`, `Supp Fig 3.29–3.41`).
+**Thesis Reference:** Chapter 3, Section 3.2.3, Section 3.3.3, and Supplementary Methods S3.2–S3.3 (`Fig 3.7–3.8`, `Fig 3.11–3.13`, `Supp Fig 3.1–3.2`, `Supp Fig 3.15–3.20`, `Supp Fig 3.29–3.41`).
 
 This module contains the finalized thesis bulk RNA-seq pipelines across the three engineered isogenic LOY models (**HT1080**, **A549**, and **DU145**), the cross-cell-line and 18-external-dataset comparative synthesis, and the 16-contrast chromosome/arm-loss benchmark.
 
@@ -20,11 +20,11 @@ This module contains the finalized thesis bulk RNA-seq pipelines across the thre
 03_rnaseq_transcriptomics/
 ├── README.md
 ├── molecular_samples_inventory/             # Manifest & QC metrics across all 44 in-house RNA-seq libraries
-├── 3.1_HT1080_baseline/                     # Ch 3 §3.3.3.1: HT1080 two-window reanalysis (SEPT_11_2026_REANALYZE)
-├── 3.2_A549_baseline/                       # Ch 3 §3.3.3.2: A549 RINe-adjusted reanalysis (SEPT_18_2026_REANALYZE)
-├── 3.3_DU145_baseline/                      # Ch 3 §3.3.3.3: DU145 passage-paired reanalysis (SEPT_23_2026_REANALYZE)
-├── 3.4_crossline_and_external/              # Ch 3 §3.3.3.4: Cross-line synthesis & 18 external Y-loss/mosaic datasets
-└── 3.5_chromosome_arm_loss/                 # Ch 3 §3.3.3.5: Comparison with 16 chromosome/arm-loss contrasts
+├── 3.1_HT1080_baseline/                     # Ch 3 Section 3.3.3.1: HT1080 two-window reanalysis (SEPT_11_2026_REANALYZE)
+├── 3.2_A549_baseline/                       # Ch 3 Section 3.3.3.2: A549 RINe-adjusted reanalysis (SEPT_18_2026_REANALYZE)
+├── 3.3_DU145_baseline/                      # Ch 3 Section 3.3.3.3: DU145 passage-paired reanalysis (SEPT_23_2026_REANALYZE)
+├── 3.4_crossline_and_external/              # Ch 3 Section 3.3.3.4: Cross-line synthesis & 18 external Y-loss/mosaic datasets
+└── 3.5_chromosome_arm_loss/                 # Ch 3 Section 3.3.3.5: Comparison with 16 chromosome/arm-loss contrasts
 ```
 
 ---

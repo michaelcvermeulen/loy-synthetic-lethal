@@ -136,7 +136,7 @@ rra <- do.call(rbind, lapply(names(rra_files), function(nm) {
 kt(rra, "MAGeCK-RRA results for EIF4A3. *Time-course/baseline rows depend on the unreliable D0 arm — interpret with caution.", digits = 4)
 ```
 
-**Read:** the primary POST_LOY-vs-CTRL contrast gives **LFC −4.47, rank 123/19,114, 4/4 good guides**, but **neg|FDR = 0.59** — RRA's permutation FDR is conservative/noisy with only 2-vs-2 replicates. The D0-based rows look dramatic but are not trustworthy for this gene (see §5).
+**Read:** the primary POST_LOY-vs-CTRL contrast gives **LFC −4.47, rank 123/19,114, 4/4 good guides**, but **neg|FDR = 0.59** — RRA's permutation FDR is conservative/noisy with only 2-vs-2 replicates. The D0-based rows look dramatic but are not trustworthy for this gene (see Section 5).
 
 ## 3.2 MAGeCK-MLE (LOY treatment effect)
 
@@ -380,7 +380,7 @@ kt(ledger, "Evidence ledger.")
 1. **Isogenic competition / dropout assay** (the planned `results/isogenicz/` analysis) — the only clean way to separate LOY-specific from background-essential.
 2. **Quantify the arm-level drift** — check passage/doubling records; re-rank EIF4A3 against the essential-class distribution (done here: still ~−3.8 after subtracting the median) rather than against all genes.
 3. **Understand the module8 NA** — confirm it is only the D0 baseline filter and not a guide-quality problem.
-4. Optional: re-run drugZ with a smaller pseudocount and re-rank, to confirm the conclusion is robust to the scoring artifact described in §5.
+4. Optional: re-run drugZ with a smaller pseudocount and re-rank, to confirm the conclusion is robust to the scoring artifact described in Section 5.
 
 ```{r sessioninfo}
 sessionInfo()

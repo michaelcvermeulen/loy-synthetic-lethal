@@ -1,6 +1,6 @@
 # `07_competitive_growth_assays/` — Reciprocal Two-Colour Spectral Flow-Cytometry Competition Validation
 
-**Thesis Reference:** Chapter 4, §4.2.5, §4.3.2–4.3.4, and Supplementary Methods S4.5 (`Fig 4.5–4.6`, `Supp Fig 4.12`).
+**Thesis Reference:** Chapter 4, Section 4.2.5, Section 4.3.2–4.3.4, and Supplementary Methods S4.5 (`Fig 4.5–4.6`, `Supp Fig 4.12`).
 
 This module contains the analytical pipeline (`spectral_a8_pipeline/` and top-level calibration scripts) for the reciprocal two-colour (`eGFP` / `mCherry`) competitive growth assay quantified by spectral flow cytometry (`BD FACSDiscover A8` and `CytoFLEX S`), designed to validate candidate LOY synthetic lethalities in direct co-culture without single-cell cloning artefacts or metabolic viability dye confounders.
 

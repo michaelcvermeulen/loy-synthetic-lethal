@@ -76,7 +76,7 @@ knitr::kable(read_summary %>%
 
 ## 2. Raw read counts (vignette `plot(readCounts)` + `highlightFilters`)
 
-Per QDNAseq vignette §1.2: raw bin read counts per sample, with bins that **would
+Per QDNAseq vignette Section 1.2: raw bin read counts per sample, with bins that **would
 be filtered by default QDNAseq settings** (residual outliers + blacklist) shown
 in red. We do *not* actually apply these filters — our T2T bin annotation's `use`
 column handles this — but the diagnostic shows where default-QDNAseq disagrees

@@ -47,7 +47,7 @@ are not part of this report.
 - Each batch independently went through nucleofection → 3 replicate passages.
   Passages 1/2/3 in batch AUG_2025 are **not** the same biological units as
   passages 1/2/3 in batch MAY_2026; the design uses nested-individual
-  encoding (`~ batch + batch:ind.n + treatment`, DESeq2 vignette §3.3).
+  encoding (`~ batch + batch:ind.n + treatment`, DESeq2 vignette Section 3.3).
 - Every figure is saved to `figures_combined/` as both PNG (review) and PDF
   (publication).
 
@@ -508,7 +508,7 @@ save_fig(p_loadings, "pca_loadings_PC1-5", width = 16, height = 6)
 `limma::removeBatchEffect()` applied to the VST matrix, with `design =
 model.matrix(~ treatment)` preserving the treatment signal while regressing
 out the batch main effect. This is a **visualization-only** correction —
-the DE in §3 still uses the full DESeq2 model with `batch` as a covariate
+the DE in Section 3 still uses the full DESeq2 model with `batch` as a covariate
 (no batch effect is removed from the count-level data).
 
 The corrected matrix collapses the AUG_2025 vs MAY_2026 separation that
@@ -2403,8 +2403,8 @@ draw_top_deg()
 
 ## 3.18 Top-50 DEG heatmap (limma batch-corrected VST)
 
-Same top 50 DEGs as §3.17, but expression values are pulled from the
-`limma::removeBatchEffect`-corrected VST matrix (`vsd_bc`, §2.6). The
+Same top 50 DEGs as Section 3.17, but expression values are pulled from the
+`limma::removeBatchEffect`-corrected VST matrix (`vsd_bc`, Section 2.6). The
 batch main effect has been regressed out while the treatment design is
 preserved, so CTRL samples from AUG_2025 and MAY_2026 should cluster
 together more tightly than in the uncorrected version.
