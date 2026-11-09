@@ -1,5 +1,0 @@
-perturbation,paper_reported_entries,MSigDB_UP_source_ids,MSigDB_DN_source_ids,MSigDB_source_id_sum,unique_source_ids_both_arms,source_sum_minus_paper,status
-HDAC1,987,573,314,887,887,-100,unresolved_count_discrepancy_original_table_unavailable
-HDAC2,283,129,154,283,283,0,count_reconciled_not_original_table_verified
-HDAC1_AND_HDAC2,601,299,301,600,600,-1,unresolved_count_discrepancy_original_table_unavailable
-HDAC3,1317,660,653,1313,1313,-4,unresolved_count_discrepancy_original_table_unavailable

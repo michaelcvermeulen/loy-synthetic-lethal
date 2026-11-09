@@ -44,11 +44,11 @@ data/ (or upstream DATA_ROOT)
 
 ## 4. External Y-Loss, Mosaic & Chromosome-Loss Transcriptomic Datasets (`03_rnaseq_transcriptomics/`)
 
-- **18 External Y-Loss / Mosaic / 45,X / Y-Paralog KO Contrasts (`3.4_crossline_and_external/`):**
+- **18 External Y-Loss / Mosaic / 45,X / Y-Paralog KO Contrasts (`3.4_cross_line_synthesis/`):**
   - Constitutional karyotype & iPSC/fibroblast/LCL series: `GSE126712` (45,X vs. 46,XY), Page Lab sex-chromosome dosage series (LCL & fibroblast Y dosage), `GSE264742` (*UTY*-KO hESCs).
   - Engineered & spontaneous cancer LOY models: `GSE301297` (A549 clonal LOY RNA-seq & multiome pseudobulk), `GSE229233` (MB49 mouse bladder LOY), `GSE152001`, `GSE190507` (*DDX3X*/*DDX3Y* KO).
   - Naturally Y-mosaic single-cell cohorts: `GSE313572` (HT1080 3D spheroids control sample) and **Tahoe-100M** DMSO-treated mosaic cell lines passing the inclusion rule (`MOSAIC` call and median PAR $\log_2\mathrm{FC} \le -0.5$: `A549`, `J82`, `SK-MEL-2`, `HCT15`).
-- **16 Chromosome- and Arm-Loss Contrasts (`3.5_chromosome_arm_loss/`):**
+- **16 Chromosome- and Arm-Loss Contrasts (`3.4_cross_line_synthesis/`):**
   - `GSE130306` (RPTEC acute CRISPR Yq and 3p arm loss across days 5, 11, 18, and 90), `GSE227499` (ReDACT trisomy-corrected disomic vs. trisomic lines), and `GSE190497` (RPE1 *TP53*-null autosomal monosomies).
 
 ## 5. In-House ATAC-Seq (`04_atacseq_chromatin/`)

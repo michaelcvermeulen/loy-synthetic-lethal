@@ -1,18 +1,6 @@
 # `analysis/`
 
-Computational pipelines, statistical scripts, methods documentation, and narrative documents supporting Chapters 3 and 4 (and linking Chapter 2) of the PhD thesis **_Molecular Consequences and Synthetic Lethal Dependencies of Loss of the Y Chromosome in Cancer_**.
-
----
-
-## Front-Matter Documents
-
-Narrative documents that bracket the numbered analysis modules:
-
-| File | Knitted HTML | Purpose |
-|---|---|---|
-| [`background.Rmd`](background.Rmd) | [`../docs/background.html`](../docs/background.html) | Y-chromosome architecture (`T2T-CHM13v2.0`), X–Y gametolog biology, somatic LOY in male cancers, and the central hypotheses tested across Chapters 2–4. |
-| [`summary.Rmd`](summary.Rmd) | [`../docs/summary.html`](../docs/summary.html) | Condensed quantitative reference across all seven analysis modules, summarizing every headline finding and linking to the corresponding figures and code. |
-| [`project_plan.Rmd`](project_plan.Rmd) | [`../docs/project_plan.html`](../docs/project_plan.html) | Thesis roadmap across Chapters 1–5, experimental and computational milestones, and manuscript structure. |
+Computational pipelines, statistical scripts, configuration manifests, and summary output tables supporting Chapters 3 and 4 (and linking Chapter 2) of the PhD thesis **_Molecular Consequences and Synthetic Lethal Dependencies of Loss of the Y Chromosome in Cancer_**.
 
 ---
 
@@ -26,9 +14,7 @@ analysis/
 ├── 04_atacseq_chromatin/             # Ch 3 Section 3.3.3.1: HT1080 ATAC-seq, chromVAR/HOMER/TOBIAS, RNA/ATAC integration
 ├── 05_uty_kdm5d_addback/             # Ch 3 Section 3.3.4: HT1080 lentiviral UTY & KDM5D rescue RNA-seq & promoter recovery
 ├── 06_crispr_screens/                # Ch 4 Section 4.3.1, 4.3.5, 4.3.6: HT1080 & A549 Brunello screens, 27-screen benchmark
-├── 07_competitive_growth_assays/     # Ch 4 Section 4.3.2–4.3.4: BD FACSDiscover A8 spectral flow competition assays
-├── methods/                          # Per-assay wet-lab & computational protocols (Ch 3 Section 3.2/S3 & Ch 4 Section 4.2/S4)
-└── mechanism/                        # Mechanistic synthesis & evidence boundaries across Chapters 3 & 4
+└── 07_competitive_growth_assays/     # Ch 4 Section 4.3.2–4.3.4: BD FACSDiscover A8 spectral flow competition assays
 ```
 
 ### Workflow Sequence

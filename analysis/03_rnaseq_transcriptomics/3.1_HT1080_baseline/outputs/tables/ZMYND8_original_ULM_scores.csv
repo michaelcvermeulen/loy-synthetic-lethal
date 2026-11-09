@@ -1,4 +1,0 @@
-source,statistic,contrast,score,p_value,BH_target_pattern,resource_targets,expressed_targets,eligible,statistical_scope
-"ZMYND8","ulm","AUG_2025",5.32091661276413,1.04118046937789e-07,2.50229153116491e-05,8,8,TRUE,"conditional_target_pattern_not_population_replication"
-"ZMYND8","ulm","MAY_2026",2.71328689703484,0.00666642023123044,0.0750791917845133,8,8,TRUE,"conditional_target_pattern_not_population_replication"
-"ZMYND8","ulm","combined",4.45651792814953,8.36567772000601e-06,0.000528813035930664,8,8,TRUE,"conditional_target_pattern_not_population_replication"

@@ -39,7 +39,7 @@ This module contains the processing, quality-control audits, differential-depend
 ### 6.2 A549 Genome-Wide Brunello Screen & Rules of Gametolog Recovery ([`6.2_A549_brunello/`](6.2_A549_brunello/))
 
 - **Screen Design & Sensitivity Branches (`Fig 4.7–4.8`, `Supp Fig 4.13–4.14`):**
-  - Evaluates `P18` endpoint libraries (`LOY` vs. `sgCTRL`) alongside reconstructed `P4` and outlier-trimmed `P3` baseline-adjusted `IsogenicZ` sensitivity models (accounting for a verified `CTRL_P3_R1` sample swap that was genotyped as `LOY` by Y-guide/ddPCR forensics; `qc_docs/`).
+  - Evaluates `P18` endpoint libraries (`LOY` vs. `sgCTRL`) alongside reconstructed `P4` and outlier-trimmed `P3` baseline-adjusted `IsogenicZ` sensitivity models (accounting for a verified `CTRL_P3_R1` sample swap that was genotyped as `LOY` by Y-guide/ddPCR forensics).
 - **Candidate Discovery (`Fig 4.8`):**
   - Recovers the X-linked translation-initiation gametolog ***EIF1AX*** (rank 8, $\mathrm{normZ} = -4.09$) alongside the PRC1.6 subunit ***L3MBTL2*** and the HECT E3 ligase ***UBR5*** (which physically regulates SAGA/chromatin complexes).
 - **Rules Governing Which X–Y Gametolog Scores (`Supp Fig 4.7`, `Supp Fig 4.9`):**

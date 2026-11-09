@@ -1,5 +1,0 @@
-sample,alignment,minimum_MAPQ,n_autosomal_bins,median_autosomal_depth
-A549-CTRL2,original,37,21446,0.536985
-A549-CTRL2,Y_PAR_masked,37,21446,0.53697
-A549-LOY,original,37,21446,0.5409550000000001
-A549-LOY,Y_PAR_masked,37,21446,0.54099
