@@ -8,7 +8,7 @@ This module contains the finalized thesis bulk RNA-seq pipelines across the thre
 
 ## Unified Pipeline Standards
 
-- **Alignment & Quantification:** All 44 in-house libraries (Illumina NovaSeq 2×150 bp; [`molecular_samples_inventory/`](molecular_samples_inventory/)) were aligned with `STAR v2` two-pass mode against a **Y-PAR-masked `GRCh38` reference** and quantified with `featureCounts v2.1.1` against **`GENCODE v49`** so that `PAR1`/`PAR2` reads are retained on `chrX` PAR features without multimapper loss (`Supp Fig 3.1–3.2`).
+- **Alignment & Quantification:** All 44 in-house libraries (Illumina NovaSeq 2×150 bp) were aligned with `STAR v2` two-pass mode against a **Y-PAR-masked `GRCh38` reference** and quantified with `featureCounts v2.1.1` against **`GENCODE v49`** so that `PAR1`/`PAR2` reads are retained on `chrX` PAR features without multimapper loss (`Supp Fig 3.1–3.2`).
 - **Normalisation & Differential Expression:** `TMM` library-size normalisation (`edgeR`) on expressed autosomal and non-PAR X genes, followed by `limma-voom` linear modelling. `MSY` and `PAR` regional retention are evaluated in dedicated sex-chromosome branches outside the primary autosomal/non-PAR X multiple-testing family.
 - **Pathway & Network Analysis:** Effect-size/moderated-$t$ `fgsea` and fixed-correlation **`CAMERA`** (default inter-gene correlation $\rho = 0.01$; estimated-correlation `CAMERA` retained only as historical sensitivity) against the frozen **`MSigDB v2026.1.Hs`** collections (primary family: `Hallmark`, `Reactome`, `GO:BP`, 4,868 sets), complemented by `STRING v12` physical/functional PPI clustering and `Metascape` term networks.
 
@@ -19,12 +19,11 @@ This module contains the finalized thesis bulk RNA-seq pipelines across the thre
 ```text
 03_rnaseq_transcriptomics/
 ├── README.md
-├── molecular_samples_inventory/             # Manifest & QC metrics across all 44 in-house RNA-seq libraries
-├── 3.1_HT1080_baseline/                     # Ch 3 Section 3.3.3.1: HT1080 two-window reanalysis (SEPT_11_2026_REANALYZE)
-├── 3.2_A549_baseline/                       # Ch 3 Section 3.3.3.2: A549 RINe-adjusted reanalysis (SEPT_18_2026_REANALYZE)
-├── 3.3_DU145_baseline/                      # Ch 3 Section 3.3.3.3: DU145 passage-paired reanalysis (SEPT_23_2026_REANALYZE)
-├── 3.4_crossline_and_external/              # Ch 3 Section 3.3.3.4: Cross-line synthesis & 18 external Y-loss/mosaic datasets
-└── 3.5_chromosome_arm_loss/                 # Ch 3 Section 3.3.3.5: Comparison with 16 chromosome/arm-loss contrasts
+├── 3.1_HT1080_baseline/                     # Ch 3 Section 3.3.3.1: HT1080 two-window reanalysis
+├── 3.2_A549_baseline/                       # Ch 3 Section 3.3.3.2: A549 RINe-adjusted reanalysis
+├── 3.3_DU145_baseline/                      # Ch 3 Section 3.3.3.3: DU145 passage-paired reanalysis
+├── 3.4_cross_line_synthesis/                # Ch 3 Section 3.3.3.4–3.3.3.5: Cross-line synthesis, 18 external Y-loss/mosaic datasets & 16 arm-loss contrasts
+└── 3.5_metascape_enrichment/                # Ch 3 Section 3.3.3: Metascape functional term & PPI module enrichment
 ```
 
 ---
@@ -45,15 +44,15 @@ This module contains the finalized thesis bulk RNA-seq pipelines across the thre
 
 ### 3.3 DU145 Baseline RNA-Seq ([`3.3_DU145_baseline/`](3.3_DU145_baseline/))
 
-- **Lineage verification & provenance note:** Raw files for this experiment carry the historical prefix `LNCAP_`. Both STR profiling and transcriptomic identity checks (`05_identity.R`: zero reads for *AR*, *KLK3*, *KLK2*, *FOLH1*, *HOXB13*; highest genome-wide DepMap expression correlation with `DU145`) confirmed that the line is **DU145** androgen-independent prostate carcinoma.
 - **Design & DE (`Fig 3.11`, `Supp Fig 3.32–3.33`):** 6 passage-matched libraries (`P12`, `P13`, `P14`, paired `~ passage + treatment`). Identifies **136 non-Y/non-PAR DEGs at $\mathrm{FDR} < 0.05$** and **114 highlighted passage-consistent genes** ($\mathrm{FDR} < 0.05$, $|\log_2\mathrm{FC}| \ge 0.5$, concordant direction in all 3 passage pairs: **83 lower**, **31 higher**).
 - **Regional Y retention & biological programmes (`Fig 3.6`, `Fig 3.11–3.12`, `Supp Fig 3.34–3.39`):** While `Yq` (*USP9Y*–*EIF1AY*) is completely lost, distal `Yp` (*RPS4Y1*, *ZFY*) is retained at ~46–54%. Autosomal rewiring (verified after excluding genes on copy-number-altered `chr20p` and `chrX`/`15q`) features strong downregulation of the epithelial master regulator ***GRHL2***, luminal epithelial markers, and **interferon/inflammatory signalling**, paired with upregulation of **basement-membrane collagens (*PXDN*, *COL4A5/6*), ECM organization, and replication-dependent histones** (`chr6p` without local DNA gain; `Supp Fig 3.39`).
 
-### 3.4 Cross-Cell-Line & 18 External Y-Loss Comparisons ([`3.4_crossline_and_external/`](3.4_crossline_and_external/))
+### 3.4 Cross-Cell-Line Synthesis, 18 External Y-Loss Cohorts & 16 Arm-Loss Contrasts ([`3.4_cross_line_synthesis/`](3.4_cross_line_synthesis/))
 
 - **Universal absence of X-paralog compensation (`Fig 3.13a,b`):** Across `HT1080`, `A549`, and `DU145`, `PAR1` expression drops by 23–33%, `Yq` transcripts are lost, and **none of the X-linked gametologs (*DDX3X*, *EIF1AX*, *RPS4X*, *ZFX*, *KDM6A*, *KDM5C*) show compensatory transcriptional upregulation**.
 - **Gene-level divergence vs. pathway-level interferon suppression (`Fig 3.13c,d`, `Supp Fig 3.40`):** Genome-wide autosomal fold-change correlations between the three lines are near zero ($\rho = -0.06$ to $0.11$). However, effect-ranked `fgsea` across our three lines and **18 external Y-loss, naturally Y-mosaic single-cell (`GSE313572`, Tahoe-100M DMSO lines `A549`, `J82`, `SK-MEL-2`, `HCT15`), MB49, 45,X, and *UTY*-KO contrasts** reveals recurrent suppression of **Hallmark Interferon Alpha/Gamma Response and Inflammatory Response** alongside context-dependent shifts in Polycomb (`BMI1`/`MEL18` knockdown reference sets) and ECM programmes.
-
-### 3.5 Comparison with 16 Chromosome- and Arm-Loss Models ([`3.5_chromosome_arm_loss/`](3.5_chromosome_arm_loss/))
-
 - **Separating Y-loss from general monosomy stress (`Supp Fig 3.41`):** Comparing our isogenic LOY models against **16 public chromosome/arm-loss contrasts** (`GSE130306` RPTEC acute CRISPR `Yq` vs. `3p` loss across days 5, 11, 18, and 90; `GSE227499` ReDACT trisomy corrections; `GSE190497` RPE1 monosomies) demonstrates that **cytoplasmic ribosomal-protein suppression** is a shared hallmark of autosomal arm/chromosome loss, whereas acute `Yq` and `3p` loss share early `p53` activation and `E2F` suppression that invert by day 90 of culture.
+
+### 3.5 Metascape Functional Enrichment ([`3.5_metascape_enrichment/`](3.5_metascape_enrichment/))
+
+- **Ontology & PPI module enrichment:** Curated Metascape functional ontology clusters and MCODE protein–protein interaction subnetworks for the differentially expressed gene sets in `HT1080` and `DU145`.

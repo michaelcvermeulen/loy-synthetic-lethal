@@ -81,8 +81,6 @@ loy-synthetic-lethality/
     └── 07_competitive_growth_assays/          # Reciprocal two-colour BD FACSDiscover A8 competitive growth assays
 ```
 
-> **Note on Cell Line Identity (`DU145` vs. legacy `LNCaP` labels):** During initial culture, one prostate cancer model was provisionally labelled `LNCaP` in raw sequencing filenames and early script headers. Short tandem repeat (STR) profiling and transcriptome-wide correlation against CCLE/DepMap reference panels (`analysis/03_rnaseq_transcriptomics/3.3_DU145_baseline/R/05_identity.R`) definitively authenticated this line as **DU145**. All thesis text, figures, and documentation report its verified identity (**DU145**), while raw filename provenance is preserved for reproducibility.
-
 ---
 
 ## Co-Authorship & Funding

@@ -30,7 +30,7 @@ data/ (or upstream DATA_ROOT)
 - **Libraries (15 total):**
   - **HT1080 (2):** `HT1080-sgCTRL-D0`, `HT1080-LOY-D0` (`CP + Q53 2x`).
   - **A549 (3):** `A549-CTRL2` (`sgCTRL`), `A549-LOY` (`CP + Q53 2x`), `A549-BC14` (clonal reference).
-  - **DU145 (10, raw files historically prefixed `LNCaP-`):** `sgCTRL`, `DMSO-LOY-1X` (`CP + Q53 + P47 1x`), `LOY-2X` (`CP + Q53 + P47 2x`), `30` (panobinostat 30 nM), `70` (panobinostat 75 nM; raw label `70`), `KU` (KU-55933), `KU-30`, `KU-70`, plus technical replicates.
+  - **DU145 (10):** `sgCTRL`, `DMSO-LOY-1X` (`CP + Q53 + P47 1x`), `LOY-2X` (`CP + Q53 + P47 2x`), `30` (panobinostat 30 nM), `70` (panobinostat 75 nM; raw label `70`), `KU` (KU-55933), `KU-30`, `KU-70`, plus technical replicates.
 - **Reference:** `T2T-CHM13v2.0` with `chrY:1–2,771,479` (`PAR1`) and `chrY:62,122,809–62,460,029` (`PAR2`) hard-masked so all PAR reads map uniquely to `chrX` PAR intervals.
 
 ## 3. In-House Bulk RNA-Seq (`03_rnaseq_transcriptomics/` & `05_uty_kdm5d_addback/`)
@@ -38,7 +38,7 @@ data/ (or upstream DATA_ROOT)
 - **44 Unique In-House Libraries (Illumina NovaSeq 2×150 bp, `STAR v2` Y-PAR-masked alignment to `GRCh38` / `GENCODE v49`, `featureCounts v2.1.1`):**
   - **HT1080 Baseline (`15` libraries across 2 sampling windows):** August 2025 (`3 Parental`, `3 sgCTRL`, `3 LOY`) and May 2026 (`3 sgCTRL`, `3 LOY`).
   - **A549 Baseline (`11` libraries):** `3 Parental`, `4 sgCTRL`, `4 LOY` (with Agilent TapeStation `RINe` covariates).
-  - **DU145 Baseline (`6` libraries, raw files historically prefixed `LNCAP_`):** Passage-matched `P12`, `P13`, `P14` pairs of `sgCTRL` and `LOY` (`CP + Q53 + P47 2x`).
+  - **DU145 Baseline (`6` libraries):** Passage-matched `P12`, `P13`, `P14` pairs of `sgCTRL` and `LOY` (`CP + Q53 + P47 2x`).
   - **HT1080 *UTY* & *KDM5D* Rescue (`18` libraries total; `12` new transduced libraries + `6` May 2026 baseline libraries):** `LOY + Empty Vector` ($n=3$), `LOY + UTY` ($n=3$), `LOY + KDM5D` ($n=3$), and descendant `LOY + UTY + KDM5D` ($n=3$).
 - **Frozen Gene-Set Resource:** `MSigDB v2026.1.Hs` (Hallmark, Reactome, GO:BP, KEGG, C2:CGP, C3, C6).
 
